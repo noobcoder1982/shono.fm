@@ -1,0 +1,627 @@
+/* BRUTALIST MUSIC ARCHIVE — DESIGN SYSTEM & TOKENS */
+
+:root, [data-theme="noir"] {
+  --bg-primary: #090909;
+  --bg-secondary: #111111;
+  --bg-tertiary: #161616;
+  --bg-hover: #1e1e1e;
+  --bg-active: #252525;
+  
+  --border-color: #222222;
+  --border-subtle: #1c1c1c;
+  --border-bright: #444444;
+  --border-active: #ffffff;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #8c8c8c;
+  --text-muted: #555555;
+  --text-inverse: #090909;
+
+  --accent-color: #d4af37;
+  --accent-subtle: rgba(212, 175, 55, 0.12);
+
+  --font-display: 'Bebas Neue', -apple-system, sans-serif;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-hero: 'Syne', sans-serif;
+
+  --status-active: #4ade80;
+  --status-warn: #f59e0b;
+  --status-live: #ef4444;
+
+  --bottom-bar-height: 66px;
+}
+
+[data-theme="concrete"] {
+  --bg-primary: #151619;
+  --bg-secondary: #1c1e22;
+  --bg-tertiary: #25282e;
+  --bg-hover: #2e323a;
+  --bg-active: #373c46;
+  --border-color: #2b2f38;
+  --border-subtle: #22252c;
+  --border-bright: #4d5463;
+  --border-active: #e2e8f0;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  --accent-color: #38bdf8;
+  --accent-subtle: rgba(56, 189, 248, 0.12);
+  --status-active: #38bdf8;
+  --status-warn: #fbbf24;
+  --status-live: #f43f5e;
+}
+
+[data-theme="amber"] {
+  --bg-primary: #090703;
+  --bg-secondary: #120e06;
+  --bg-tertiary: #1a1409;
+  --bg-hover: #261e0d;
+  --bg-active: #332812;
+  --border-color: #2e220e;
+  --border-subtle: #1f170a;
+  --border-bright: #61481c;
+  --border-active: #ffb703;
+  --text-primary: #ffb703;
+  --text-secondary: #d49802;
+  --text-muted: #8c6401;
+  --text-inverse: #090703;
+  --accent-color: #ffb703;
+  --accent-subtle: rgba(255, 183, 3, 0.15);
+  --status-active: #ffb703;
+  --status-warn: #fb8500;
+  --status-live: #e63946;
+}
+
+[data-theme="acid"] {
+  --bg-primary: #060907;
+  --bg-secondary: #0b130e;
+  --bg-tertiary: #101c14;
+  --bg-hover: #182b1f;
+  --bg-active: #203a29;
+  --border-color: #1a3021;
+  --border-subtle: #112016;
+  --border-bright: #315c3f;
+  --border-active: #4ade80;
+  --text-primary: #bbf7d0;
+  --text-secondary: #86efac;
+  --text-muted: #22c55e;
+  --text-inverse: #052e16;
+  --accent-color: #4ade80;
+  --accent-subtle: rgba(74, 222, 128, 0.12);
+  --status-active: #4ade80;
+  --status-warn: #facc15;
+  --status-live: #fb7185;
+}
+
+[data-theme="paper"] {
+  --bg-primary: #ebebe5;
+  --bg-secondary: #e0e0d8;
+  --bg-tertiary: #d5d5cb;
+  --bg-hover: #cacabe;
+  --bg-active: #bebeb0;
+  --border-color: #c2c2b6;
+  --border-subtle: #d3d3c8;
+  --border-bright: #98988a;
+  --border-active: #111111;
+  --text-primary: #0f0f0f;
+  --text-secondary: #4b4b45;
+  --text-muted: #787870;
+  --text-inverse: #f5f5f0;
+  --accent-color: #111111;
+  --accent-subtle: rgba(17, 17, 17, 0.1);
+  --status-active: #16a34a;
+  --status-warn: #d97706;
+  --status-live: #dc2626;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Subtle Film Grain Noise Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Brutalist Typography */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-hero {
+  font-family: var(--font-hero);
+}
+
+/* Custom Sharp Brutalist Scrollbars */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Main Layout Grid - Strictly 100vh viewport */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  position: relative;
+}
+
+.archive-layout-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr 350px;
+  height: calc(100vh - var(--bottom-bar-height));
+  max-height: calc(100vh - var(--bottom-bar-height));
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Sidebar Column (Left) */
+.col-sidebar {
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Center Content Column (Archive & Tracks) */
+.col-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* Right Player Column (Now Playing & Queue & Status) */
+.col-player {
+  border-left: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Brutalist Buttons */
+.bma-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  border-radius: 0;
+}
+
+.bma-btn:hover {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+}
+
+.bma-btn:active {
+  opacity: 0.85;
+}
+
+.bma-btn-primary {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+}
+
+.bma-btn-primary:hover {
+  background: #cccccc;
+  color: #000000;
+}
+
+.bma-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.bma-btn-icon:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+}
+
+/* Input Fields */
+.bma-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 10px 14px;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.bma-input:focus {
+  border-color: var(--border-active);
+  background: var(--bg-tertiary);
+}
+
+.bma-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Animated Equalizer Bars */
+.eq-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  width: 14px;
+}
+
+.eq-bar {
+  width: 2px;
+  background-color: var(--text-primary);
+  animation: eq-bounce 1s infinite ease-in-out alternate;
+}
+
+.eq-bar:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.eq-bar:nth-child(2) { height: 90%; animation-delay: 0.4s; }
+.eq-bar:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+.eq-bar:nth-child(4) { height: 100%; animation-delay: 0.5s; }
+
+@keyframes eq-bounce {
+  0% { height: 20%; }
+  50% { height: 100%; }
+  100% { height: 35%; }
+}
+
+/* Track List Table */
+.track-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.track-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 5;
+  padding: 7px 12px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  letter-spacing: 0.06em;
+  font-size: 9px;
+}
+
+.track-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.track-row {
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.track-row:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.track-row.active-row {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-left: 2px solid var(--text-primary);
+}
+
+.track-row.active-row td {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-bright);
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .archive-layout-grid {
+    grid-template-columns: 200px 1fr 300px;
+  }
+}
+
+@media (max-width: 992px) {
+  .archive-layout-grid {
+    grid-template-columns: 70px 1fr;
+  }
+  .col-player {
+    display: none; /* Accessible via drawer/modal */
+  }
+  .col-sidebar .sidebar-quote,
+  .col-sidebar .nav-label,
+  .col-sidebar .logo-sub {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .archive-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .col-sidebar {
+    display: none;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+  .track-table td:nth-child(5),
+  .track-table th:nth-child(5),
+  .track-table td:nth-child(6),
+  .track-table th:nth-child(6) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 007 Vinyl Turntable Animation */
+@keyframes vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Settings Page Full-Screen Layout Grid */
+.settings-layout-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: calc(100vh - var(--bottom-bar-height));
+  max-height: calc(100vh - var(--bottom-bar-height));
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+@media (max-width: 900px) {
+  .settings-layout-grid {
+    grid-template-columns: 70px 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Apple Music Synced Lyrics System
+   ========================================================================== */
+.apple-lyrics-viewport {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+  background: var(--bg-primary);
+}
+
+.apple-lyrics-blur-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(to bottom, var(--bg-primary) 0%, rgba(0, 0, 0, 0.7) 45%, transparent 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
+}
+
+.apple-lyrics-blur-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(to top, var(--bg-primary) 0%, rgba(0, 0, 0, 0.7) 45%, transparent 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  mask-image: linear-gradient(to top, black 25%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 25%, transparent 100%);
+}
+
+.apple-lyrics-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 48px 22px 76px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scroll-behavior: smooth;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+}
+
+.apple-lyrics-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.apple-lyric-item {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: left center;
+}
+
+.apple-lyric-text {
+  display: inline;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.apple-lyric-text.past {
+  color: rgba(255, 255, 255, 0.62);
+  filter: blur(0.4px);
+  opacity: 0.68;
+}
+
+.apple-lyric-text.upcoming {
+  color: rgba(255, 255, 255, 0.32);
+  filter: blur(1.2px);
+  opacity: 0.38;
+}
+
+.apple-lyric-text.inactive {
+  color: rgba(255, 255, 255, 0.35);
+  filter: blur(1px);
+  opacity: 0.42;
+}
+
+.apple-lyric-item:hover .apple-lyric-text.past,
+.apple-lyric-item:hover .apple-lyric-text.upcoming,
+.apple-lyric-item:hover .apple-lyric-text.inactive {
+  filter: blur(0px);
+  opacity: 0.92;
+  color: #ffffff;
+}
+
+.apple-lyric-text.active {
+  font-size: 23px;
+  font-weight: 800;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.25));
+  opacity: 1;
+}
+
+.apple-word {
+  display: inline-block;
+  margin: 0 0.04em;
+  transform-origin: center 80%;
+  background-image: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffffff var(--word-sweep, 0%),
+    rgba(255, 255, 255, 0.36) var(--word-sweep, 0%),
+    rgba(255, 255, 255, 0.36) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.16s ease-out;
+  will-change: transform, filter;
+}
+
