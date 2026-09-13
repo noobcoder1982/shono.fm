@@ -8,6 +8,7 @@ import {
   Check,
   ExternalLink,
 } from 'lucide-react';
+import { SidebarEqualizer } from './SidebarEqualizer';
 
 interface ThemeOption {
   id: BrutalistTheme;
@@ -1642,6 +1643,23 @@ export const SettingsPage: React.FC = () => {
                     48,000 HZ • 24-BIT HIGH FIDELITY
                   </div>
                 </div>
+              </div>
+
+              {/* Live Master Studio Equalizer Module */}
+              <div style={{ marginTop: '14px', maxWidth: '440px' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9px',
+                    letterSpacing: '0.12em',
+                    color: 'var(--text-muted)',
+                    marginBottom: '8px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  LIVE FREQUENCY MATRIX & DSP EQUALIZATION
+                </div>
+                <SidebarEqualizer />
               </div>
             </div>
           </div>

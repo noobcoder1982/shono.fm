@@ -50,20 +50,9 @@ export const ArchiveHeader: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '8px',
           }}
         >
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9px',
-              letterSpacing: '0.12em',
-              color: 'var(--text-secondary)',
-              textTransform: 'uppercase',
-            }}
-          >
-            {activeArchive.curator}
-          </span>
           <button
             onClick={() => playEntireArchive(activeArchive, false)}
             className="bma-btn"
@@ -80,87 +69,6 @@ export const ArchiveHeader: React.FC = () => {
           >
             <Shuffle size={9} style={{ marginRight: '4px' }} /> SHUFFLE
           </button>
-        </div>
-      </div>
-
-      {/* Metadata Columns */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '20px',
-          fontFamily: 'var(--font-mono)',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: '15px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              lineHeight: 1,
-              marginBottom: '2px',
-            }}
-          >
-            {activeArchive.tracks.length}
-          </div>
-          <div
-            style={{
-              fontSize: '8.5px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}
-          >
-            TRACKS
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: '15px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              lineHeight: 1,
-              marginBottom: '2px',
-            }}
-          >
-            {activeArchive.totalDurationFormatted}
-          </div>
-          <div
-            style={{
-              fontSize: '8.5px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}
-          >
-            TOTAL DURATION
-          </div>
-        </div>
-
-        <div className="hide-mobile">
-          <div
-            style={{
-              fontSize: '15px',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              lineHeight: 1,
-              marginBottom: '2px',
-            }}
-          >
-            {activeArchive.importedDate}
-          </div>
-          <div
-            style={{
-              fontSize: '8.5px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}
-          >
-            IMPORTED
-          </div>
         </div>
       </div>
     </div>

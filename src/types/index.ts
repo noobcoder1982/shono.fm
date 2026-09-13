@@ -25,6 +25,7 @@ export interface Archive {
   totalDurationFormatted: string;
   importedDate: string; // "2026-09-10"
   sourceUrl?: string;
+  source?: string;
   coverImage?: string;
   description?: string;
 }

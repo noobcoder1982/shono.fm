@@ -16,6 +16,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { QueueDrawer } from './components/QueueDrawer';
 import { MI6PlayerView } from './components/mi6/MI6PlayerView';
 import { SettingsPage } from './components/SettingsPage';
+import { CollectionsView } from './components/CollectionsView';
+import { GlassyFloatingSearch } from './components/GlassyFloatingSearch';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainLayout: React.FC = () => {
@@ -58,6 +60,15 @@ const MainLayout: React.FC = () => {
         <main className="settings-layout-grid">
           <Sidebar />
           <SettingsPage />
+        </main>
+      ) : activeTab === 'COLLECTIONS' ? (
+        /* 03 / COLLECTIONS Dedicated Repository Vault View */
+        <main className="archive-layout-grid">
+          <Sidebar />
+          <CollectionsView />
+          <aside className="col-player">
+            <SidePlayer />
+          </aside>
         </main>
       ) : playerMode === 'MI6' ? (
         <MI6PlayerView />
@@ -111,6 +122,7 @@ const MainLayout: React.FC = () => {
       <KeyboardShortcutsModal />
       <SettingsModal />
       <QueueDrawer />
+      <GlassyFloatingSearch />
     </div>
   );
 };

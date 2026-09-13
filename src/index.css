@@ -30,6 +30,7 @@
   --status-live: #ef4444;
 
   --bottom-bar-height: 66px;
+  --sidebar-width: 300px;
 }
 
 [data-theme="concrete"] {
@@ -196,7 +197,7 @@ h1, h2, h3, .font-display {
 
 .archive-layout-grid {
   display: grid;
-  grid-template-columns: 220px 1fr 350px;
+  grid-template-columns: var(--sidebar-width, 300px) 1fr 350px;
   height: calc(100vh - var(--bottom-bar-height));
   max-height: calc(100vh - var(--bottom-bar-height));
   width: 100%;
@@ -213,6 +214,8 @@ h1, h2, h3, .font-display {
   height: 100%;
   max-height: 100%;
   overflow: hidden;
+  position: relative;
+  width: 100%;
 }
 
 /* Center Content Column (Archive & Tracks) */
@@ -474,12 +477,51 @@ h1, h2, h3, .font-display {
 /* Settings Page Full-Screen Layout Grid */
 .settings-layout-grid {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: var(--sidebar-width, 300px) 1fr;
   height: calc(100vh - var(--bottom-bar-height));
   max-height: calc(100vh - var(--bottom-bar-height));
   width: 100%;
   overflow: hidden;
   background-color: var(--bg-primary);
+}
+
+/* Draggable Sidebar Resize Handle */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 50;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 28px;
+  background: var(--border-bright);
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.is-resizing {
+  background-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-subtle);
+}
+
+.sidebar-resize-handle:hover::after,
+.sidebar-resize-handle.is-resizing::after {
+  opacity: 1;
+  background: var(--text-inverse);
 }
 
 @media (max-width: 900px) {
@@ -623,5 +665,286 @@ h1, h2, h3, .font-display {
   color: transparent;
   transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.16s ease-out;
   will-change: transform, filter;
+}
+
+/* ==========================================================================
+   APPLE-LIKE GLASSY FLOATING SEARCH BAR & SPOTLIGHT
+   Emerges smoothly from the bottom up to the middle of the screen.
+   ========================================================================== */
+
+.apple-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 16px;
+}
+
+.apple-search-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.apple-search-modal {
+  position: relative;
+  width: 680px;
+  max-width: 100%;
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 20, 25, 0.82);
+  backdrop-filter: blur(48px) saturate(220%);
+  -webkit-backdrop-filter: blur(48px) saturate(220%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  box-shadow:
+    0 40px 100px -15px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
+    0 0 60px rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  /* Emerges from bottom up to center with Apple spring physics */
+  transform: translateY(180px) scale(0.92);
+  opacity: 0;
+  transition:
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease,
+    box-shadow 0.3s ease;
+  will-change: transform, opacity;
+}
+
+.apple-search-overlay.is-open .apple-search-modal {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Glassy Top Ambient Rim */
+.apple-search-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 25%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.5) 75%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Apple Search Input Bar */
+.apple-search-input-wrap {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  position: relative;
+}
+
+.apple-search-icon-orb {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.apple-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Space Grotesk", sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: #ffffff;
+  caret-color: #38bdf8;
+}
+
+.apple-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 400;
+}
+
+/* Clear button */
+.apple-search-clear-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apple-search-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+.apple-search-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+/* Category Filter Pills */
+.apple-search-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.apple-search-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.apple-search-pill.active {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.apple-search-pill:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.apple-search-pill:not(.active):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Results Content Area */
+.apple-search-results-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 440px;
+}
+
+.apple-search-results-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.apple-search-results-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.apple-search-results-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.apple-search-results-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Individual Result Item */
+.apple-search-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  user-select: none;
+}
+
+.apple-search-item:hover,
+.apple-search-item.is-selected {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.apple-search-item.is-playing {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+/* Top Match Spotlight Hero Card */
+.apple-search-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin-bottom: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Apple-style Bottom Status Footer */
+.apple-search-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.06em;
 }
 

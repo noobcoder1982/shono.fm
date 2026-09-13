@@ -17,6 +17,7 @@ interface PlayerContextType {
   repeatMode: RepeatMode;
   queue: Track[];
   searchQuery: string;
+  isSearchOpen: boolean;
   likedTrackIds: string[];
   selectedTrackForDetail: Track | null;
   isShortcutsOpen: boolean;
@@ -54,6 +55,7 @@ interface PlayerContextType {
   playEntireArchive: (archive: Archive, shuffle?: boolean) => void;
   toggleLike: (trackId: string) => void;
   setSearchQuery: (query: string) => void;
+  setIsSearchOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   openTrackDetail: (track: Track | null) => void;
   setIsShortcutsOpen: (open: boolean) => void;
   setIsSettingsOpen: (open: boolean) => void;
@@ -98,6 +100,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [likedTrackIds, setLikedTrackIds] = useState<string[]>(() => storage.getLikedTracks());
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedTrackForDetail, setSelectedTrackForDetail] = useState<Track | null>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -448,6 +451,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         repeatMode,
         queue,
         searchQuery,
+        isSearchOpen,
         likedTrackIds,
         selectedTrackForDetail,
         isShortcutsOpen,
@@ -484,6 +488,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         playEntireArchive,
         toggleLike,
         setSearchQuery,
+        setIsSearchOpen,
         openTrackDetail: setSelectedTrackForDetail,
         setIsShortcutsOpen,
         setIsSettingsOpen,

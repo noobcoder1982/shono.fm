@@ -9,6 +9,7 @@ export const MyArchives: React.FC = () => {
     setActiveArchive,
     playEntireArchive,
     deleteArchive,
+    setActiveTab,
   } = usePlayer();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,10 +43,14 @@ export const MyArchives: React.FC = () => {
         flexShrink: 0,
       }}
     >
-      {/* Title */}
+      {/* Title / Click to open COLLECTIONS tab */}
       <div
+        onClick={() => setActiveTab('COLLECTIONS')}
+        role="button"
+        tabIndex={0}
+        title="Open Collections Vault (03 / COLLECTIONS)"
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
           fontFamily: 'var(--font-mono)',
@@ -53,7 +58,12 @@ export const MyArchives: React.FC = () => {
           letterSpacing: '0.14em',
           color: 'var(--text-secondary)',
           marginBottom: '6px',
+          cursor: 'pointer',
+          width: 'fit-content',
+          transition: 'color 0.15s ease',
         }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
       >
         <span>MY ARCHIVES</span>
         <span>→</span>

@@ -55,30 +55,14 @@ export const PlaylistImporter: React.FC = () => {
             SHONO<br />ARCHIVE
           </h1>
         </div>
-
-        <div
-          style={{
-            textAlign: 'right',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9px',
-            color: 'var(--text-secondary)',
-            letterSpacing: '0.08em',
-            lineHeight: 1.4,
-          }}
-        >
-          <div>DIGITAL MUSIC INDEX</div>
-          <div style={{ color: 'var(--text-primary)' }}>/ PLAYLIST INGESTION SYSTEM</div>
-        </div>
       </div>
 
       {/* Main Ingestion Input Form */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: '16px',
+          display: 'flex',
           alignItems: 'center',
-          marginBottom: '8px',
+          marginBottom: errorMessage ? '8px' : '0px',
         }}
       >
         <form
@@ -123,39 +107,6 @@ export const PlaylistImporter: React.FC = () => {
             {isImporting ? 'INGESTING...' : 'IMPORT →'}
           </button>
         </form>
-
-        {/* Technical Taxonomy Tags (Right Column) */}
-        <div
-          className="hide-mobile"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '8px',
-            letterSpacing: '0.1em',
-            color: 'var(--text-muted)',
-            lineHeight: 1.4,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          YOUTUBE /<br />
-          YOUTUBE MUSIC /<br />
-          PLAYLISTS /<br />
-          ARCHIVE /<br />
-          FOREVER /
-        </div>
-      </div>
-
-      {/* Supporting Copy */}
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '8.5px',
-          color: 'var(--text-secondary)',
-          letterSpacing: '0.12em',
-          lineHeight: 1.3,
-          textTransform: 'uppercase',
-        }}
-      >
-        IMPORT A PLAYLIST. &nbsp; BUILD AN ARCHIVE. &nbsp; PRESS PLAY.
       </div>
 
       {/* Ingestion Technical Loading Terminal Modal / Overlay */}

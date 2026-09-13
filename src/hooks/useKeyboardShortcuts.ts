@@ -16,12 +16,21 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     selectedTrackForDetail,
     isShortcutsOpen,
     isSettingsOpen,
+    isSearchOpen,
+    setIsSearchOpen,
     activeTab,
     setActiveTab,
   } = usePlayer();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Global Cmd/Ctrl+K shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+        return;
+      }
+
       // Don't trigger when user is typing in an input, textarea or contenteditable element
       const target = e.target as HTMLElement | null;
       if (
@@ -32,6 +41,7 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
       ) {
         if (e.key === 'Escape') {
           target.blur();
+          setIsSearchOpen(false);
         }
         return;
       }
@@ -68,10 +78,7 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
           break;
         case '/':
           e.preventDefault();
-          if (searchInputRef && searchInputRef.current) {
-            searchInputRef.current.focus();
-            searchInputRef.current.select();
-          }
+          setIsSearchOpen(true);
           break;
         case 'q':
         case 'Q':
@@ -84,10 +91,14 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
           break;
         case 'Escape':
           e.preventDefault();
+          if (isSearchOpen) {
+            setIsSearchOpen(false);
+            break;
+          }
           if (isShortcutsOpen) setIsShortcutsOpen(false);
           if (isSettingsOpen) setIsSettingsOpen(false);
           if (selectedTrackForDetail) openTrackDetail(null);
-          if (activeTab === 'SETTINGS') setActiveTab('ARCHIVE');
+          if (activeTab === 'SETTINGS' || activeTab === 'COLLECTIONS') setActiveTab('ARCHIVE');
           break;
         default:
           break;
@@ -110,6 +121,8 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     selectedTrackForDetail,
     isShortcutsOpen,
     isSettingsOpen,
+    isSearchOpen,
+    setIsSearchOpen,
     activeTab,
     setActiveTab,
     searchInputRef,

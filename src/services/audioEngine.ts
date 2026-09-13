@@ -36,6 +36,13 @@ class AudioEngine {
   private crackleSourceNode: AudioBufferSourceNode | null = null;
   private isCrackleEnabled = false;
 
+  // Web Audio Equalizer (10 ISO Bands)
+  private eqFilters: BiquadFilterNode[] = [];
+  private preampNode: GainNode | null = null;
+  private eqBands: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  private isEqEnabled = true;
+  private preampDb = 0;
+
   // Listeners
   private onStatusChange: StatusCallback | null = null;
   private onTimeUpdate: TimeCallback | null = null;
@@ -159,11 +166,93 @@ class AudioEngine {
       this.analyser.fftSize = 64;
       this.gainNode = this.audioCtx.createGain();
       this.gainNode.gain.value = (this.volume / 100) * 0.45; // Clear, audible master level
-      this.gainNode.connect(this.analyser);
+
+      // Preamp Gain Node (-6dB to +6dB)
+      this.preampNode = this.audioCtx.createGain();
+      this.preampNode.gain.value = Math.pow(10, this.preampDb / 20);
+
+      // 10 ISO Equalizer Biquad Filters (32Hz to 16kHz)
+      const FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+      this.eqFilters = FREQUENCIES.map((freq, idx) => {
+        const filter = this.audioCtx!.createBiquadFilter();
+        if (idx === 0) {
+          filter.type = 'lowshelf';
+        } else if (idx === FREQUENCIES.length - 1) {
+          filter.type = 'highshelf';
+        } else {
+          filter.type = 'peaking';
+          filter.Q.value = 1.4;
+        }
+        filter.frequency.value = freq;
+        filter.gain.value = this.isEqEnabled ? (this.eqBands[idx] || 0) : 0;
+        return filter;
+      });
+
+      // Chain: gainNode -> preampNode -> filter[0] -> ... -> filter[9] -> analyser -> destination
+      this.gainNode.connect(this.preampNode);
+      let lastNode: AudioNode = this.preampNode;
+      for (const filter of this.eqFilters) {
+        lastNode.connect(filter);
+        lastNode = filter;
+      }
+      lastNode.connect(this.analyser);
       this.analyser.connect(this.audioCtx.destination);
     } catch (e) {
       console.warn('[AudioEngine] Web Audio init error:', e);
     }
+  }
+
+  public setEqualizerBands(bands: number[]) {
+    this.eqBands = [...bands];
+    if (!this.audioCtx || this.eqFilters.length === 0) return;
+    const now = this.audioCtx.currentTime;
+    this.eqFilters.forEach((filter, idx) => {
+      const gainVal = this.isEqEnabled ? (this.eqBands[idx] || 0) : 0;
+      try {
+        filter.gain.cancelScheduledValues(now);
+        filter.gain.setValueAtTime(filter.gain.value, now);
+        filter.gain.linearRampToValueAtTime(gainVal, now + 0.05);
+      } catch {
+        filter.gain.value = gainVal;
+      }
+    });
+  }
+
+  public setEqEnabled(enabled: boolean) {
+    this.isEqEnabled = enabled;
+    if (!this.audioCtx || this.eqFilters.length === 0) return;
+    const now = this.audioCtx.currentTime;
+    this.eqFilters.forEach((filter, idx) => {
+      const gainVal = enabled ? (this.eqBands[idx] || 0) : 0;
+      try {
+        filter.gain.cancelScheduledValues(now);
+        filter.gain.setValueAtTime(filter.gain.value, now);
+        filter.gain.linearRampToValueAtTime(gainVal, now + 0.05);
+      } catch {
+        filter.gain.value = gainVal;
+      }
+    });
+  }
+
+  public setPreamp(gainDb: number) {
+    this.preampDb = gainDb;
+    if (!this.audioCtx || !this.preampNode) return;
+    const linearGain = Math.pow(10, gainDb / 20);
+    const now = this.audioCtx.currentTime;
+    try {
+      this.preampNode.gain.cancelScheduledValues(now);
+      this.preampNode.gain.linearRampToValueAtTime(linearGain, now + 0.05);
+    } catch {
+      this.preampNode.gain.value = linearGain;
+    }
+  }
+
+  public getEqualizerBands(): number[] {
+    return [...this.eqBands];
+  }
+
+  public isEqualizerEnabled(): boolean {
+    return this.isEqEnabled;
   }
 
   public setCallbacks(callbacks: {
