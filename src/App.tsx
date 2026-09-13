@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import gsap from 'gsap';
 import { PlayerProvider, usePlayer } from './context/PlayerContext';
 import { Sidebar } from './components/Sidebar';
@@ -118,6 +119,7 @@ export function App() {
   return (
     <PlayerProvider>
       <MainLayout />
+      <Analytics />
     </PlayerProvider>
   );
 }
