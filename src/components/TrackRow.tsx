@@ -18,7 +18,10 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
     toggleLike,
     likedTrackIds,
     openTrackDetail,
+    theme,
   } = usePlayer();
+
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -65,10 +68,17 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
         style={{
           width: '46px',
           color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
-          fontSize: '10px',
+          fontSize: isAppleGlass ? '12px' : '10px',
+          fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
         }}
       >
-        {isCurrent ? (
+        {isAppleGlass ? (
+          isCurrent ? (
+            <span style={{ fontWeight: 700, color: 'var(--accent-color)' }}>{index + 1}</span>
+          ) : (
+            <span>{index + 1}</span>
+          )
+        ) : isCurrent ? (
           <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>| {formattedIndex}</span>
         ) : (
           formattedIndex
@@ -76,13 +86,14 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
       </td>
 
       {/* Thumbnail */}
-      <td style={{ width: '48px', padding: '6px 8px' }}>
+      <td style={{ width: isAppleGlass ? '52px' : '48px', padding: '6px 8px' }}>
         <div
           style={{
-            width: '32px',
-            height: '32px',
+            width: isAppleGlass ? '36px' : '32px',
+            height: isAppleGlass ? '36px' : '32px',
+            borderRadius: isAppleGlass ? '8px' : '0',
             background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
+            border: isAppleGlass ? 'none' : '1px solid var(--border-color)',
             overflow: 'hidden',
             position: 'relative',
           }}
@@ -94,7 +105,8 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              filter: 'grayscale(100%) contrast(115%)',
+              filter: isAppleGlass ? 'none' : 'grayscale(100%) contrast(115%)',
+              borderRadius: isAppleGlass ? '8px' : '0',
             }}
           />
         </div>

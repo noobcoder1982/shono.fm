@@ -23,7 +23,10 @@ export const Sidebar: React.FC = () => {
     setIsSearchOpen,
     playerMode,
     setPlayerMode,
+    theme,
   } = usePlayer();
+
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
   // Custom adjustable sidebar width state (persisted in localStorage)
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
@@ -87,12 +90,19 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  const navItems = [
-    { id: 'ARCHIVE', label: '01 / ARCHIVE', index: '01' },
-    { id: 'SEARCH', label: '02 / SEARCH', index: '02' },
-    { id: 'COLLECTIONS', label: '03 / COLLECTIONS', index: '03' },
-    { id: 'SETTINGS', label: '04 / SETTINGS', index: '04' },
-  ];
+  const navItems = isAppleGlass
+    ? [
+        { id: 'ARCHIVE', label: 'Library', index: '' },
+        { id: 'SEARCH', label: 'Search', index: '' },
+        { id: 'COLLECTIONS', label: 'Collections', index: '' },
+        { id: 'SETTINGS', label: 'Settings', index: '' },
+      ]
+    : [
+        { id: 'ARCHIVE', label: '01 / ARCHIVE', index: '01' },
+        { id: 'SEARCH', label: '02 / SEARCH', index: '02' },
+        { id: 'COLLECTIONS', label: '03 / COLLECTIONS', index: '03' },
+        { id: 'SETTINGS', label: '04 / SETTINGS', index: '04' },
+      ];
 
   const handleNavClick = (id: string) => {
     if (id === 'SEARCH') {
@@ -121,13 +131,15 @@ export const Sidebar: React.FC = () => {
         position: 'relative',
       }}
     >
-      {/* Draggable Custom Resize Bar on Right Border */}
-      <div
-        className={`sidebar-resize-handle ${isResizing ? 'is-resizing' : ''}`}
-        onMouseDown={handleResizeMouseDown}
-        onDoubleClick={handleResetWidth}
-        title="Drag horizontally to resize sidebar width (Double-click to reset)"
-      />
+      {/* Draggable Custom Resize Bar on Right Border (Hidden in Apple Glass) */}
+      {!isAppleGlass && (
+        <div
+          className={`sidebar-resize-handle ${isResizing ? 'is-resizing' : ''}`}
+          onMouseDown={handleResizeMouseDown}
+          onDoubleClick={handleResetWidth}
+          title="Drag horizontally to resize sidebar width (Double-click to reset)"
+        />
+      )}
 
       {/* Live Resizing Tooltip Badge */}
       {isResizing && (
@@ -153,54 +165,157 @@ export const Sidebar: React.FC = () => {
       )}
 
       {/* Brand & Logo Header */}
-      <div
-        style={{
-          padding: '16px 18px',
-          borderBottom: '1px solid var(--border-color)',
-          flexShrink: 0,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '32px',
-              lineHeight: 0.95,
-              letterSpacing: '0.04em',
-              color: 'var(--text-primary)',
-            }}
-          >
-            SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
-          </div>
-        </div>
-
-        {/* Live Broadcast Engine Tag */}
+      {isAppleGlass ? (
         <div
           style={{
+            padding: '16px 18px 12px 18px',
+            flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-subtle)',
-            padding: '3px 6px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '7.5px',
-            color: 'var(--status-active)',
+            gap: '12px',
           }}
         >
-          <Radio size={9} />
-          <span>48kHz</span>
+          <div
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, var(--accent-color), #ff6b8b)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '15px',
+              boxShadow: '0 4px 14px rgba(250, 45, 72, 0.35)',
+            }}
+          >
+            S
+          </div>
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '20px',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+                color: 'var(--text-primary)',
+              }}
+            >
+              Shono
+            </div>
+            <div
+              style={{
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                fontWeight: 500,
+              }}
+            >
+              Music Vault
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div
+          style={{
+            padding: '16px 18px',
+            borderBottom: '1px solid var(--border-color)',
+            flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '32px',
+                lineHeight: 0.95,
+                letterSpacing: '0.04em',
+                color: 'var(--text-primary)',
+              }}
+            >
+              SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
+            </div>
+          </div>
+
+          {/* Live Broadcast Engine Tag */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              padding: '3px 6px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '7.5px',
+              color: 'var(--status-active)',
+            }}
+          >
+            <Radio size={9} />
+            <span>48kHz</span>
+          </div>
+        </div>
+      )}
 
       {/* Main Navigation */}
-      <nav style={{ padding: '6px 0', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
+      <nav
+        style={{
+          padding: isAppleGlass ? '6px 8px' : '6px 0',
+          borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-color)',
+          flexShrink: 0,
+        }}
+      >
         {navItems.map((item) => {
-          const isActive = (item.id === 'SEARCH' ? isSearchOpen : activeTab === item.id);
+          const isActive = item.id === 'SEARCH' ? isSearchOpen : activeTab === item.id;
           const isAccentActive = item.id === 'SETTINGS' && isActive;
+
+          if (isAppleGlass) {
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                className={`sidebar-nav-btn ${isActive ? 'is-active' : ''}`}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '9px 16px',
+                  borderRadius: '16px',
+                  margin: '3px 0',
+                  background: isActive ? 'var(--glass-bg-active)' : 'transparent',
+                  border: 'none',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 600 : 500,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span className="nav-label">{item.label}</span>
+                {item.id === 'COLLECTIONS' && archives.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      color: 'var(--text-muted)',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      padding: '2px 7px',
+                      borderRadius: '999px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {archives.length}
+                  </span>
+                )}
+              </button>
+            );
+          }
 
           return (
             <button
@@ -266,37 +381,39 @@ export const Sidebar: React.FC = () => {
           );
         })}
 
-        {/* 007 / MI6 Player Mode Selector */}
-        <div style={{ padding: '6px 16px 4px 16px', borderTop: '1px solid var(--border-subtle)', marginTop: '4px' }}>
-          <button
-            onClick={() => setPlayerMode(playerMode === 'MI6' ? 'ARCHIVE' : 'MI6')}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '7px 12px',
-              background: playerMode === 'MI6' ? 'rgba(212,175,55,0.15)' : 'var(--bg-secondary)',
-              border: playerMode === 'MI6' ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
-              color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-secondary)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9.5px',
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            title="Toggle 007 / MI6 Vinyl Turntable Mode"
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <Disc size={13} color={playerMode === 'MI6' ? 'var(--accent-color)' : 'currentColor'} />
-              <span>{playerMode === 'MI6' ? 'MI6 MODE ENGAGED' : '007 / MI6 MODE'}</span>
-            </span>
-            <span style={{ fontSize: '8px', opacity: 0.9 }}>
-              {playerMode === 'MI6' ? '●' : '○'}
-            </span>
-          </button>
-        </div>
+        {/* 007 / MI6 Player Mode Selector (Only in Brutalist themes) */}
+        {!isAppleGlass && (
+          <div style={{ padding: '6px 16px 4px 16px', borderTop: '1px solid var(--border-subtle)', marginTop: '4px' }}>
+            <button
+              onClick={() => setPlayerMode(playerMode === 'MI6' ? 'ARCHIVE' : 'MI6')}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '7px 12px',
+                background: playerMode === 'MI6' ? 'rgba(212,175,55,0.15)' : 'var(--bg-secondary)',
+                border: playerMode === 'MI6' ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
+                color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-secondary)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9.5px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Toggle 007 / MI6 Vinyl Turntable Mode"
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <Disc size={13} color={playerMode === 'MI6' ? 'var(--accent-color)' : 'currentColor'} />
+                <span>{playerMode === 'MI6' ? 'MI6 MODE ENGAGED' : '007 / MI6 MODE'}</span>
+              </span>
+              <span style={{ fontSize: '8px', opacity: 0.9 }}>
+                {playerMode === 'MI6' ? '●' : '○'}
+              </span>
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Main Interactive Middle Surface Area (Spacious & Nicely Spaced) */}
@@ -322,30 +439,45 @@ export const Sidebar: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             width: '100%',
-            padding: '8px 12px',
-            background: showFavouritesOnly ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
-            border: showFavouritesOnly ? '1px solid var(--status-live)' : '1px solid var(--border-color)',
+            padding: isAppleGlass ? '9px 14px' : '8px 12px',
+            borderRadius: isAppleGlass ? '14px' : '0',
+            background: showFavouritesOnly
+              ? isAppleGlass ? 'rgba(255, 45, 85, 0.15)' : 'var(--bg-secondary)'
+              : isAppleGlass ? 'var(--glass-bg-secondary)' : 'var(--bg-tertiary)',
+            border: showFavouritesOnly
+              ? '1px solid var(--status-live)'
+              : isAppleGlass ? '1px solid var(--glass-border)' : '1px solid var(--border-color)',
             color: showFavouritesOnly ? 'var(--status-live)' : 'var(--text-primary)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '10px',
-            letterSpacing: '0.08em',
+            fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+            fontSize: isAppleGlass ? '12px' : '10px',
+            fontWeight: isAppleGlass ? 500 : 400,
+            letterSpacing: isAppleGlass ? 'normal' : '0.08em',
             cursor: 'pointer',
             textAlign: 'left',
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            if (!showFavouritesOnly) e.currentTarget.style.borderColor = 'var(--border-bright)';
+            if (!showFavouritesOnly) e.currentTarget.style.borderColor = isAppleGlass ? 'var(--glass-border-bright)' : 'var(--border-bright)';
           }}
           onMouseLeave={(e) => {
-            if (!showFavouritesOnly) e.currentTarget.style.borderColor = 'var(--border-color)';
+            if (!showFavouritesOnly) e.currentTarget.style.borderColor = isAppleGlass ? 'var(--glass-border)' : 'var(--border-color)';
           }}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <Heart size={12} fill={likedTrackIds.length > 0 ? 'var(--status-live)' : 'none'} color="var(--status-live)" />
-            FAVOURITES ARCHIVE
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Heart size={14} fill={likedTrackIds.length > 0 ? 'var(--status-live)' : 'none'} color="var(--status-live)" />
+            <span>{isAppleGlass ? 'Favorites' : 'FAVOURITES ARCHIVE'}</span>
           </span>
-          <span style={{ color: 'var(--text-muted)', fontWeight: 700 }}>
-            [{likedTrackIds.length.toString().padStart(2, '0')}]
+          <span
+            style={{
+              color: 'var(--text-muted)',
+              fontWeight: 600,
+              fontSize: isAppleGlass ? '11px' : '9px',
+              background: isAppleGlass ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+              padding: isAppleGlass ? '2px 8px' : '0',
+              borderRadius: isAppleGlass ? '999px' : '0',
+            }}
+          >
+            {isAppleGlass ? likedTrackIds.length : `[${likedTrackIds.length.toString().padStart(2, '0')}]`}
           </span>
         </button>
 
@@ -359,8 +491,9 @@ export const Sidebar: React.FC = () => {
             onClick={() => activeArchive && playEntireArchive(activeArchive, true)}
             style={{
               flex: 1,
-              padding: '7px 10px',
-              fontSize: '9px',
+              padding: isAppleGlass ? '8px 12px' : '7px 10px',
+              fontSize: isAppleGlass ? '11px' : '9px',
+              borderRadius: isAppleGlass ? '999px' : '0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -368,15 +501,19 @@ export const Sidebar: React.FC = () => {
             }}
             title="Shuffle play active archive"
           >
-            <Shuffle size={11} /> SHUFFLE ARCHIVE
+            <Shuffle size={12} /> {isAppleGlass ? 'Shuffle All' : 'SHUFFLE ARCHIVE'}
           </button>
           <button
             className="bma-btn"
             onClick={() => setIsShortcutsOpen(true)}
-            style={{ padding: '7px 12px', fontSize: '9px' }}
+            style={{
+              padding: isAppleGlass ? '8px 14px' : '7px 12px',
+              fontSize: isAppleGlass ? '11px' : '9px',
+              borderRadius: isAppleGlass ? '999px' : '0',
+            }}
             title="Keyboard shortcuts (⌘ / ?)"
           >
-            <Command size={11} />
+            <Command size={12} />
           </button>
         </div>
       </div>

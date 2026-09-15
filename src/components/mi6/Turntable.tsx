@@ -37,7 +37,6 @@ export const Turntable: React.FC<TurntableProps> = ({
   onDropTrack,
 }) => {
   // Smooth continuous physical rotation state
-  const [recordAngle, setRecordAngle] = useState(0);
   const angleRef = useRef(0);
   const isScratchingRef = useRef(false);
   const lastTimeRef = useRef<number | null>(null);
@@ -59,6 +58,14 @@ export const Turntable: React.FC<TurntableProps> = ({
   const [isDragOverPlatter, setIsDragOverPlatter] = useState(false);
   const [isDroppingDisc, setIsDroppingDisc] = useState(false);
 
+  // Reset lastTimeRef when isPlaying changes so rotation resumes smoothly
+  useEffect(() => {
+    lastTimeRef.current = null;
+    if (recordRef.current) {
+      recordRef.current.style.transform = `rotate(${angleRef.current}deg) scale(${isDroppingDisc ? 1.08 : 1})`;
+    }
+  }, [isPlaying, isDroppingDisc]);
+
   // Continuous realistic turntable motor rotation loop
   useEffect(() => {
     let animId: number;
@@ -69,8 +76,11 @@ export const Turntable: React.FC<TurntableProps> = ({
     const tick = (now: number) => {
       if (lastTimeRef.current !== null && isPlaying && !isScratchingRef.current) {
         const dt = (now - lastTimeRef.current) / 1000;
-        angleRef.current = (angleRef.current + degreesPerSecond * dt) % 360;
-        setRecordAngle(angleRef.current);
+        // Continuous, smooth forward rotation without modulo 360 wrap-around
+        angleRef.current += degreesPerSecond * dt;
+        if (recordRef.current) {
+          recordRef.current.style.transform = `rotate(${angleRef.current}deg) scale(${isDroppingDisc ? 1.08 : 1})`;
+        }
       }
       lastTimeRef.current = now;
       animId = requestAnimationFrame(tick);
@@ -78,7 +88,7 @@ export const Turntable: React.FC<TurntableProps> = ({
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, speed, pitch]);
+  }, [isPlaying, speed, pitch, isDroppingDisc]);
 
   // Throttled seek callback for scrubbing
   const throttledSeek = useCallback(
@@ -140,9 +150,11 @@ export const Turntable: React.FC<TurntableProps> = ({
     accumulatedDeltaAngleRef.current += delta;
     totalPointerDistanceRef.current += Math.abs(delta);
 
-    // Update physical rotation angle
-    angleRef.current = (angleRef.current + (delta * 180) / Math.PI) % 360;
-    setRecordAngle(angleRef.current);
+    // Update physical rotation angle smoothly without modulo 360
+    angleRef.current += (delta * 180) / Math.PI;
+    if (recordRef.current) {
+      recordRef.current.style.transform = `rotate(${angleRef.current}deg) scale(${isDroppingDisc ? 1.08 : 1})`;
+    }
 
     // 1 full 360° turn (2 * PI radians) = 15 seconds scrub
     const SECONDS_PER_TURN = 15;
@@ -388,12 +400,9 @@ export const Turntable: React.FC<TurntableProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transform: `rotate(${recordAngle}deg) scale(${isDroppingDisc ? 1.08 : 1})`,
-              transition: isScratching
-                ? 'none'
-                : isDroppingDisc
+              transition: isDroppingDisc
                 ? 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                : 'transform 0.08s linear',
+                : 'none',
               touchAction: 'none',
               userSelect: 'none',
             }}

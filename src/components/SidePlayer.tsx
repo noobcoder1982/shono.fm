@@ -1,21 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AppleLyrics } from './AppleLyrics';
 import { MasterWaveform } from './MasterWaveform';
 import {
-  Shuffle,
-  SkipBack,
-  Play,
-  Pause,
-  SkipForward,
-  Repeat,
-  Repeat1,
-  Heart,
   MoreVertical,
   Disc,
   Trash2,
   ChevronUp,
   ChevronDown,
+  RotateCcw,
 } from 'lucide-react';
 
 type SidePlayerTab = 'LYRICS' | 'LIVE' | 'QUEUE';
@@ -26,49 +19,103 @@ export const SidePlayer: React.FC = () => {
     playbackStatus,
     currentTime,
     duration,
-    togglePlayPause,
-    playNext,
-    playPrev,
     seek,
-    isShuffle,
-    toggleShuffle,
-    repeatMode,
-    cycleRepeat,
     openTrackDetail,
-    likedTrackIds,
-    toggleLike,
     queue,
     clearQueue,
     removeFromQueue,
     playTrack,
     reorderQueue,
+    theme,
   } = usePlayer();
 
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
+
   const [activeTab, setActiveTab] = useState<SidePlayerTab>('LYRICS');
-  const [isScrubbing, setIsScrubbing] = useState<boolean>(false);
-  const [scrubTime, setScrubTime] = useState<number>(0);
+
+  // Live playback head tracking & Jump to Live control
+  const [isLivePosition, setIsLivePosition] = useState<boolean>(true);
+  const liveHeadRef = useRef<number>(currentTime);
+  const prevTimeRef = useRef<number>(currentTime);
+  const lastWallClockRef = useRef<number>(performance.now());
+  const trackIdRef = useRef<string | null>(currentTrack ? currentTrack.id : null);
 
   const isPlaying = playbackStatus === 'PLAYING';
-  const isLiked = currentTrack ? likedTrackIds.includes(currentTrack.id) : false;
 
-  // Scrubber calculation
-  const effectiveTime = isScrubbing ? scrubTime : currentTime;
-  const progressRatio = duration > 0 ? Math.min(1, Math.max(0, effectiveTime / duration)) : 0;
-  const progressPercent = (progressRatio * 100).toFixed(2);
+  // Track playback time to detect external seeks or natural progression
+  useEffect(() => {
+    // Reset live state when track changes
+    if (currentTrack?.id !== trackIdRef.current) {
+      trackIdRef.current = currentTrack ? currentTrack.id : null;
+      liveHeadRef.current = currentTime;
+      prevTimeRef.current = currentTime;
+      lastWallClockRef.current = performance.now();
+      setIsLivePosition(true);
+      return;
+    }
 
-  const handleScrubberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    setScrubTime(val);
+    const now = performance.now();
+    const dt = (now - lastWallClockRef.current) / 1000;
+    lastWallClockRef.current = now;
+
+    const expectedDelta = isPlaying ? dt : 0;
+    const actualDelta = currentTime - prevTimeRef.current;
+    const timeJump = Math.abs(actualDelta - expectedDelta);
+
+    // Noticeable jump outside standard linear playback (scrub / seek)
+    if (timeJump > 1.2) {
+      if (isLivePosition) {
+        liveHeadRef.current = prevTimeRef.current;
+        setIsLivePosition(false);
+      } else {
+        if (Math.abs(currentTime - liveHeadRef.current) <= 1.2) {
+          setIsLivePosition(true);
+        }
+      }
+    } else {
+      if (isLivePosition) {
+        liveHeadRef.current = currentTime;
+      } else {
+        if (isPlaying && dt > 0 && dt < 2) {
+          liveHeadRef.current = Math.min(duration || Infinity, liveHeadRef.current + dt);
+        }
+        if (currentTime >= liveHeadRef.current - 0.5) {
+          setIsLivePosition(true);
+        }
+      }
+    }
+
+    prevTimeRef.current = currentTime;
+  }, [currentTime, isPlaying, duration, currentTrack?.id, isLivePosition]);
+
+  const handleSeek = (targetTime: number) => {
+    if (isLivePosition) {
+      if (Math.abs(targetTime - currentTime) > 1.0) {
+        liveHeadRef.current = currentTime;
+        setIsLivePosition(false);
+      }
+    } else {
+      if (Math.abs(targetTime - liveHeadRef.current) <= 1.0) {
+        setIsLivePosition(true);
+      }
+    }
+    prevTimeRef.current = targetTime;
+    seek(targetTime);
   };
 
-  const handleScrubberStart = () => {
-    setIsScrubbing(true);
+  const handleJumpToLive = () => {
+    if (!isLivePosition) {
+      const target = Math.min(duration || Infinity, Math.max(0, liveHeadRef.current));
+      prevTimeRef.current = target;
+      seek(target);
+      setIsLivePosition(true);
+    }
+    if (activeTab !== 'LIVE') {
+      setActiveTab('LIVE');
+    }
   };
 
-  const handleScrubberEnd = () => {
-    seek(scrubTime);
-    setIsScrubbing(false);
-  };
+
 
   const handleMoveUp = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -159,343 +206,244 @@ export const SidePlayer: React.FC = () => {
         transition: 'background-color 0.2s ease',
       }}
     >
-      {/* 1. TOP HEADER (Image 1 reference) */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '14px 20px 10px 20px',
-          flexShrink: 0,
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '3px', height: '15px', background: 'var(--accent-color)', borderRadius: '1px' }} />
-          <div>
+      <style>{`
+        @keyframes liveEq1 {
+          0%, 100% { height: 4px; }
+          50% { height: 9px; }
+        }
+        @keyframes liveEq2 {
+          0%, 100% { height: 12px; }
+          50% { height: 6px; }
+        }
+        @keyframes liveEq3 {
+          0%, 100% { height: 5px; }
+          50% { height: 11px; }
+        }
+        @keyframes liveEq4 {
+          0%, 100% { height: 8px; }
+          50% { height: 3px; }
+        }
+      `}</style>
+      {/* 1. TOP HEADER */}
+      {isAppleGlass ? (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 20px 8px 20px',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
+            }}
+          >
+            Now Playing
+          </div>
+
+          <button
+            onClick={() => openTrackDetail(currentTrack)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '6px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease',
+            }}
+            title="Open Track Dossier & Specifications"
+          >
+            <MoreVertical size={15} />
+          </button>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '14px 20px 10px 20px',
+            flexShrink: 0,
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '3px', height: '15px', background: 'var(--accent-color)', borderRadius: '1px' }} />
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '15px',
+                  letterSpacing: '0.08em',
+                  lineHeight: 1,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '8px',
+                  letterSpacing: '0.15em',
+                  color: 'var(--text-secondary)',
+                  marginTop: '1px',
+                }}
+              >
+                NOW PLAYING
+              </div>
+            </div>
+          </div>
+
+          {/* Dossier Details Button */}
+          <button
+            onClick={() => openTrackDetail(currentTrack)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'color 0.15s ease',
+            }}
+            title="Open Track Dossier & Specifications"
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          >
+            <MoreVertical size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* 2. ALBUM ARTWORK CONTAINER */}
+      {isAppleGlass ? (
+        <div
+          style={{
+            padding: '10px 22px 14px 22px',
+            flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <div
+            className="sideplayer-art-card"
+            onClick={() => openTrackDetail(currentTrack)}
+            style={{
+              width: '100%',
+              maxWidth: '250px',
+              aspectRatio: '1 / 1',
+              borderRadius: '26px',
+              overflow: 'hidden',
+              border: 'none',
+              background: '#000',
+              position: 'relative',
+              cursor: 'pointer',
+              boxShadow: '0 24px 50px var(--ambient-color-1, rgba(0,0,0,0.5)), 0 6px 18px rgba(0,0,0,0.3)',
+              transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            title="Click to view full dossier"
+          >
+            <img
+              src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
+              alt={currentTrack.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                borderRadius: '26px',
+                filter: 'none',
+              }}
+            />
+          </div>
+
+          {/* Song Title & Artist Metadata directly below artwork */}
+          <div style={{ textAlign: 'center', marginTop: '12px', width: '100%', padding: '0 8px' }}>
             <div
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: '15px',
-                letterSpacing: '0.08em',
-                lineHeight: 1,
-                color: 'var(--text-primary)',
-              }}
-            >
-              SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '8px',
-                letterSpacing: '0.15em',
-                color: 'var(--text-secondary)',
-                marginTop: '1px',
-              }}
-            >
-              NOW PLAYING
-            </div>
-          </div>
-        </div>
-
-        {/* Dossier Details Button */}
-        <button
-          onClick={() => openTrackDetail(currentTrack)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.15s ease',
-          }}
-          title="Open Track Dossier & Specifications"
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-        >
-          <MoreVertical size={16} />
-        </button>
-      </div>
-
-      {/* 2. FIXED PLAYER SECTION (Artwork, Track Info, Scrubber, Controls) */}
-      <div
-        style={{
-          padding: '12px 20px 14px 20px',
-          flexShrink: 0,
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-        }}
-      >
-        {/* Album Artwork Frame */}
-        <div
-          onClick={() => openTrackDetail(currentTrack)}
-          style={{
-            width: '100%',
-            aspectRatio: '1 / 0.88',
-            maxHeight: '190px',
-            borderRadius: '6px',
-            overflow: 'hidden',
-            border: '1px solid var(--border-color)',
-            background: '#000',
-            position: 'relative',
-            cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-          }}
-          title="Click to view full dossier"
-        >
-          <img
-            src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
-            alt={currentTrack.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-              transition: 'transform 0.4s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          />
-        </div>
-
-        {/* Track Title & Artist Row with Heart Button */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ minWidth: 0, flex: 1, paddingRight: '12px' }}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: '18px',
+                fontSize: '17px',
                 fontWeight: 700,
+                letterSpacing: '-0.015em',
                 color: 'var(--text-primary)',
-                margin: 0,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
               }}
             >
               {currentTrack.title}
-            </h2>
+            </div>
             <div
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontSize: '12px',
+                fontSize: '12.5px',
                 color: 'var(--text-secondary)',
+                marginTop: '2px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                marginTop: '2px',
               }}
             >
-              {currentTrack.artist}
+              {currentTrack.artist} • {currentTrack.album}
             </div>
           </div>
-
-          {/* Heart / Favorite Button */}
-          <button
-            onClick={() => toggleLike(currentTrack.id)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'transform 0.15s ease',
-            }}
-            title={isLiked ? 'Remove from Favourites' : 'Add to Favourites'}
-            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.88)')}
-            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          >
-            <Heart
-              size={18}
-              fill={isLiked ? 'var(--accent-color)' : 'none'}
-              color={isLiked ? 'var(--accent-color)' : 'var(--text-secondary)'}
-            />
-          </button>
         </div>
-
-        {/* Scrubber Bar (Image 1 reference) */}
-        <div>
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '5px',
-              borderRadius: '2.5px',
-              background: 'var(--bg-tertiary)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            {/* Active Progress Fill */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: `${progressPercent}%`,
-                background: 'var(--accent-color)',
-                borderRadius: '2.5px',
-              }}
-            />
-            {/* Scrubber Thumb */}
-            <div
-              style={{
-                position: 'absolute',
-                left: `calc(${progressPercent}% - 5px)`,
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: '#ffffff',
-                boxShadow: '0 0 6px rgba(0,0,0,0.6)',
-                pointerEvents: 'none',
-              }}
-            />
-            {/* Invisible Range Input for Drag & Touch */}
-            <input
-              type="range"
-              min={0}
-              max={duration || 100}
-              step={0.1}
-              value={effectiveTime}
-              onMouseDown={handleScrubberStart}
-              onTouchStart={handleScrubberStart}
-              onChange={handleScrubberChange}
-              onMouseUp={handleScrubberEnd}
-              onTouchEnd={handleScrubberEnd}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                opacity: 0,
-                cursor: 'pointer',
-                margin: 0,
-              }}
-            />
-          </div>
-
-          {/* Time Readout Row */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9px',
-              color: 'var(--text-secondary)',
-              marginTop: '5px',
-            }}
-          >
-            <span>{formatTime(effectiveTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-        </div>
-
-        {/* Media Controls (Shuffle, Prev, Play/Pause Ring, Next, Repeat) */}
+      ) : (
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 8px',
+            padding: '12px 20px 14px 20px',
+            flexShrink: 0,
+            borderBottom: '1px solid var(--border-color)',
+            background: 'var(--bg-secondary)',
           }}
         >
-          {/* Shuffle */}
-          <button
-            onClick={toggleShuffle}
+          <div
+            onClick={() => openTrackDetail(currentTrack)}
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: isShuffle ? 'var(--accent-color)' : 'var(--text-secondary)',
+              width: '100%',
+              aspectRatio: '1 / 0.85',
+              maxHeight: '175px',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              border: '1px solid var(--border-color)',
+              background: '#000',
+              position: 'relative',
               cursor: 'pointer',
-              padding: '6px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
             }}
-            title="Shuffle (S)"
+            title="Click to view full dossier"
           >
-            <Shuffle size={15} />
-          </button>
-
-          {/* Previous */}
-          <button
-            onClick={playPrev}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              padding: '6px',
-            }}
-            title="Previous (P)"
-          >
-            <SkipBack size={18} />
-          </button>
-
-          {/* Center Play/Pause in Accent Ring */}
-          <button
-            onClick={togglePlayPause}
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '50%',
-              background: 'var(--bg-primary)',
-              border: '1.5px solid var(--accent-color)',
-              color: 'var(--accent-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: isPlaying ? '0 0 16px var(--accent-subtle)' : 'none',
-              transition: 'transform 0.12s ease, box-shadow 0.2s ease',
-            }}
-            title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
-            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
-            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          >
-            {isPlaying ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: '2px' }} />}
-          </button>
-
-          {/* Next */}
-          <button
-            onClick={playNext}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              padding: '6px',
-            }}
-            title="Next (N)"
-          >
-            <SkipForward size={18} />
-          </button>
-
-          {/* Repeat */}
-          <button
-            onClick={cycleRepeat}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: repeatMode !== 'OFF' ? 'var(--accent-color)' : 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '6px',
-            }}
-            title={`Repeat: ${repeatMode} (R)`}
-          >
-            {repeatMode === 'ONE' ? <Repeat1 size={15} /> : <Repeat size={15} />}
-          </button>
+            <img
+              src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
+              alt={currentTrack.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transition: 'transform 0.4s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. DYNAMIC LOWER SECTION (LYRICS / LIVE / QUEUE) */}
+      {/* 3. DYNAMIC EXPANDED LOWER SECTION (LYRICS / LIVE / QUEUE) */}
       <div
         style={{
           flex: 1,
@@ -504,74 +452,14 @@ export const SidePlayer: React.FC = () => {
           flexDirection: 'column',
           overflow: 'hidden',
           background: 'var(--bg-primary)',
+          position: 'relative',
         }}
       >
-        {/* Sub-Header for Active View */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '10px 20px 6px 20px',
-            borderBottom: '1px solid var(--border-subtle)',
-            background: 'var(--bg-secondary)',
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9.5px',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {activeTab === 'LYRICS' ? 'LYRICS' : activeTab === 'LIVE' ? 'LIVE AUDIO BUS' : `QUEUE (${queue.length})`}
-          </span>
-
-          {activeTab === 'LYRICS' && (
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '8.5px',
-                color: 'var(--accent-color)',
-                letterSpacing: '0.12em',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                fontWeight: 600,
-              }}
-            >
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-color)' }} />
-              LIVE
-            </span>
-          )}
-
-          {activeTab === 'QUEUE' && queue.length > 0 && (
-            <button
-              onClick={clearQueue}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '8.5px',
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-live)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-            >
-              CLEAR
-            </button>
-          )}
-        </div>
 
         {/* View Content Area */}
         <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
           {/* TAB 1: APPLE MUSIC TIME-SYNCED LYRICS */}
-          {activeTab === 'LYRICS' && <AppleLyrics compact={true} onSeek={seek} />}
+          {activeTab === 'LYRICS' && <AppleLyrics compact={true} onSeek={handleSeek} />}
 
           {/* TAB 2: LIVE MASTER WAVEFORM & AUDIO VISUALIZER */}
           {activeTab === 'LIVE' && (
@@ -593,7 +481,7 @@ export const SidePlayer: React.FC = () => {
                 currentTime={currentTime}
                 duration={duration}
                 isPlaying={isPlaying}
-                onSeek={seek}
+                onSeek={handleSeek}
                 height={55}
                 compact={false}
                 showTimeLabels={true}
@@ -603,7 +491,49 @@ export const SidePlayer: React.FC = () => {
 
           {/* TAB 3: QUEUE LIST */}
           {activeTab === 'QUEUE' && (
-            <div style={{ height: '100%', overflowY: 'auto', padding: '6px 0' }}>
+            <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 18px 8px 18px',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-secondary)',
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  QUEUE ({queue.length})
+                </span>
+                {queue.length > 0 && (
+                  <button
+                    onClick={clearQueue}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '8.5px',
+                      letterSpacing: '0.1em',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-live)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  >
+                    CLEAR
+                  </button>
+                )}
+              </div>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '6px 0' }}>
               {queue.length === 0 ? (
                 <div
                   style={{
@@ -693,149 +623,260 @@ export const SidePlayer: React.FC = () => {
                 })
               )}
             </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
 
-      {/* 4. BOTTOM DOCK (Image 1 reference) */}
-      <div
-        style={{
-          padding: '10px 24px 12px 24px',
-          borderTop: '1px solid var(--border-color)',
-          background: 'var(--bg-secondary)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexShrink: 0,
-        }}
-      >
-        {/* Left: LYRICS tab (Image 1 reference) */}
-        <button
-          onClick={() => setActiveTab('LYRICS')}
+      {/* 4. BOTTOM DOCK */}
+      {isAppleGlass ? (
+        <div
           style={{
+            padding: '12px 18px 14px 18px',
             background: 'transparent',
-            border: 'none',
             display: 'flex',
-            flexDirection: 'column',
+            justifyContent: 'center',
             alignItems: 'center',
-            gap: '4px',
-            color: activeTab === 'LYRICS' ? 'var(--accent-color)' : 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
-          title="Lyrics View"
         >
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '17px' }}>
-            <span style={{ fontSize: '15px', lineHeight: 1 }}>💬</span>
-          </div>
-          <span
+          <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '8px',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
+              display: 'inline-flex',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '999px',
+              padding: '3px',
+              gap: '2px',
             }}
           >
-            LYRICS
-          </span>
-        </button>
-
-        {/* Center: LIVE Audio Visualizer Pill (Image 1 reference) */}
-        <button
-          onClick={() => setActiveTab('LIVE')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: activeTab === 'LIVE' ? 'var(--accent-subtle)' : 'transparent',
-            border: `1px solid ${activeTab === 'LIVE' ? 'var(--accent-color)' : 'var(--border-color)'}`,
-            borderRadius: '20px',
-            padding: '6px 18px',
-            color: activeTab === 'LIVE' ? 'var(--accent-color)' : 'var(--text-secondary)',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9.5px',
-            fontWeight: 700,
-            letterSpacing: '0.12em',
-          }}
-          title="Live Audio Bus / Spectrum"
-        >
-          {/* Animated/styled equalizer bars ılı */}
-          <span style={{ display: 'inline-flex', alignItems: 'flex-end', gap: '2px', height: '12px' }}>
-            <span
+            <button
+              onClick={() => setActiveTab('LYRICS')}
               style={{
-                width: '2px',
-                height: isPlaying ? '7px' : '5px',
-                background: 'currentColor',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                border: 'none',
+                background: activeTab === 'LYRICS' ? 'var(--glass-bg-active)' : 'transparent',
+                color: activeTab === 'LYRICS' ? 'var(--text-primary)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '12px',
+                fontWeight: activeTab === 'LYRICS' ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
-            />
-            <span
+            >
+              Lyrics
+            </button>
+            <button
+              onClick={handleJumpToLive}
               style={{
-                width: '2px',
-                height: isPlaying ? '12px' : '8px',
-                background: 'currentColor',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                border: 'none',
+                background: activeTab === 'LIVE' ? 'var(--glass-bg-active)' : 'transparent',
+                color: activeTab === 'LIVE' ? 'var(--text-primary)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '12px',
+                fontWeight: activeTab === 'LIVE' ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
               }}
-            />
-            <span
+            >
+              Waveform
+            </button>
+            <button
+              onClick={() => setActiveTab('QUEUE')}
               style={{
-                width: '2px',
-                height: isPlaying ? '5px' : '3px',
-                background: 'currentColor',
-                borderRadius: '1px',
-                transition: 'height 0.2s ease',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                border: 'none',
+                background: activeTab === 'QUEUE' ? 'var(--glass-bg-active)' : 'transparent',
+                color: activeTab === 'QUEUE' ? 'var(--text-primary)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '12px',
+                fontWeight: activeTab === 'QUEUE' ? 600 : 500,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
-            />
-          </span>
-          <span>LIVE</span>
-        </button>
-
-        {/* Right: QUEUE tab (Image 1 reference) */}
-        <button
-          onClick={() => setActiveTab('QUEUE')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            color: activeTab === 'QUEUE' ? 'var(--accent-color)' : 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            transition: 'all 0.15s ease',
-          }}
-          title={`Queue (${queue.length})`}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', width: '15px', padding: '3px 0' }}>
-            <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
-            <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
-            <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
+            >
+              Queue {queue.length > 0 ? `(${queue.length})` : ''}
+            </button>
           </div>
-          <span
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: '10px 24px 12px 24px',
+            borderTop: '1px solid var(--border-color)',
+            background: 'var(--bg-secondary)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {/* Left: LYRICS tab (Image 1 reference) */}
+          <button
+            onClick={() => setActiveTab('LYRICS')}
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '8px',
-              fontWeight: 700,
-              letterSpacing: '0.14em',
+              background: 'transparent',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              color: activeTab === 'LYRICS' ? 'var(--accent-color)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              transition: 'all 0.15s ease',
             }}
+            title="Lyrics View"
           >
-            QUEUE
-          </span>
-        </button>
-      </div>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '17px' }}>
+              <span style={{ fontSize: '15px', lineHeight: 1 }}>💬</span>
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '8px',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+              }}
+            >
+              LYRICS
+            </span>
+          </button>
+
+          {/* Center: LIVE Audio Visualizer Pill / Jump to Live Control */}
+          <button
+            onClick={handleJumpToLive}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'var(--accent-subtle)',
+              border: '1px solid var(--accent-color)',
+              borderRadius: '20px',
+              padding: '6px 18px',
+              color: 'var(--accent-color)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '9.5px',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.16)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--accent-subtle)';
+            }}
+            title="Jump to Live Position"
+            aria-label="Jump to Live Position"
+          >
+            {isLivePosition ? (
+              /* Tiny 4-bar waveform icon reacting subtly to playback */
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'flex-end',
+                  gap: '2px',
+                  height: '12px',
+                  width: '14px',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    width: '2px',
+                    height: isPlaying ? '9px' : '4px',
+                    background: 'currentColor',
+                    borderRadius: '1px',
+                    animation: isPlaying ? 'liveEq1 0.75s ease-in-out infinite alternate' : 'none',
+                  }}
+                />
+                <span
+                  style={{
+                    width: '2px',
+                    height: isPlaying ? '12px' : '8px',
+                    background: 'currentColor',
+                    borderRadius: '1px',
+                    animation: isPlaying ? 'liveEq2 0.65s ease-in-out infinite alternate' : 'none',
+                  }}
+                />
+                <span
+                  style={{
+                    width: '2px',
+                    height: isPlaying ? '11px' : '5px',
+                    background: 'currentColor',
+                    borderRadius: '1px',
+                    animation: isPlaying ? 'liveEq3 0.85s ease-in-out infinite alternate' : 'none',
+                  }}
+                />
+                <span
+                  style={{
+                    width: '2px',
+                    height: isPlaying ? '8px' : '3px',
+                    background: 'currentColor',
+                    borderRadius: '1px',
+                    animation: isPlaying ? 'liveEq4 0.7s ease-in-out infinite alternate' : 'none',
+                  }}
+                />
+              </span>
+            ) : (
+              /* Jump to live return icon */
+              <RotateCcw
+                size={11}
+                strokeWidth={2.4}
+                style={{
+                  display: 'block',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <span>LIVE</span>
+          </button>
+
+          {/* Right: QUEUE tab (Image 1 reference) */}
+          <button
+            onClick={() => setActiveTab('QUEUE')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              color: activeTab === 'QUEUE' ? 'var(--accent-color)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              transition: 'all 0.15s ease',
+            }}
+            title={`Queue (${queue.length})`}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', width: '15px', padding: '3px 0' }}>
+              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
+              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
+              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '8px',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+              }}
+            >
+              QUEUE
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
-
-function formatTime(seconds: number): string {
-  if (isNaN(seconds) || seconds < 0) return '00:00';
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}

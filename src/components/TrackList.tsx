@@ -11,7 +11,10 @@ export const TrackList: React.FC = () => {
     showFavouritesOnly,
     setShowFavouritesOnly,
     likedTrackIds,
+    theme,
   } = usePlayer();
+
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
   const tracks = useMemo(() => {
     if (!activeArchive) return [];
@@ -50,48 +53,52 @@ export const TrackList: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '40px 24px',
-          background: 'var(--bg-primary)',
+          background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
         }}
       >
         <div
           style={{
             maxWidth: '480px',
             width: '100%',
-            border: '1px solid var(--border-color)',
-            background: 'var(--bg-secondary)',
+            borderRadius: isAppleGlass ? '24px' : '0',
+            border: isAppleGlass ? '1px solid var(--glass-border)' : '1px solid var(--border-color)',
+            background: isAppleGlass ? 'var(--glass-bg-secondary)' : 'var(--bg-secondary)',
+            backdropFilter: isAppleGlass ? 'blur(20px)' : 'none',
             padding: '28px 32px',
             textAlign: 'left',
+            boxShadow: isAppleGlass ? 'var(--glass-shadow)' : 'none',
           }}
         >
           <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9px',
-              letterSpacing: '0.14em',
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+              fontSize: isAppleGlass ? '11px' : '9px',
+              letterSpacing: isAppleGlass ? 'normal' : '0.14em',
               color: 'var(--text-muted)',
               marginBottom: '10px',
-              borderBottom: '1px solid var(--border-subtle)',
+              borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-subtle)',
               paddingBottom: '6px',
             }}
           >
-            // SHONO.FM ARCHIVE VAULT &bull; ZERO PRE-LOADED DATA
+            {isAppleGlass ? 'Vault Ready • Zero Pre-loaded Data' : '// SHONO.FM ARCHIVE VAULT • ZERO PRE-LOADED DATA'}
           </div>
           <div
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '26px',
-              letterSpacing: '0.04em',
+              fontSize: isAppleGlass ? '22px' : '26px',
+              fontWeight: isAppleGlass ? 700 : 400,
+              letterSpacing: isAppleGlass ? '-0.015em' : '0.04em',
               color: 'var(--text-primary)',
-              lineHeight: 1.1,
+              lineHeight: 1.2,
               marginBottom: '8px',
             }}
           >
-            AWAITING PLAYLIST INGESTION
+            {isAppleGlass ? 'Awaiting Playlist Import' : 'AWAITING PLAYLIST INGESTION'}
           </div>
           <p
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+              fontSize: isAppleGlass ? '12px' : '10px',
               lineHeight: 1.65,
               color: 'var(--text-secondary)',
               margin: '0 0 18px 0',
@@ -101,18 +108,18 @@ export const TrackList: React.FC = () => {
           </p>
           <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '8.5px',
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+              fontSize: isAppleGlass ? '11px' : '8.5px',
               color: 'var(--text-muted)',
               display: 'flex',
               flexDirection: 'column',
               gap: '5px',
-              borderTop: '1px dashed var(--border-color)',
+              borderTop: isAppleGlass ? '1px solid var(--glass-border-subtle)' : '1px dashed var(--border-color)',
               paddingTop: '12px',
             }}
           >
-            <div>&bull; ACCEPTS: PUBLIC PLAYLISTS, ALBUM COMPILATIONS, DJ SETS &amp; DIRECT VIDEOS</div>
-            <div style={{ color: 'var(--text-primary)' }}>DATA SAVED SECURELY IN YOUR LOCAL BROWSER VAULT</div>
+            <div>• Accepts: Public Playlists, Album Compilations, DJ Sets & Direct Videos</div>
+            <div style={{ color: 'var(--text-primary)' }}>Data saved securely in your local browser vault</div>
           </div>
         </div>
       </div>
@@ -122,27 +129,38 @@ export const TrackList: React.FC = () => {
   const hasFilter = Boolean(genreFilter || showFavouritesOnly);
 
   return (
-    <div style={{ flex: 1, overflowX: 'auto', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        flex: 1,
+        overflowX: 'auto',
+        background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {/* Active Filter Pill */}
       {hasFilter && (
         <div
           style={{
-            padding: '6px 16px',
-            background: 'var(--bg-secondary)',
-            borderBottom: '1px solid var(--border-color)',
+            padding: isAppleGlass ? '8px 16px' : '6px 16px',
+            margin: isAppleGlass ? '6px 16px' : '0',
+            borderRadius: isAppleGlass ? '14px' : '0',
+            background: isAppleGlass ? 'var(--glass-bg-secondary)' : 'var(--bg-secondary)',
+            border: isAppleGlass ? '1px solid var(--glass-border)' : undefined,
+            borderBottom: isAppleGlass ? '1px solid var(--glass-border)' : '1px solid var(--border-color)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9.5px',
+            fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+            fontSize: isAppleGlass ? '11.5px' : '9.5px',
             color: 'var(--text-primary)',
             flexShrink: 0,
           }}
         >
           <span>
-            FILTER ACTIVE: &nbsp;
-            {showFavouritesOnly && <strong style={{ color: 'var(--status-live)' }}>[FAVOURITES ONLY]</strong>}
-            {genreFilter && <strong style={{ color: 'var(--text-primary)', marginLeft: '6px' }}>[GENRE: {genreFilter.toUpperCase()}]</strong>}
+            Filter active: &nbsp;
+            {showFavouritesOnly && <strong style={{ color: 'var(--status-live)' }}>[Favourites Only]</strong>}
+            {genreFilter && <strong style={{ color: 'var(--text-primary)', marginLeft: '6px' }}>[Genre: {genreFilter}]</strong>}
           </span>
           <button
             onClick={() => {
@@ -150,25 +168,38 @@ export const TrackList: React.FC = () => {
               setShowFavouritesOnly(false);
             }}
             className="bma-btn"
-            style={{ padding: '2px 8px', fontSize: '8.5px' }}
+            style={{ padding: '2px 8px', fontSize: '8.5px', borderRadius: isAppleGlass ? '999px' : '0' }}
           >
-            CLEAR FILTER ×
+            Clear Filter ×
           </button>
         </div>
       )}
 
       <table className="track-table">
         <thead>
-          <tr>
-            <th style={{ width: '46px' }}>#</th>
-            <th style={{ width: '48px' }}>THUMB</th>
-            <th>TITLE</th>
-            <th>ARTIST</th>
-            <th className="hide-mobile">ALBUM</th>
-            <th className="hide-mobile" style={{ width: '60px' }}>YEAR</th>
-            <th style={{ width: '60px' }}>TIME</th>
-            <th style={{ width: '40px', textAlign: 'right' }}></th>
-          </tr>
+          {isAppleGlass ? (
+            <tr>
+              <th style={{ width: '46px', textAlign: 'center' }}>#</th>
+              <th style={{ width: '52px' }}></th>
+              <th>Title</th>
+              <th>Artist</th>
+              <th className="hide-mobile">Album</th>
+              <th className="hide-mobile" style={{ width: '60px' }}>Year</th>
+              <th style={{ width: '60px' }}>Time</th>
+              <th style={{ width: '40px', textAlign: 'right' }}></th>
+            </tr>
+          ) : (
+            <tr>
+              <th style={{ width: '46px' }}>#</th>
+              <th style={{ width: '48px' }}>THUMB</th>
+              <th>TITLE</th>
+              <th>ARTIST</th>
+              <th className="hide-mobile">ALBUM</th>
+              <th className="hide-mobile" style={{ width: '60px' }}>YEAR</th>
+              <th style={{ width: '60px' }}>TIME</th>
+              <th style={{ width: '40px', textAlign: 'right' }}></th>
+            </tr>
+          )}
         </thead>
         <tbody>
           {tracks.length === 0 ? (

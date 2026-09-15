@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
   TURNTABLE_SPEED: 'bma_turntable_speed_v1',
 };
 
-export type BrutalistTheme = 'noir' | 'concrete' | 'amber' | 'acid' | 'paper';
+export type BrutalistTheme = 'noir' | 'concrete' | 'amber' | 'acid' | 'paper' | 'apple-glass' | 'apple-glass-light';
 
 export interface AppSettings {
   youtubeApiKey: string;

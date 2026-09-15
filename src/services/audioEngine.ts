@@ -43,6 +43,11 @@ class AudioEngine {
   private isEqEnabled = true;
   private preampDb = 0;
 
+  // HTMLAudioElement & MediaElementAudioSourceNode (Single Instance)
+  private audio: HTMLAudioElement | null = null;
+  private sourceNode: MediaElementAudioSourceNode | null = null;
+  private isAudioElementPlaying = false;
+
   // Listeners
   private onStatusChange: StatusCallback | null = null;
   private onTimeUpdate: TimeCallback | null = null;
@@ -52,6 +57,9 @@ class AudioEngine {
 
   constructor() {
     this.initYouTube();
+    if (typeof window !== 'undefined') {
+      this.initWebAudio();
+    }
   }
 
   private initYouTube() {
@@ -188,30 +196,87 @@ class AudioEngine {
         return filter;
       });
 
-      // Chain: gainNode -> preampNode -> filter[0] -> ... -> filter[9] -> analyser -> destination
-      this.gainNode.connect(this.preampNode);
-      let lastNode: AudioNode = this.preampNode;
-      for (const filter of this.eqFilters) {
-        lastNode.connect(filter);
-        lastNode = filter;
+      // Pipeline Audio Path:
+      // Audio Element / Current Playback (MediaElementAudioSourceNode / Synth Notes)
+      //        ↓
+      // preampNode (GainNode)
+      //        ↓
+      // eqFilters (10 BiquadFilterNodes in series: lowshelf -> 8 peaking -> highshelf)
+      //        ↓
+      // gainNode (Master Gain / volume control)
+      //        ↓
+      // analyser (AnalyserNode)
+      //        ↓
+      // destination (AudioContext.destination)
+      this.preampNode.connect(this.eqFilters[0]);
+      for (let i = 0; i < this.eqFilters.length - 1; i++) {
+        this.eqFilters[i].connect(this.eqFilters[i + 1]);
       }
-      lastNode.connect(this.analyser);
+      this.eqFilters[this.eqFilters.length - 1].connect(this.gainNode);
+      this.gainNode.connect(this.analyser);
       this.analyser.connect(this.audioCtx.destination);
+
+      // Initialize single HTMLAudioElement & MediaElementAudioSourceNode
+      if (!this.audio && typeof Audio !== 'undefined') {
+        this.audio = new Audio();
+        this.audio.crossOrigin = 'anonymous';
+        this.audio.preload = 'auto';
+
+        this.audio.addEventListener('play', () => {
+          this.setStatus('PLAYING');
+        });
+        this.audio.addEventListener('pause', () => {
+          if (this.isAudioElementPlaying) {
+            this.setStatus('PAUSED');
+          }
+        });
+        this.audio.addEventListener('ended', () => {
+          this.setStatus('IDLE');
+          this.isAudioElementPlaying = false;
+          if (this.onTrackEnded) this.onTrackEnded();
+        });
+        this.audio.addEventListener('timeupdate', () => {
+          if (this.isAudioElementPlaying && this.onTimeUpdate && this.audio) {
+            const dur = this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0
+              ? this.audio.duration
+              : (this.currentTrack?.duration || 240);
+            this.onTimeUpdate(this.audio.currentTime, dur);
+          }
+        });
+        this.audio.addEventListener('error', (e) => {
+          console.warn('[AudioEngine] HTMLAudioElement error, falling back to synth', e);
+          this.isAudioElementPlaying = false;
+          this.fallbackToSynth();
+        });
+      }
+
+      if (!this.sourceNode && this.audio && this.audioCtx && this.preampNode) {
+        try {
+          this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
+          this.sourceNode.connect(this.preampNode);
+        } catch (err) {
+          console.warn('[AudioEngine] createMediaElementSource error:', err);
+        }
+      }
     } catch (e) {
       console.warn('[AudioEngine] Web Audio init error:', e);
     }
   }
 
   public setEqualizerBands(bands: number[]) {
+    this.initWebAudio();
     this.eqBands = [...bands];
     if (!this.audioCtx || this.eqFilters.length === 0) return;
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
     const now = this.audioCtx.currentTime;
     this.eqFilters.forEach((filter, idx) => {
-      const gainVal = this.isEqEnabled ? (this.eqBands[idx] || 0) : 0;
+      const gainVal = this.isEqEnabled ? (this.eqBands[idx] ?? 0) : 0;
       try {
         filter.gain.cancelScheduledValues(now);
         filter.gain.setValueAtTime(filter.gain.value, now);
-        filter.gain.linearRampToValueAtTime(gainVal, now + 0.05);
+        filter.gain.linearRampToValueAtTime(gainVal, now + 0.01);
       } catch {
         filter.gain.value = gainVal;
       }
@@ -219,15 +284,19 @@ class AudioEngine {
   }
 
   public setEqEnabled(enabled: boolean) {
+    this.initWebAudio();
     this.isEqEnabled = enabled;
     if (!this.audioCtx || this.eqFilters.length === 0) return;
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
     const now = this.audioCtx.currentTime;
     this.eqFilters.forEach((filter, idx) => {
-      const gainVal = enabled ? (this.eqBands[idx] || 0) : 0;
+      const gainVal = enabled ? (this.eqBands[idx] ?? 0) : 0;
       try {
         filter.gain.cancelScheduledValues(now);
         filter.gain.setValueAtTime(filter.gain.value, now);
-        filter.gain.linearRampToValueAtTime(gainVal, now + 0.05);
+        filter.gain.linearRampToValueAtTime(gainVal, now + 0.01);
       } catch {
         filter.gain.value = gainVal;
       }
@@ -235,13 +304,18 @@ class AudioEngine {
   }
 
   public setPreamp(gainDb: number) {
+    this.initWebAudio();
     this.preampDb = gainDb;
     if (!this.audioCtx || !this.preampNode) return;
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
     const linearGain = Math.pow(10, gainDb / 20);
     const now = this.audioCtx.currentTime;
     try {
       this.preampNode.gain.cancelScheduledValues(now);
-      this.preampNode.gain.linearRampToValueAtTime(linearGain, now + 0.05);
+      this.preampNode.gain.setValueAtTime(this.preampNode.gain.value, now);
+      this.preampNode.gain.linearRampToValueAtTime(linearGain, now + 0.01);
     } catch {
       this.preampNode.gain.value = linearGain;
     }
@@ -273,6 +347,7 @@ class AudioEngine {
     this.startTimeTicker();
     this.setStatus('BUFFERING');
 
+    this.initWebAudio();
     // Make sure Web Audio context is resumed on user gesture
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       try {
@@ -282,6 +357,33 @@ class AudioEngine {
       }
     }
 
+    // 1. Direct audio stream/file playback via HTMLAudioElement through Web Audio pipeline
+    if (track.audioUrl || track.url) {
+      if (this.isYtActive && this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+        try {
+          this.ytPlayer.pauseVideo();
+        } catch {}
+      }
+      this.isYtActive = false;
+      this.isAudioElementPlaying = true;
+      if (this.audio) {
+        this.audio.src = track.audioUrl || track.url || '';
+        this.audio.currentTime = 0;
+        this.audio.play().catch((e) => {
+          console.warn('[AudioEngine] HTMLAudioElement play error, falling back to synth:', e);
+          this.fallbackToSynth();
+        });
+      }
+      return;
+    }
+
+    // Stop audio element if switching to YouTube
+    if (this.audio) {
+      this.audio.pause();
+      this.isAudioElementPlaying = false;
+    }
+
+    // 2. YouTube playback
     if (track.youtubeId) {
       if (this.ytReady && this.ytPlayer && typeof this.ytPlayer.loadVideoById === 'function') {
         try {
@@ -315,12 +417,19 @@ class AudioEngine {
         }, 3500);
       }
     } else {
-      // Use synthesized audio playback
+      // 3. Synthesized audio playback
       this.startSynth(track);
     }
   }
 
   public pause() {
+    if (this.isAudioElementPlaying && this.audio) {
+      try {
+        this.audio.pause();
+      } catch (e) {
+        console.warn(e);
+      }
+    }
     if (this.isYtActive && this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
       try {
         this.ytPlayer.pauseVideo();
@@ -335,11 +444,22 @@ class AudioEngine {
   }
 
   public resume() {
+    this.initWebAudio();
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
       try {
         this.audioCtx.resume();
       } catch (e) {
         // ignore
+      }
+    }
+
+    if (this.isAudioElementPlaying && this.audio) {
+      try {
+        this.audio.play();
+        this.setStatus('PLAYING');
+        return;
+      } catch (e) {
+        console.warn(e);
       }
     }
 
@@ -354,7 +474,9 @@ class AudioEngine {
     }
 
     if (this.currentTrack) {
-      if (this.currentTrack.youtubeId && this.ytReady && this.ytPlayer) {
+      if (this.currentTrack.audioUrl || this.currentTrack.url) {
+        this.playTrack(this.currentTrack);
+      } else if (this.currentTrack.youtubeId && this.ytReady && this.ytPlayer) {
         this.playTrack(this.currentTrack);
       } else {
         this.resumeSynth();
@@ -364,6 +486,13 @@ class AudioEngine {
   }
 
   public seekTo(seconds: number) {
+    if (this.isAudioElementPlaying && this.audio) {
+      try {
+        this.audio.currentTime = seconds;
+      } catch (e) {
+        console.warn(e);
+      }
+    }
     if (this.isYtActive && this.ytPlayer && typeof this.ytPlayer.seekTo === 'function') {
       try {
         this.ytPlayer.seekTo(seconds, true);
@@ -383,8 +512,15 @@ class AudioEngine {
       this.ytPlayer.setVolume(this.volume);
     }
     if (this.gainNode && this.audioCtx) {
-      const targetGain = this.isMuted ? 0 : (this.volume / 100) * 0.15;
-      this.gainNode.gain.setValueAtTime(targetGain, this.audioCtx.currentTime);
+      const targetGain = this.isMuted ? 0 : (this.volume / 100) * 0.45;
+      const now = this.audioCtx.currentTime;
+      try {
+        this.gainNode.gain.cancelScheduledValues(now);
+        this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+        this.gainNode.gain.linearRampToValueAtTime(targetGain, now + 0.02);
+      } catch {
+        this.gainNode.gain.value = targetGain;
+      }
     }
     if (this.crackleGainNode && this.audioCtx) {
       const targetCrackle = this.isMuted ? 0 : (this.volume / 100) * 0.08;
@@ -403,8 +539,15 @@ class AudioEngine {
       }
     }
     if (this.gainNode && this.audioCtx) {
-      const targetGain = muted ? 0 : (this.volume / 100) * 0.15;
-      this.gainNode.gain.setValueAtTime(targetGain, this.audioCtx.currentTime);
+      const targetGain = muted ? 0 : (this.volume / 100) * 0.45;
+      const now = this.audioCtx.currentTime;
+      try {
+        this.gainNode.gain.cancelScheduledValues(now);
+        this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+        this.gainNode.gain.linearRampToValueAtTime(targetGain, now + 0.02);
+      } catch {
+        this.gainNode.gain.value = targetGain;
+      }
     }
     if (this.crackleGainNode && this.audioCtx) {
       const targetCrackle = muted ? 0 : (this.volume / 100) * 0.08;
@@ -554,7 +697,7 @@ class AudioEngine {
         bassGain.gain.linearRampToValueAtTime(0.2, this.audioCtx.currentTime + 0.15);
         bassGain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 2.7);
         bassOsc.connect(bassGain);
-        bassGain.connect(this.gainNode);
+        bassGain.connect(this.preampNode || this.gainNode);
         bassOsc.start();
         bassOsc.stop(this.audioCtx.currentTime + 2.9);
       } catch (e) {
@@ -581,7 +724,7 @@ class AudioEngine {
 
           osc.connect(filter);
           filter.connect(noteGain);
-          noteGain.connect(this.gainNode!);
+          noteGain.connect(this.preampNode || this.gainNode!);
 
           osc.start();
           osc.stop(this.audioCtx!.currentTime + 3.0);
@@ -650,6 +793,7 @@ class AudioEngine {
   }
 
   public getSource(): string {
+    if (this.isAudioElementPlaying) return 'AUDIO STREAM';
     return this.isYtActive ? 'YOUTUBE' : 'SYNTH ENGINE';
   }
 

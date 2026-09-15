@@ -3,19 +3,21 @@ import { usePlayer } from '../context/PlayerContext';
 import { Play, Shuffle } from 'lucide-react';
 
 export const ArchiveHeader: React.FC = () => {
-  const { activeArchive, playEntireArchive } = usePlayer();
+  const { activeArchive, playEntireArchive, theme } = usePlayer();
 
   if (!activeArchive) return null;
+
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
   return (
     <div
       style={{
-        padding: '10px 20px',
-        borderBottom: '1px solid var(--border-color)',
+        padding: isAppleGlass ? '12px 22px 8px 22px' : '10px 20px',
+        borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-color)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        background: 'var(--bg-primary)',
+        background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
         flexWrap: 'wrap',
         gap: '12px',
         flexShrink: 0,
@@ -23,25 +25,40 @@ export const ArchiveHeader: React.FC = () => {
     >
       {/* Title & Index */}
       <div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '9.5px',
-            letterSpacing: '0.1em',
-            color: 'var(--text-muted)',
-            marginBottom: '2px',
-          }}
-        >
-          ARCHIVE / {activeArchive.indexNumber}
-        </div>
+        {!isAppleGlass ? (
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '9.5px',
+              letterSpacing: '0.1em',
+              color: 'var(--text-muted)',
+              marginBottom: '2px',
+            }}
+          >
+            ARCHIVE / {activeArchive.indexNumber}
+          </div>
+        ) : (
+          <div
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              marginBottom: '3px',
+              fontWeight: 500,
+            }}
+          >
+            Playlist • {activeArchive.tracks.length} tracks
+          </div>
+        )}
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '28px',
-            lineHeight: 1,
-            letterSpacing: '0.04em',
+            fontSize: isAppleGlass ? '24px' : '28px',
+            lineHeight: 1.1,
+            letterSpacing: isAppleGlass ? '-0.02em' : '0.04em',
+            fontWeight: isAppleGlass ? 700 : 400,
             color: 'var(--text-primary)',
-            margin: '0 0 4px 0',
+            margin: '0 0 6px 0',
           }}
         >
           {activeArchive.title}
@@ -50,24 +67,37 @@ export const ArchiveHeader: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: isAppleGlass ? '10px' : '8px',
           }}
         >
           <button
             onClick={() => playEntireArchive(activeArchive, false)}
             className="bma-btn"
-            style={{ padding: '3px 8px', fontSize: '9px' }}
+            style={{
+              padding: isAppleGlass ? '6px 16px' : '3px 8px',
+              fontSize: isAppleGlass ? '12px' : '9px',
+              borderRadius: isAppleGlass ? '999px' : '0',
+              background: isAppleGlass ? 'var(--accent-color)' : undefined,
+              color: isAppleGlass ? '#ffffff' : undefined,
+              border: isAppleGlass ? 'none' : undefined,
+              fontWeight: isAppleGlass ? 600 : 500,
+            }}
             title="Play all tracks in sequence"
           >
-            <Play size={9} style={{ marginRight: '4px' }} /> PLAY ALL
+            <Play size={isAppleGlass ? 13 : 9} style={{ marginRight: '6px' }} /> Play All
           </button>
           <button
             onClick={() => playEntireArchive(activeArchive, true)}
             className="bma-btn"
-            style={{ padding: '3px 8px', fontSize: '9px' }}
+            style={{
+              padding: isAppleGlass ? '6px 16px' : '3px 8px',
+              fontSize: isAppleGlass ? '12px' : '9px',
+              borderRadius: isAppleGlass ? '999px' : '0',
+              fontWeight: isAppleGlass ? 600 : 500,
+            }}
             title="Shuffle play all tracks"
           >
-            <Shuffle size={9} style={{ marginRight: '4px' }} /> SHUFFLE
+            <Shuffle size={isAppleGlass ? 13 : 9} style={{ marginRight: '6px' }} /> Shuffle
           </button>
         </div>
       </div>

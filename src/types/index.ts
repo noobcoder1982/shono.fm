@@ -1,6 +1,8 @@
 export interface Track {
   id: string;
   youtubeId?: string;
+  audioUrl?: string;
+  url?: string;
   index: number;
   title: string;
   artist: string;

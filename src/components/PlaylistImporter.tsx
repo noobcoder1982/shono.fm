@@ -4,12 +4,14 @@ import { usePlayer } from '../context/PlayerContext';
 export const PlaylistImporter: React.FC = () => {
   const [url, setUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { importPlaylist, isImporting, importProgressText, importProgressPercent } = usePlayer();
+  const { importPlaylist, isImporting, importProgressText, importProgressPercent, theme } = usePlayer();
+
+  const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
   const handleImport = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!url.trim()) {
-      setErrorMessage('INPUT REQUIRED: ENTER YOUTUBE OR YOUTUBE MUSIC PLAYLIST URL');
+      setErrorMessage(isAppleGlass ? 'Please enter a playlist URL' : 'INPUT REQUIRED: ENTER YOUTUBE OR YOUTUBE MUSIC PLAYLIST URL');
       return;
     }
     setErrorMessage(null);
@@ -18,17 +20,17 @@ export const PlaylistImporter: React.FC = () => {
       await importPlaylist(url);
       setUrl('');
     } catch (err: any) {
-      setErrorMessage(err.message || 'INGESTION ERROR: UNABLE TO PARSE PLAYLIST');
+      setErrorMessage(err.message || (isAppleGlass ? 'Unable to parse playlist' : 'INGESTION ERROR: UNABLE TO PARSE PLAYLIST'));
     }
   };
 
   return (
     <section
       style={{
-        padding: '12px 20px',
-        borderBottom: '1px solid var(--border-color)',
+        padding: isAppleGlass ? '18px 22px 10px 22px' : '12px 20px',
+        borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-color)',
         position: 'relative',
-        background: 'var(--bg-primary)',
+        background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
         flexShrink: 0,
       }}
     >
@@ -38,21 +40,26 @@ export const PlaylistImporter: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
-          marginBottom: '10px',
+          marginBottom: isAppleGlass ? '12px' : '10px',
         }}
       >
         <div>
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '32px',
-              lineHeight: 0.88,
-              letterSpacing: '0.02em',
+              fontSize: isAppleGlass ? '24px' : '32px',
+              lineHeight: isAppleGlass ? 1.1 : 0.88,
+              letterSpacing: isAppleGlass ? '-0.02em' : '0.02em',
+              fontWeight: isAppleGlass ? 700 : 400,
               color: 'var(--text-primary)',
               margin: 0,
             }}
           >
-            SHONO<br />ARCHIVE
+            {isAppleGlass ? 'Archive Library' : (
+              <>
+                SHONO<br />ARCHIVE
+              </>
+            )}
           </h1>
         </div>
       </div>
@@ -70,6 +77,11 @@ export const PlaylistImporter: React.FC = () => {
           style={{
             display: 'flex',
             width: '100%',
+            borderRadius: isAppleGlass ? '20px' : '0',
+            overflow: 'hidden',
+            border: isAppleGlass ? '1px solid var(--glass-border)' : 'none',
+            background: isAppleGlass ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+            backdropFilter: isAppleGlass ? 'blur(12px)' : 'none',
           }}
         >
           <input
@@ -80,15 +92,18 @@ export const PlaylistImporter: React.FC = () => {
               setUrl(e.target.value);
               if (errorMessage) setErrorMessage(null);
             }}
-            placeholder="https://www.youtube.com/playlist?list=PL4fGSI1pDJn6jXS_PEoNEDb428264"
+            placeholder={isAppleGlass ? 'Paste YouTube or YouTube Music playlist link...' : 'https://www.youtube.com/playlist?list=PL4fGSI1pDJn6jXS_PEoNEDb428264'}
             disabled={isImporting}
             style={{
               flex: 1,
-              height: '34px',
+              height: isAppleGlass ? '38px' : '34px',
+              border: isAppleGlass ? 'none' : undefined,
               borderRight: 'none',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
-              padding: '6px 12px',
+              background: isAppleGlass ? 'transparent' : undefined,
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+              fontSize: isAppleGlass ? '12.5px' : '11px',
+              padding: isAppleGlass ? '8px 16px' : '6px 12px',
+              outline: 'none',
             }}
           />
           <button
@@ -96,15 +111,21 @@ export const PlaylistImporter: React.FC = () => {
             className="bma-btn bma-btn-primary"
             disabled={isImporting}
             style={{
-              height: '34px',
-              padding: '0 18px',
-              borderLeft: '1px solid var(--border-active)',
+              height: isAppleGlass ? '38px' : '34px',
+              padding: isAppleGlass ? '0 20px' : '0 18px',
+              border: 'none',
+              borderLeft: isAppleGlass ? 'none' : '1px solid var(--border-active)',
+              borderRadius: isAppleGlass ? '0 20px 20px 0' : '0',
+              background: isAppleGlass ? 'var(--accent-color)' : undefined,
+              color: '#ffffff',
               cursor: isImporting ? 'not-allowed' : 'pointer',
               whiteSpace: 'nowrap',
-              fontSize: '10px',
+              fontSize: isAppleGlass ? '12px' : '10px',
+              fontWeight: isAppleGlass ? 600 : 500,
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
             }}
           >
-            {isImporting ? 'INGESTING...' : 'IMPORT →'}
+            {isImporting ? 'Ingesting...' : (isAppleGlass ? 'Import' : 'IMPORT →')}
           </button>
         </form>
       </div>

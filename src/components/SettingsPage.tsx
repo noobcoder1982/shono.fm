@@ -72,6 +72,26 @@ const THEME_OPTIONS: ThemeOption[] = [
     previewText: '#0f0f0f',
     previewAccent: '#111111',
   },
+  {
+    id: 'apple-glass',
+    index: '06',
+    name: 'APPLE GLASS (DARK)',
+    description: 'Frosted translucent obsidian glass, dynamic album artwork refraction, soft depth.',
+    previewBg: '#141419',
+    previewBorder: 'rgba(255, 255, 255, 0.22)',
+    previewText: '#ffffff',
+    previewAccent: '#fa2d48',
+  },
+  {
+    id: 'apple-glass-light',
+    index: '07',
+    name: 'APPLE GLASS (LIGHT)',
+    description: 'Luminous crystal frosted glass, daylight refraction, clean crisp typography.',
+    previewBg: '#f5f5f7',
+    previewBorder: 'rgba(0, 0, 0, 0.15)',
+    previewText: '#1d1d1f',
+    previewAccent: '#0071e3',
+  },
 ];
 
 type SettingsTab = 'GENERAL' | 'PLAYER' | 'APPEARANCE' | 'INTEGRATIONS' | 'AUDIO' | 'ADVANCED';

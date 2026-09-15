@@ -18,6 +18,7 @@ import { MI6PlayerView } from './components/mi6/MI6PlayerView';
 import { SettingsPage } from './components/SettingsPage';
 import { CollectionsView } from './components/CollectionsView';
 import { GlassyFloatingSearch } from './components/GlassyFloatingSearch';
+import { AppleGlassBackdrop } from './components/AppleGlassBackdrop';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainLayout: React.FC = () => {
@@ -55,6 +56,9 @@ const MainLayout: React.FC = () => {
 
   return (
     <div ref={containerRef} className="app-container">
+      {/* Dynamic Ambient Background for Apple Glass Themes */}
+      <AppleGlassBackdrop />
+
       {activeTab === 'SETTINGS' ? (
         /* Full-Screen Settings Page with Left Sidebar */
         <main className="settings-layout-grid">

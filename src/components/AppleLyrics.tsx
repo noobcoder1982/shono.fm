@@ -1,7 +1,20 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { fetchLyrics, saveCustomLyrics, type ParsedLyrics } from '../services/lyricsService';
-import { Mic2, Loader2, Music2, Sparkles, Search, RefreshCw, X, Check, RotateCcw } from 'lucide-react';
+import { Loader2, Music2, Sparkles, Search, RefreshCw, X, Check } from 'lucide-react';
+
+const AppleLogoIcon: React.FC<{ size?: number; className?: string }> = ({ size = 15, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    style={{ display: 'block', flexShrink: 0 }}
+  >
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.86c.64-.78 1.08-1.86.96-2.95-1 .04-2.15.67-2.81 1.45-.58.66-1.1 1.76-.96 2.83 1.12.09 2.17-.55 2.81-1.33z" />
+  </svg>
+);
 
 interface AppleLyricsProps {
   onSeek?: (time: number) => void;
@@ -234,25 +247,13 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
     setSyncOffset(saved ? parseFloat(saved) : 0);
   }, [currentTrack?.id]);
 
-  const handleAdjustOffset = (delta: number) => {
-    if (!currentTrack) return;
-    const next = Math.round((syncOffset + delta) * 10) / 10;
-    setSyncOffset(next);
-    localStorage.setItem(`muszix_lyrics_offset_${currentTrack.id}`, String(next));
-  };
-
-  const handleResetOffset = () => {
-    if (!currentTrack) return;
-    setSyncOffset(0);
-    localStorage.removeItem(`muszix_lyrics_offset_${currentTrack.id}`);
-  };
-
   // Effective time adds offset and a subtle 150ms anticipation window matching Apple Music
   const effectiveTime = smoothTime + syncOffset;
 
   const [lyricsData, setLyricsData] = useState<ParsedLyrics | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [karaokeMode, setKaraokeMode] = useState<boolean>(true);
+  const [karaokeMode] = useState<boolean>(true);
+  const [appleLyricsMode, setAppleLyricsMode] = useState<boolean>(true);
   const [userScrolled, setUserScrolled] = useState<boolean>(false);
 
   // Manual search / paste modal state
@@ -529,7 +530,7 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
   }
 
   return (
-    <div className="apple-lyrics-viewport">
+    <div className={`apple-lyrics-viewport ${appleLyricsMode ? 'apple-mode' : 'standard-mode'}`}>
       {/* Top Apple Music Frosted Gradient Blur Overlay */}
       <div className="apple-lyrics-blur-top" />
 
@@ -540,6 +541,44 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
         onWheel={handleUserScroll}
         onTouchMove={handleUserScroll}
       >
+        {/* Track Title & Artist Header (Apple Music Style) */}
+        {currentTrack && (
+          <div
+            style={{
+              paddingBottom: '20px',
+              marginBottom: '10px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              opacity: currentLineIndex > 1 ? 0.35 : 1,
+              transition: 'opacity 0.4s ease',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                fontSize: '24px',
+                fontWeight: 800,
+                color: '#ffffff',
+                lineHeight: 1.25,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {currentTrack.title}
+            </div>
+            <div
+              style={{
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: 'rgba(255, 255, 255, 0.55)',
+                marginTop: '4px',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {currentTrack.artist}
+            </div>
+          </div>
+        )}
+
         {lyricsData.lines.map((line, index) => {
           const isActive = index === currentLineIndex;
           const isPast = index < currentLineIndex;
@@ -548,7 +587,7 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
             <div
               key={line.id}
               ref={isActive ? activeLineRef : null}
-              className="apple-lyric-item"
+              className={`apple-lyric-item ${isActive ? 'active-item' : ''}`}
               onClick={() => handleLineClick(line.time)}
               title={`Jump to ${formatSeconds(line.time)}`}
             >
@@ -556,7 +595,7 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
                 <ActiveLyricLine
                   line={line}
                   effectiveTime={effectiveTime}
-                  karaokeMode={karaokeMode}
+                  karaokeMode={karaokeMode && appleLyricsMode}
                 />
               ) : (
                 <span className={`apple-lyric-text ${isPast ? 'past' : 'upcoming'}`}>
@@ -583,150 +622,36 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
           zIndex: 20,
         }}
       >
-        {/* Lyrics Sync Fine-Tuning Pill */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2px',
-            background: 'rgba(20, 20, 24, 0.75)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: syncOffset !== 0 ? '1px solid rgba(255, 255, 255, 0.32)' : '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '18px',
-            padding: '2px 8px',
-            height: '32px',
-            fontSize: '11px',
-            fontFamily: 'var(--font-mono, monospace)',
-            color: syncOffset !== 0 ? '#ffffff' : 'rgba(255, 255, 255, 0.65)',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
-            userSelect: 'none',
-          }}
-          title="Fine-tune lyrics sync: [-] delays lyrics, [+] advances lyrics. Click value to reset."
-        >
-          <span style={{ fontSize: '9px', opacity: 0.5, marginRight: '2px', letterSpacing: '0.05em' }}>
-            SYNC
-          </span>
-          <button
-            onClick={() => handleAdjustOffset(-0.2)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'inherit',
-              cursor: 'pointer',
-              padding: '2px 4px',
-              fontWeight: 800,
-              fontSize: '13px',
-              lineHeight: 1,
-            }}
-            title="Singing is ahead of lyrics? Delay lyrics by -0.2s"
-          >
-            -
-          </button>
-          <span
-            onClick={handleResetOffset}
-            style={{
-              cursor: 'pointer',
-              minWidth: '40px',
-              textAlign: 'center',
-              fontWeight: 700,
-              color: syncOffset !== 0 ? 'var(--accent-color, #ffffff)' : 'inherit',
-            }}
-            title="Click to reset offset to 0.0s"
-          >
-            {syncOffset > 0 ? `+${syncOffset.toFixed(1)}s` : `${syncOffset.toFixed(1)}s`}
-          </span>
-          <button
-            onClick={() => handleAdjustOffset(0.2)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'inherit',
-              cursor: 'pointer',
-              padding: '2px 4px',
-              fontWeight: 800,
-              fontSize: '13px',
-              lineHeight: 1,
-            }}
-            title="Singing is behind lyrics? Advance lyrics by +0.2s"
-          >
-            +
-          </button>
-          {syncOffset !== 0 && (
-            <button
-              onClick={handleResetOffset}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'rgba(255, 255, 255, 0.4)',
-                cursor: 'pointer',
-                padding: '2px',
-                display: 'flex',
-                alignItems: 'center',
-                marginLeft: '2px',
-              }}
-              title="Reset offset to 0.0s"
-            >
-              <RotateCcw size={10} />
-            </button>
-          )}
-        </div>
-
-        {/* Search / Edit Lyrics Button */}
+        {/* Apple-style Lyrics Mode Button */}
         <button
-          onClick={() => {
-            setSearchQuery(`${currentTrack.artist} ${currentTrack.title}`);
-            setIsSearchOpen(true);
-          }}
+          onClick={() => setAppleLyricsMode((prev) => !prev)}
           style={{
-            background: 'rgba(20, 20, 24, 0.7)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            color: 'var(--text-secondary)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
-            transition: 'all 0.2s ease',
-          }}
-          title="Search or Paste Lyrics"
-        >
-          <Search size={14} />
-        </button>
-
-        {/* Apple Music Sing / Mic Button (Image 2 reference) */}
-        <button
-          onClick={() => setKaraokeMode((prev) => !prev)}
-          style={{
-            background: karaokeMode
+            background: appleLyricsMode
               ? 'rgba(255, 255, 255, 0.22)'
               : 'rgba(20, 20, 24, 0.7)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            color: karaokeMode ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
-            border: karaokeMode
+            color: appleLyricsMode ? '#ffffff' : 'rgba(255, 255, 255, 0.45)',
+            border: appleLyricsMode
               ? '1px solid rgba(255, 255, 255, 0.35)'
               : '1px solid rgba(255, 255, 255, 0.12)',
             borderRadius: '10px',
-            width: '36px',
-            height: '36px',
+            width: '34px',
+            height: '34px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: karaokeMode
-              ? '0 0 16px rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.6)'
-              : '0 4px 14px rgba(0,0,0,0.5)',
+            boxShadow: appleLyricsMode
+              ? '0 0 12px rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5)'
+              : '0 4px 14px rgba(0, 0, 0, 0.5)',
             transition: 'all 0.2s ease',
           }}
-          title={karaokeMode ? 'Karaoke Highlight Active' : 'Enable Karaoke Highlight'}
+          title={appleLyricsMode ? 'Apple Lyrics Mode Active' : 'Enable Apple Lyrics Mode'}
+          aria-label={appleLyricsMode ? 'Apple Lyrics Mode Active' : 'Enable Apple Lyrics Mode'}
+          aria-pressed={appleLyricsMode}
         >
-          <Mic2 size={17} strokeWidth={2.2} />
+          <AppleLogoIcon size={15} />
         </button>
       </div>
 
