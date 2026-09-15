@@ -20,6 +20,20 @@ export interface ParsedLyrics {
 
 // Built-in verified offline synced lyrics for demo songs & reference tracks
 const BUILT_IN_LYRICS: Record<string, string> = {
+  // Brittany Howard - Red Flags (matches user reference image word-for-word)
+  'brittany howard_red flags': `
+[00:00.00] (Instrumental Intro)
+[00:18.00] That's when the worst times started
+[00:36.50] I followed you and didn't look back
+[00:54.00] I didn't know love could feel like that
+[01:12.00] I ran right through them red flags
+[01:22.00] I ran right through them
+[01:32.00] I thought of trying harder
+[01:44.00] To keep the feeling from breaking
+[01:58.00] To get more of your love
+[02:12.00] Dreaming a way to keep from
+[02:26.00] Going off the deep end
+`,
   // Rawal - Jhooth (matches user reference screenshot word-for-word)
   'rawal_jhooth': `
 [00:00.00] (Instrumental Intro)

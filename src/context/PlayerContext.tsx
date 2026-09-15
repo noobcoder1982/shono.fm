@@ -63,6 +63,9 @@ interface PlayerContextType {
   setIsQueueDrawerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   setIsChangelogOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   closeChangelog: (markAsSeen?: boolean) => void;
+  isFullscreenPlayerOpen: boolean;
+  setIsFullscreenPlayerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  toggleFullscreenPlayer: () => void;
   setActiveTab: (tab: string) => void;
   importPlaylist: (url: string) => Promise<Archive>;
   deleteArchive: (id: string) => void;
@@ -109,7 +112,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isQueueDrawerOpen, setIsQueueDrawerOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState<boolean>(() => storage.shouldShowChangelog());
+  const [isFullscreenPlayerOpen, setIsFullscreenPlayerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('ARCHIVE');
+
+  const toggleFullscreenPlayer = useCallback(() => {
+    setIsFullscreenPlayerOpen((prev) => !prev);
+  }, []);
 
   const [theme, setThemeState] = useState<BrutalistTheme>(() => storage.getSettings().theme || 'noir');
 
@@ -507,6 +515,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isChangelogOpen,
         setIsChangelogOpen,
         closeChangelog,
+        isFullscreenPlayerOpen,
+        setIsFullscreenPlayerOpen,
+        toggleFullscreenPlayer,
         setActiveTab,
         importPlaylist,
         deleteArchive,

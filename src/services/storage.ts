@@ -12,9 +12,9 @@ const STORAGE_KEYS = {
   LAST_SEEN_CHANGELOG: 'bma_last_seen_changelog_v1',
 };
 
-export const CURRENT_APP_VERSION = '1.1.0';
+export const CURRENT_APP_VERSION = '1.3.0';
 
-export type BrutalistTheme = 'noir' | 'concrete' | 'amber' | 'acid' | 'paper' | 'apple-glass' | 'apple-glass-light';
+export type BrutalistTheme = 'noir' | 'concrete' | 'braun' | 'tapedeck' | 'phosphor' | 'swiss' | 'stealth';
 
 export interface AppSettings {
   youtubeApiKey: string;
@@ -171,9 +171,21 @@ export const storage = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       const parsed = data ? JSON.parse(data) : {};
+
+      // Sanitize legacy or deprecated themes
+      const validThemes: BrutalistTheme[] = ['noir', 'concrete', 'braun', 'tapedeck', 'phosphor', 'swiss', 'stealth'];
+      let theme: BrutalistTheme = parsed.theme;
+      if (!validThemes.includes(theme)) {
+        if (theme === ('amber' as any)) theme = 'braun';
+        else if (theme === ('acid' as any)) theme = 'phosphor';
+        else if (theme === ('paper' as any)) theme = 'swiss';
+        else theme = 'noir';
+      }
+
       return {
         ...DEFAULT_SETTINGS,
         ...parsed,
+        theme,
         youtubeApiKey: DEFAULT_YOUTUBE_API_KEY, // Permanently enforce default API key
       };
     } catch {

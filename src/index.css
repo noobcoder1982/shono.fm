@@ -34,203 +34,135 @@
 }
 
 [data-theme="concrete"] {
-  --bg-primary: #151619;
-  --bg-secondary: #1c1e22;
-  --bg-tertiary: #25282e;
-  --bg-hover: #2e323a;
-  --bg-active: #373c46;
-  --border-color: #2b2f38;
-  --border-subtle: #22252c;
-  --border-bright: #4d5463;
+  /* Basalt Slate & Electric Cyan — Tokyo Recording Studio */
+  --bg-primary: #101114;
+  --bg-secondary: #17181e;
+  --bg-tertiary: #1f222a;
+  --bg-hover: #272b35;
+  --bg-active: #313642;
+  --border-color: #272b36;
+  --border-subtle: #1c1f27;
+  --border-bright: #454d5e;
   --border-active: #e2e8f0;
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-inverse: #0f172a;
-  --accent-color: #38bdf8;
-  --accent-subtle: rgba(56, 189, 248, 0.12);
-  --status-active: #38bdf8;
+  --text-secondary: #a2adb9;
+  --text-muted: #727e8d;
+  --text-inverse: #101114;
+  --accent-color: #0ea5e9;
+  --accent-subtle: rgba(14, 165, 233, 0.14);
+  --status-active: #0ea5e9;
   --status-warn: #fbbf24;
   --status-live: #f43f5e;
 }
 
-[data-theme="amber"] {
-  --bg-primary: #090703;
-  --bg-secondary: #120e06;
-  --bg-tertiary: #1a1409;
-  --bg-hover: #261e0d;
-  --bg-active: #332812;
-  --border-color: #2e220e;
-  --border-subtle: #1f170a;
-  --border-bright: #61481c;
-  --border-active: #ffb703;
-  --text-primary: #ffb703;
-  --text-secondary: #d49802;
-  --text-muted: #8c6401;
-  --text-inverse: #090703;
-  --accent-color: #ffb703;
-  --accent-subtle: rgba(255, 183, 3, 0.15);
-  --status-active: #ffb703;
-  --status-warn: #fb8500;
-  --status-live: #e63946;
+[data-theme="braun"] {
+  /* Dieter Rams Atelier 1960 — Warm Anthracite & Bauhaus Safety Orange */
+  --bg-primary: #121215;
+  --bg-secondary: #1a1a1f;
+  --bg-tertiary: #23232a;
+  --bg-hover: #2c2c36;
+  --bg-active: #373744;
+  --border-color: #2a2a35;
+  --border-subtle: #1f1f27;
+  --border-bright: #4a4a5c;
+  --border-active: #ff5722;
+  --text-primary: #f9f9fb;
+  --text-secondary: #b5b5c2;
+  --text-muted: #7d7d8e;
+  --text-inverse: #121215;
+  --accent-color: #ff5722;
+  --accent-subtle: rgba(255, 87, 34, 0.14);
+  --status-active: #ff5722;
+  --status-warn: #fbbf24;
+  --status-live: #ef4444;
 }
 
-[data-theme="acid"] {
-  --bg-primary: #060907;
-  --bg-secondary: #0b130e;
-  --bg-tertiary: #101c14;
-  --bg-hover: #182b1f;
-  --bg-active: #203a29;
-  --border-color: #1a3021;
-  --border-subtle: #112016;
-  --border-bright: #315c3f;
-  --border-active: #4ade80;
-  --text-primary: #bbf7d0;
-  --text-secondary: #86efac;
-  --text-muted: #22c55e;
-  --text-inverse: #052e16;
-  --accent-color: #4ade80;
-  --accent-subtle: rgba(74, 222, 128, 0.12);
-  --status-active: #4ade80;
+[data-theme="tapedeck"] {
+  /* Studer & TASCAM Reel-to-Reel — Roasted Espresso & Ruby LED */
+  --bg-primary: #0f0d0b;
+  --bg-secondary: #171411;
+  --bg-tertiary: #211c18;
+  --bg-hover: #2c2520;
+  --bg-active: #393029;
+  --border-color: #2c231c;
+  --border-subtle: #1f1914;
+  --border-bright: #4f3f33;
+  --border-active: #e11d48;
+  --text-primary: #f7f2eb;
+  --text-secondary: #c5b6a6;
+  --text-muted: #8d7e6f;
+  --text-inverse: #0f0d0b;
+  --accent-color: #e11d48;
+  --accent-subtle: rgba(225, 29, 72, 0.14);
+  --status-active: #e11d48;
+  --status-warn: #f59e0b;
+  --status-live: #e11d48;
+}
+
+[data-theme="phosphor"] {
+  /* Sony Trinitron & DEC VT100 — Dark Cathode Obsidian & P1 Green Telemetry */
+  --bg-primary: #070907;
+  --bg-secondary: #0d120d;
+  --bg-tertiary: #131c13;
+  --bg-hover: #1b261b;
+  --bg-active: #243424;
+  --border-color: #1c2b1c;
+  --border-subtle: #121d12;
+  --border-bright: #324e32;
+  --border-active: #22c55e;
+  --text-primary: #ecfdf5;
+  --text-secondary: #a7cab1;
+  --text-muted: #6f8d77;
+  --text-inverse: #070907;
+  --accent-color: #22c55e;
+  --accent-subtle: rgba(34, 197, 94, 0.14);
+  --status-active: #22c55e;
   --status-warn: #facc15;
   --status-live: #fb7185;
 }
 
-[data-theme="paper"] {
-  --bg-primary: #ebebe5;
-  --bg-secondary: #e0e0d8;
-  --bg-tertiary: #d5d5cb;
-  --bg-hover: #cacabe;
-  --bg-active: #bebeb0;
-  --border-color: #c2c2b6;
-  --border-subtle: #d3d3c8;
-  --border-bright: #98988a;
-  --border-active: #111111;
-  --text-primary: #0f0f0f;
-  --text-secondary: #4b4b45;
-  --text-muted: #787870;
-  --text-inverse: #f5f5f0;
-  --accent-color: #111111;
-  --accent-subtle: rgba(17, 17, 17, 0.1);
-  --status-active: #16a34a;
+[data-theme="swiss"] {
+  /* Josef Müller-Brockmann / Helvetica Editorial — Alabaster & Swiss Vermilion */
+  --bg-primary: #f4f3ee;
+  --bg-secondary: #eae8e1;
+  --bg-tertiary: #dfdcd3;
+  --bg-hover: #d4d0c5;
+  --bg-active: #c8c4b6;
+  --border-color: #cfcbc0;
+  --border-subtle: #dedbd1;
+  --border-bright: #9e9889;
+  --border-active: #d90429;
+  --text-primary: #121214;
+  --text-secondary: #4a4a52;
+  --text-muted: #747480;
+  --text-inverse: #f4f3ee;
+  --accent-color: #d90429;
+  --accent-subtle: rgba(217, 4, 41, 0.12);
+  --status-active: #d90429;
   --status-warn: #d97706;
   --status-live: #dc2626;
 }
 
-[data-theme="apple-glass"] {
-  /* Centralized Apple Glass Design Tokens (Dark) */
-  --bg-primary: rgba(10, 10, 14, 0.40);
-  --glass-bg: rgba(18, 18, 26, 0.48);
-  --glass-bg-secondary: rgba(28, 28, 38, 0.38);
-  --glass-bg-tertiary: rgba(42, 42, 58, 0.30);
-  --glass-bg-hover: rgba(255, 255, 255, 0.09);
-  --glass-bg-active: rgba(255, 255, 255, 0.16);
-
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-subtle: rgba(255, 255, 255, 0.06);
-  --glass-border-bright: rgba(255, 255, 255, 0.28);
-  --glass-highlight: rgba(255, 255, 255, 0.20);
-  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.40), 0 1px 1px rgba(255, 255, 255, 0.12) inset;
-  --glass-blur: blur(40px) saturate(180%);
-  --glass-blur-md: blur(28px) saturate(170%);
-  --glass-blur-sm: blur(16px) saturate(150%);
-
-  /* Base token mappings */
-  --bg-secondary: var(--glass-bg);
-  --bg-tertiary: var(--glass-bg-secondary);
-  --bg-hover: var(--glass-bg-hover);
-  --bg-active: var(--glass-bg-active);
-
-  --border-color: var(--glass-border);
-  --border-subtle: var(--glass-border-subtle);
-  --border-bright: var(--glass-border-bright);
-  --border-active: rgba(255, 255, 255, 0.6);
-
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.74);
-  --text-muted: rgba(255, 255, 255, 0.46);
-  --text-inverse: #000000;
-
-  --accent-color: var(--apple-accent, #fa2d48);
-  --accent-primary: var(--apple-accent, #fa2d48);
-  --accent-secondary: var(--apple-accent-sec, #0a84ff);
-  --accent-subtle: rgba(250, 45, 72, 0.16);
-
-  --status-active: #30d158;
-  --status-warn: #ffd60a;
-  --status-live: #ff453a;
-
-  /* Corner Radii */
-  --radius-xs: 8px;
-  --radius-sm: 14px;
-  --radius-md: 20px;
-  --radius-lg: 28px;
-  --radius-xl: 34px;
-  --radius-pill: 999px;
-
-  /* Typography */
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
-  --font-mono: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
-  --font-hero: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-}
-
-[data-theme="apple-glass-light"] {
-  /* Centralized Apple Glass Design Tokens (Light) */
-  --bg-primary: rgba(242, 242, 247, 0.40);
-  --glass-bg: rgba(255, 255, 255, 0.58);
-  --glass-bg-secondary: rgba(255, 255, 255, 0.45);
-  --glass-bg-tertiary: rgba(240, 240, 245, 0.35);
-  --glass-bg-hover: rgba(0, 0, 0, 0.05);
-  --glass-bg-active: rgba(0, 0, 0, 0.09);
-
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-border-subtle: rgba(0, 0, 0, 0.04);
-  --glass-border-bright: rgba(0, 0, 0, 0.18);
-  --glass-highlight: rgba(255, 255, 255, 0.85);
-  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(255, 255, 255, 0.8) inset;
-  --glass-blur: blur(40px) saturate(180%);
-  --glass-blur-md: blur(28px) saturate(170%);
-  --glass-blur-sm: blur(16px) saturate(150%);
-
-  /* Base token mappings */
-  --bg-secondary: var(--glass-bg);
-  --bg-tertiary: var(--glass-bg-secondary);
-  --bg-hover: var(--glass-bg-hover);
-  --bg-active: var(--glass-bg-active);
-
-  --border-color: var(--glass-border);
-  --border-subtle: var(--glass-border-subtle);
-  --border-bright: var(--glass-border-bright);
-  --border-active: rgba(0, 0, 0, 0.4);
-
-  --text-primary: #1d1d1f;
-  --text-secondary: #515154;
-  --text-muted: #86868b;
-  --text-inverse: #ffffff;
-
-  --accent-color: var(--apple-accent, #fa243c);
-  --accent-primary: var(--apple-accent, #fa243c);
-  --accent-secondary: var(--apple-accent-sec, #0071e3);
-  --accent-subtle: rgba(250, 36, 60, 0.14);
-
-  --status-active: #34c759;
-  --status-warn: #ff9500;
-  --status-live: #ff3b30;
-
-  /* Corner Radii */
-  --radius-xs: 8px;
-  --radius-sm: 14px;
-  --radius-md: 20px;
-  --radius-lg: 28px;
-  --radius-xl: 34px;
-  --radius-pill: 999px;
-
-  /* Typography */
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
-  --font-mono: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
-  --font-hero: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+[data-theme="stealth"] {
+  /* MI6 Sound Bunker / Blackout Carbon & Laser Violet */
+  --bg-primary: #040405;
+  --bg-secondary: #0a0a0d;
+  --bg-tertiary: #121217;
+  --bg-hover: #1a1a22;
+  --bg-active: #23232e;
+  --border-color: #1e1e27;
+  --border-subtle: #14141a;
+  --border-bright: #3c3c4e;
+  --border-active: #818cf8;
+  --text-primary: #f8fafc;
+  --text-secondary: #9fa6b8;
+  --text-muted: #6b7280;
+  --text-inverse: #040405;
+  --accent-color: #818cf8;
+  --accent-subtle: rgba(129, 140, 248, 0.14);
+  --status-active: #818cf8;
+  --status-warn: #fbbf24;
+  --status-live: #f43f5e;
 }
 
 *, *::before, *::after {
@@ -1207,515 +1139,7 @@ h1, h2, h3, .font-display {
   letter-spacing: 0.06em;
 }
 
-/* ==================================================
-   APPLE GLASS — COMPREHENSIVE THEME SKINNING
-   Radical visual transformation scoped strictly under
-   [data-theme^="apple-glass"]. Brutalist themes remain 100% untouched.
-   ================================================== */
-
-/* 1. Base Canvas, Grain Removal & Ambient Artwork Glow */
-[data-theme^="apple-glass"] {
-  background-color: #07070a !important;
-}
-
-[data-theme="apple-glass-light"] {
-  background-color: #e5e5ea !important;
-}
-
-[data-theme^="apple-glass"] body::before {
-  display: none !important;
-}
-
-[data-theme^="apple-glass"] .app-container {
-  background: transparent !important;
-}
-
-.apple-glass-ambient-backdrop {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-  transition: opacity 0.8s ease;
-}
-
-.apple-glass-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  -webkit-filter: blur(120px);
-  opacity: 0.75;
-  transition: background 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s ease;
-  will-change: transform, background;
-}
-
-[data-theme="apple-glass-light"] .apple-glass-orb {
-  opacity: 0.55;
-  filter: blur(110px);
-}
-
-.apple-glass-orb-1 {
-  width: 75vw;
-  height: 75vh;
-  top: -15%;
-  left: -10%;
-  animation: appleOrbFloat1 24s ease-in-out infinite alternate;
-}
-
-.apple-glass-orb-2 {
-  width: 80vw;
-  height: 80vh;
-  bottom: -20%;
-  right: -12%;
-  animation: appleOrbFloat2 28s ease-in-out infinite alternate;
-}
-
-.apple-glass-orb-3 {
-  width: 70vw;
-  height: 50vh;
-  bottom: -10%;
-  left: 20%;
-  animation: appleOrbFloat3 22s ease-in-out infinite alternate;
-}
-
-@keyframes appleOrbFloat1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(6vw, 8vh) scale(1.08); }
-  100% { transform: translate(-4vw, 4vh) scale(0.96); }
-}
-
-@keyframes appleOrbFloat2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-8vw, -6vh) scale(1.06); }
-  100% { transform: translate(5vw, -3vh) scale(0.98); }
-}
-
-@keyframes appleOrbFloat3 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-4vw, 5vh) scale(1.1); }
-  100% { transform: translate(6vw, -3vh) scale(0.94); }
-}
-
-.apple-glass-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.28) 100%);
-  pointer-events: none;
-}
-
-[data-theme="apple-glass-light"] .apple-glass-vignette {
-  background: radial-gradient(circle at center, transparent 40%, rgba(255, 255, 255, 0.35) 100%);
-}
-
-/* 2. Global Typography Reset for Apple Glass */
-[data-theme^="apple-glass"] h1,
-[data-theme^="apple-glass"] h2,
-[data-theme^="apple-glass"] h3,
-[data-theme^="apple-glass"] h4,
-[data-theme^="apple-glass"] .font-display,
-[data-theme^="apple-glass"] .font-hero {
-  font-family: var(--font-display) !important;
-  text-transform: none !important;
-  letter-spacing: -0.015em !important;
-}
-
-[data-theme^="apple-glass"] .font-mono,
-[data-theme^="apple-glass"] *[style*="font-family: var(--font-mono)"],
-[data-theme^="apple-glass"] *[style*="fontFamily: var(--font-mono)"],
-[data-theme^="apple-glass"] *[style*="font-family: 'JetBrains Mono'"] {
-  font-family: var(--font-sans) !important;
-  letter-spacing: normal !important;
-}
-
-[data-theme^="apple-glass"] {
-  letter-spacing: normal !important;
-}
-
-/* 3. Floating 3-Island Layout Grid */
-[data-theme^="apple-glass"] .archive-layout-grid {
-  display: grid !important;
-  grid-template-columns: var(--sidebar-width, 270px) 1fr 380px !important;
-  gap: 20px !important;
-  padding: 20px 20px 116px 20px !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  box-sizing: border-box !important;
-  background: transparent !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-[data-theme^="apple-glass"] .col-sidebar,
-[data-theme^="apple-glass"] .col-main,
-[data-theme^="apple-glass"] .col-player {
-  border-radius: 28px !important;
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow) !important;
-  overflow: hidden !important;
-  border-left: none !important;
-  border-right: none !important;
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
-}
-
-/* 4. Floating Glass Dock Bottom Player */
-[data-theme^="apple-glass"] footer {
-  position: fixed !important;
-  bottom: 20px !important;
-  left: 24px !important;
-  right: 24px !important;
-  width: auto !important;
-  max-width: 1260px !important;
-  margin: 0 auto !important;
-  height: 76px !important;
-  border-radius: 28px !important;
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-top: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow), 0 24px 60px rgba(0, 0, 0, 0.5) !important;
-  padding: 0 24px !important;
-  z-index: 100 !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-theme="apple-glass-light"] footer {
-  box-shadow: var(--glass-shadow), 0 20px 50px rgba(0, 0, 0, 0.12) !important;
-}
-
-/* Hide brutalist sub-rail telemetry completely in Apple Glass */
-[data-theme^="apple-glass"] footer div[style*="PCM / STEREO"],
-[data-theme^="apple-glass"] footer .telemetry-rail {
-  display: none !important;
-}
-
-/* Rounded Album Artwork in Bottom Player without grayscale */
-[data-theme^="apple-glass"] footer img {
-  border-radius: 14px !important;
-  filter: none !important;
-  border: none !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme^="apple-glass"] footer > div:first-child > div:first-child {
-  border-radius: 14px !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-/* Circular Glass Control Buttons */
-[data-theme^="apple-glass"] footer button {
-  border-radius: var(--radius-pill) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-theme^="apple-glass"] footer button:hover {
-  background: var(--glass-bg-hover) !important;
-  transform: scale(1.08) !important;
-}
-
-[data-theme^="apple-glass"] footer button:active {
-  transform: scale(0.94) !important;
-}
-
-/* Play/Pause Primary Button */
-[data-theme^="apple-glass"] footer button[title*="Play"],
-[data-theme^="apple-glass"] footer button[title*="Pause"] {
-  background: var(--accent-color) !important;
-  color: #ffffff !important;
-  border: none !important;
-  width: 40px !important;
-  height: 40px !important;
-  box-shadow: 0 6px 20px rgba(250, 45, 72, 0.45) !important;
-}
-
-[data-theme="apple-glass-light"] footer button[title*="Play"],
-[data-theme="apple-glass-light"] footer button[title*="Pause"] {
-  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.35) !important;
-}
-
-/* 5. Sidebar Navigation Glass Transformations */
-[data-theme^="apple-glass"] .col-sidebar {
-  padding: 12px 10px !important;
-}
-
-[data-theme^="apple-glass"] .col-sidebar > div:first-child,
-[data-theme^="apple-glass"] .col-sidebar nav {
-  border-bottom: none !important;
-}
-
-[data-theme^="apple-glass"] .sidebar-resize-handle {
-  display: none !important;
-}
-
-[data-theme^="apple-glass"] .col-sidebar nav button {
-  border-radius: 16px !important;
-  margin: 4px 6px !important;
-  padding: 10px 16px !important;
-  border: none !important;
-  border-left: none !important;
-  font-family: var(--font-sans) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-theme^="apple-glass"] .col-sidebar nav button:hover {
-  background: var(--glass-bg-hover) !important;
-}
-
-[data-theme^="apple-glass"] .col-sidebar nav button.is-active,
-[data-theme^="apple-glass"] .col-sidebar nav button[data-active="true"] {
-  background: var(--glass-bg-active) !important;
-  color: var(--text-primary) !important;
-  font-weight: 600 !important;
-  border-left: none !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Hide 48kHz industrial telemetry badge in Sidebar header */
-[data-theme^="apple-glass"] .col-sidebar div[style*="48kHz"],
-[data-theme^="apple-glass"] .col-sidebar div[style*="font-size: 7.5px"] {
-  display: none !important;
-}
-
-/* 6. Center Content Column (Col-Main) Open & Spacious */
-[data-theme^="apple-glass"] .col-main {
-  background: var(--glass-bg) !important;
-}
-
-[data-theme^="apple-glass"] .col-main section,
-[data-theme^="apple-glass"] .col-main .archive-content-area,
-[data-theme^="apple-glass"] .col-main > div,
-[data-theme^="apple-glass"] .col-main div {
-  border-bottom-color: transparent !important;
-  border-top-color: transparent !important;
-  border-right-color: transparent !important;
-}
-
-[data-theme^="apple-glass"] .col-main section,
-[data-theme^="apple-glass"] .col-main .archive-content-area,
-[data-theme^="apple-glass"] .col-main > div {
-  background: transparent !important;
-}
-
-/* Clean Ingestion Pill */
-[data-theme^="apple-glass"] .col-main input[type="text"].bma-input {
-  border-radius: 20px 0 0 20px !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-right: none !important;
-  font-family: var(--font-sans) !important;
-  font-size: 13px !important;
-  padding: 8px 16px !important;
-}
-
-[data-theme^="apple-glass"] .col-main input[type="text"].bma-input:focus {
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 0 0 3px var(--accent-subtle) !important;
-}
-
-[data-theme^="apple-glass"] .col-main form button[type="submit"] {
-  border-radius: 0 20px 20px 0 !important;
-  background: var(--accent-color) !important;
-  color: #ffffff !important;
-  border: none !important;
-  font-family: var(--font-sans) !important;
-  font-weight: 600 !important;
-}
-
-/* Track Table */
-[data-theme^="apple-glass"] .track-table {
-  border-collapse: separate !important;
-  border-spacing: 0 6px !important;
-  font-family: var(--font-sans) !important;
-  padding: 0 16px !important;
-}
-
-[data-theme^="apple-glass"] .track-table th {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-  color: var(--text-muted) !important;
-  font-family: var(--font-sans) !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  padding: 10px 16px !important;
-}
-
-[data-theme^="apple-glass"] .track-table td {
-  border-bottom: none !important;
-  padding: 12px 16px !important;
-  font-family: var(--font-sans) !important;
-  font-size: 13px !important;
-}
-
-[data-theme^="apple-glass"] .track-row {
-  border-radius: 14px !important;
-  border-bottom: none !important;
-  margin: 2px 0 !important;
-  transition: background 0.18s ease, transform 0.18s ease !important;
-}
-
-[data-theme^="apple-glass"] .track-row:hover {
-  background: var(--glass-bg-hover) !important;
-  transform: scale(1.006) !important;
-}
-
-[data-theme^="apple-glass"] .track-row.active-row {
-  background: var(--glass-bg-active) !important;
-  border-left: none !important;
-  border-radius: 14px !important;
-}
-
-/* Rounded Artwork Thumbnails in Table without grayscale */
-[data-theme^="apple-glass"] .track-row img {
-  border-radius: 8px !important;
-  filter: none !important;
-  border: none !important;
-}
-
-[data-theme^="apple-glass"] .track-row td > div[style*="width: 32px"] {
-  border-radius: 8px !important;
-  border: none !important;
-  overflow: hidden !important;
-  background: transparent !important;
-}
-
-/* 7. SidePlayer: Hero Album Artwork & Player Surface */
-[data-theme^="apple-glass"] .col-player {
-  background: var(--glass-bg) !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-[data-theme^="apple-glass"] .col-player > div {
-  border-bottom: none !important;
-  border-left: none !important;
-  background: transparent !important;
-}
-
-/* Hero Artwork: Floating Physical Card */
-[data-theme^="apple-glass"] .sideplayer-art-card,
-[data-theme^="apple-glass"] .col-player div[style*="aspectRatio"] {
-  aspect-ratio: 1 / 1 !important;
-  max-height: 280px !important;
-  border-radius: 28px !important;
-  border: none !important;
-  overflow: hidden !important;
-  box-shadow: 0 24px 50px var(--ambient-color-1, rgba(0, 0, 0, 0.45)), 0 6px 18px rgba(0, 0, 0, 0.25) !important;
-  margin: 8px auto !important;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease !important;
-}
-
-[data-theme^="apple-glass"] .sideplayer-art-card:hover,
-[data-theme^="apple-glass"] .col-player div[style*="aspectRatio"]:hover {
-  transform: scale(1.02) !important;
-  box-shadow: 0 30px 60px var(--ambient-color-1, rgba(0, 0, 0, 0.55)), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme^="apple-glass"] .col-player img {
-  border-radius: 28px !important;
-  filter: none !important;
-  border: none !important;
-}
-
-/* 8. Buttons & Interactive Controls */
-[data-theme^="apple-glass"] .bma-btn {
-  border-radius: var(--radius-pill) !important;
-  background: var(--glass-bg-secondary) !important;
-  backdrop-filter: var(--glass-blur-sm) !important;
-  -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-  border: 1px solid var(--glass-border) !important;
-  font-family: var(--font-sans) !important;
-  font-weight: 600 !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-[data-theme^="apple-glass"] .bma-btn:hover {
-  background: var(--glass-bg-hover) !important;
-  border-color: var(--glass-border-bright) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-}
-
-[data-theme^="apple-glass"] .bma-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-[data-theme^="apple-glass"] .bma-btn-primary {
-  background: var(--accent-color) !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-  box-shadow: 0 4px 16px rgba(250, 45, 72, 0.35) !important;
-}
-
-/* 9. Inputs, Search & Dropdowns */
-[data-theme^="apple-glass"] input[type="text"],
-[data-theme^="apple-glass"] input[type="search"],
-[data-theme^="apple-glass"] select,
-[data-theme^="apple-glass"] textarea {
-  border-radius: var(--radius-sm) !important;
-  background: var(--glass-bg-secondary) !important;
-  backdrop-filter: var(--glass-blur-sm) !important;
-  -webkit-backdrop-filter: var(--glass-blur-sm) !important;
-  border: 1px solid var(--glass-border) !important;
-  font-family: var(--font-sans) !important;
-  transition: all 0.2s ease !important;
-}
-
-[data-theme^="apple-glass"] input[type="text"]:focus,
-[data-theme^="apple-glass"] input[type="search"]:focus,
-[data-theme^="apple-glass"] select:focus,
-[data-theme^="apple-glass"] textarea:focus {
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 0 0 3px var(--accent-subtle) !important;
-}
-
-/* 10. Modals, Popups & Context Menus */
-[data-theme^="apple-glass"] .modal-card {
-  border-radius: var(--radius-lg) !important;
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow), 0 32px 80px rgba(0, 0, 0, 0.6) !important;
-  overflow: hidden !important;
-}
-
-[data-theme^="apple-glass"] .modal-backdrop {
-  background: rgba(0, 0, 0, 0.45) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
-}
-
-/* 11. Queue Drawer & Flyout Panels */
-[data-theme^="apple-glass"] .queue-drawer-panel,
-[data-theme^="apple-glass"] .floating-search-modal {
-  border-radius: var(--radius-lg) !important;
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow) !important;
-}
-
-/* 12. Apple Glass Lyrics Glow Enhancement */
-[data-theme^="apple-glass"] .apple-lyrics-container {
-  background: transparent !important;
-}
-
-[data-theme^="apple-glass"] .apple-word {
-  text-shadow: 0 0 24px var(--accent-subtle);
-  font-family: var(--font-sans) !important;
-  letter-spacing: -0.01em !important;
-}
-
-/* 13. Modal Entrance Animations & Changelog Polish */
+/* Modal Entrance Animations & Changelog Polish */
 @keyframes modalCardFadeIn {
   from {
     opacity: 0;
@@ -1735,10 +1159,7 @@ h1, h2, h3, .font-display {
   border-color: var(--border-bright);
 }
 
-[data-theme^="apple-glass"] .changelog-modal-card {
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow), 0 32px 80px rgba(0, 0, 0, 0.7) !important;
-}
+
 
 /* ==================================================
    FLAT CHROME-STYLE ARCHIVE TABS UI
@@ -1759,12 +1180,7 @@ h1, h2, h3, .font-display {
   z-index: 5;
 }
 
-[data-theme^="apple-glass"] .chrome-tab-strip {
-  background: rgba(14, 14, 18, 0.55) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid var(--glass-border) !important;
-}
+
 
 .chrome-tab-list {
   display: flex;
@@ -1833,11 +1249,7 @@ h1, h2, h3, .font-display {
   box-shadow: 0 -2px 0 0 var(--text-primary) inset;
 }
 
-[data-theme^="apple-glass"] .chrome-tab-item.is-active {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: 0 -2px 0 0 #38bdf8 inset !important;
-}
+
 
 .chrome-tab-index {
   font-size: 8px;
@@ -1978,13 +1390,7 @@ h1, h2, h3, .font-display {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme^="apple-glass"] .settings-card {
-  background: rgba(22, 22, 28, 0.6) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4) !important;
-}
+
 
 .settings-card-header {
   display: flex;
@@ -2206,11 +1612,241 @@ h1, h2, h3, .font-display {
   box-shadow: 0 0 20px var(--accent-subtle);
 }
 
-[data-theme^="apple-glass"] .settings-mode-card.is-active {
-  background: rgba(56, 189, 248, 0.12) !important;
-  border-color: #38bdf8 !important;
+/* ==================================================
+   UPDATE 03: QUANTUM PLAYLIST INGESTION CONSOLE & HYPERGLOW
+   High-contrast buttons, reactive glow states, and magical Voila animations
+   ================================================== */
+
+@keyframes ingestionHyperGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--accent-color), 0 0 22px var(--accent-subtle), 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-color: var(--accent-color);
+  }
+  50% {
+    box-shadow: 0 0 0 1.5px var(--accent-color), 0 0 38px var(--accent-color), 0 6px 32px rgba(0, 0, 0, 0.65);
+    border-color: #ffffff;
+  }
 }
 
+@keyframes beamScan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
 
+@keyframes radarSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
+@keyframes radarSpinRev {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
 
+@keyframes radarPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 0.4; }
+}
+
+@keyframes voilaBurst {
+  0% { transform: scale(0.7) translateY(8px); opacity: 0; filter: blur(4px); }
+  45% { transform: scale(1.06) translateY(-2px); opacity: 1; filter: blur(0); }
+  65% { transform: scale(0.98); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes sparkleFloat {
+  0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translate(var(--tx, 15px), var(--ty, -25px)) scale(1.2) rotate(180deg); opacity: 0; }
+}
+
+@keyframes magicButtonShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Ingestion Console Container */
+.ingestion-console {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ingestion-console.has-link {
+  animation: ingestionHyperGlow 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: var(--bg-primary);
+}
+
+/* Top Hairline Scanner Beam */
+.ingestion-beam-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ingestion-beam-glow {
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
+  animation: beamScan 1.6s ease-in-out infinite;
+}
+
+/* Ingestion Input Field */
+.ingestion-input {
+  flex: 1;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  padding: 0 16px;
+  outline: none;
+  letter-spacing: 0.02em;
+}
+
+.ingestion-input::placeholder {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+/* Redesigned Import Button */
+.ingestion-btn {
+  height: 44px;
+  padding: 0 24px;
+  border: none;
+  border-left: 1px solid var(--border-bright);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Dormant State (Empty URL) */
+.ingestion-btn.is-dormant {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+.ingestion-btn.is-dormant:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+/* Active Ready State (URL Present) — High Contrast, Illuminated */
+.ingestion-btn.is-ready {
+  background: var(--accent-color);
+  color: #050505;
+  border-left-color: var(--accent-color);
+  box-shadow: 0 0 16px var(--accent-subtle);
+  font-weight: 800;
+  transform: translateZ(0);
+}
+
+.ingestion-btn.is-ready:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 0 24px var(--accent-color);
+  transform: translateY(-1px);
+}
+
+.ingestion-btn.is-ready:active {
+  transform: translateY(1px);
+}
+
+/* Swiss theme adjustment: black background for swiss accent or pure white text on red */
+[data-theme="swiss"] .ingestion-btn.is-ready {
+  color: #ffffff !important;
+}
+
+/* Disabled during import */
+.ingestion-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Magical Ingestion Full Overlay */
+.ingestion-magical-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 11, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  gap: 20px;
+}
+
+/* Holographic Radar Scanner Widget */
+.ingestion-radar-widget {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ingestion-radar-ring-outer {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--accent-color);
+  border-radius: 50%;
+  animation: radarSpin 6s linear infinite;
+}
+
+.ingestion-radar-ring-inner {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid var(--border-bright);
+  border-radius: 50%;
+  animation: radarSpinRev 4s linear infinite;
+}
+
+.ingestion-radar-core {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  box-shadow: 0 0 12px var(--accent-color);
+  animation: radarPulse 1.4s ease-in-out infinite;
+}
+
+/* Magical Voila Success Banner */
+.ingestion-voila-banner {
+  animation: voilaBurst 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sparkle-particle {
+  position: absolute;
+  color: var(--accent-color);
+  pointer-events: none;
+  animation: sparkleFloat 0.9s ease-out forwards;
+}
