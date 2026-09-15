@@ -66,9 +66,9 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
       {/* Index Number */}
       <td
         style={{
-          width: '46px',
+          width: '50px',
           color: isCurrent ? 'var(--text-primary)' : 'var(--text-muted)',
-          fontSize: isAppleGlass ? '12px' : '10px',
+          fontSize: isAppleGlass ? '12.5px' : '10.5px',
           fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
         }}
       >
@@ -86,12 +86,12 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
       </td>
 
       {/* Thumbnail */}
-      <td style={{ width: isAppleGlass ? '52px' : '48px', padding: '6px 8px' }}>
+      <td style={{ width: isAppleGlass ? '54px' : '50px', padding: '6px 10px' }}>
         <div
           style={{
-            width: isAppleGlass ? '36px' : '32px',
-            height: isAppleGlass ? '36px' : '32px',
-            borderRadius: isAppleGlass ? '8px' : '0',
+            width: isAppleGlass ? '40px' : '36px',
+            height: isAppleGlass ? '40px' : '36px',
+            borderRadius: isAppleGlass ? '10px' : '2px',
             background: 'var(--bg-secondary)',
             border: isAppleGlass ? 'none' : '1px solid var(--border-color)',
             overflow: 'hidden',
@@ -106,7 +106,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
               height: '100%',
               objectFit: 'cover',
               filter: isAppleGlass ? 'none' : 'grayscale(100%) contrast(115%)',
-              borderRadius: isAppleGlass ? '8px' : '0',
+              borderRadius: isAppleGlass ? '10px' : '2px',
             }}
           />
         </div>
@@ -114,7 +114,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
 
       {/* Title + Equalizer Indicator */}
       <td style={{ fontWeight: isCurrent ? 600 : 400, color: 'var(--text-primary)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isPlaying ? (
             <div className="eq-bars">
               <span className="eq-bar" />
@@ -125,25 +125,62 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
           ) : isCurrent ? (
             <Play size={10} fill="currentColor" />
           ) : null}
-          <span>{track.title}</span>
+          <span
+            style={{
+              fontSize: isAppleGlass ? '13.5px' : '12px',
+              fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+              fontWeight: isCurrent ? 700 : 500,
+              letterSpacing: isAppleGlass ? '-0.01em' : '0.02em',
+            }}
+          >
+            {track.title}
+          </span>
         </div>
       </td>
 
       {/* Artist */}
-      <td style={{ color: 'var(--text-secondary)' }}>{track.artist}</td>
+      <td
+        style={{
+          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+          fontSize: isAppleGlass ? '12.5px' : '11px',
+          fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+        }}
+      >
+        {track.artist}
+      </td>
 
       {/* Album */}
-      <td className="hide-mobile" style={{ color: 'var(--text-muted)' }}>
+      <td
+        className="hide-mobile"
+        style={{
+          color: 'var(--text-muted)',
+          fontSize: isAppleGlass ? '12px' : '10.5px',
+          fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+        }}
+      >
         {track.album}
       </td>
 
       {/* Year */}
-      <td className="hide-mobile" style={{ color: 'var(--text-muted)', width: '60px' }}>
+      <td
+        className="hide-mobile"
+        style={{
+          color: 'var(--text-muted)',
+          fontSize: isAppleGlass ? '12px' : '10px',
+          fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
+        }}
+      >
         {track.year}
       </td>
 
-      {/* Time */}
-      <td style={{ width: '60px', color: 'var(--text-secondary)' }}>
+      {/* Duration */}
+      <td
+        style={{
+          color: isCurrent ? 'var(--text-primary)' : 'var(--text-secondary)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: isAppleGlass ? '11.5px' : '10px',
+        }}
+      >
         {track.durationFormatted}
       </td>
 

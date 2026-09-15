@@ -9,7 +9,10 @@ const STORAGE_KEYS = {
   PLAYER_MODE: 'bma_player_mode_v1',
   VINYL_CRACKLE: 'bma_vinyl_crackle_v1',
   TURNTABLE_SPEED: 'bma_turntable_speed_v1',
+  LAST_SEEN_CHANGELOG: 'bma_last_seen_changelog_v1',
 };
+
+export const CURRENT_APP_VERSION = '1.1.0';
 
 export type BrutalistTheme = 'noir' | 'concrete' | 'amber' | 'acid' | 'paper' | 'apple-glass' | 'apple-glass-light';
 
@@ -246,4 +249,30 @@ export const storage = {
       console.error(e);
     }
   },
+
+  getLastSeenChangelogVersion(): string | null {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.LAST_SEEN_CHANGELOG);
+    } catch {
+      return null;
+    }
+  },
+
+  saveLastSeenChangelogVersion(version: string = CURRENT_APP_VERSION) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.LAST_SEEN_CHANGELOG, version);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  shouldShowChangelog(): boolean {
+    try {
+      const seen = localStorage.getItem(STORAGE_KEYS.LAST_SEEN_CHANGELOG);
+      return seen !== CURRENT_APP_VERSION;
+    } catch {
+      return true;
+    }
+  },
 };
+

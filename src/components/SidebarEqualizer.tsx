@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Sliders, RotateCcw } from 'lucide-react';
+import { Sliders, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { audioEngine } from '../services/audioEngine';
 import {
   EQ_FREQUENCIES,
@@ -26,6 +26,25 @@ const PRESET_SHORT_NAMES: Record<string, string> = {
 
 export const SidebarEqualizer: React.FC = () => {
   const [eqState, setEqState] = useState<EqualizerState>(() => loadEqualizerState());
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('muszix_eq_expanded_v1') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleExpand = () => {
+    setIsExpanded((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('muszix_eq_expanded_v1', String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   // Apply state to audio engine and save to local storage
   const applyAndSave = useCallback((newState: EqualizerState) => {
@@ -186,14 +205,16 @@ export const SidebarEqualizer: React.FC = () => {
     >
       {/* Header Bar */}
       <div
+        onClick={toggleExpand}
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '8px 12px',
-          borderBottom: '1px solid var(--border-color)',
+          borderBottom: isExpanded ? '1px solid var(--border-color)' : 'none',
           background: 'var(--bg-tertiary)',
           overflow: 'hidden',
+          cursor: 'pointer',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
@@ -209,28 +230,45 @@ export const SidebarEqualizer: React.FC = () => {
           >
             EQUALIZER
           </span>
+          <span
+            style={{
+              fontSize: '8px',
+              padding: '1px 5px',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--accent-color)',
+              fontWeight: 600,
+            }}
+          >
+            {PRESET_SHORT_NAMES[eqState.selectedPreset] || eqState.selectedPreset.toUpperCase()}
+          </span>
         </div>
 
         {/* Mode Selector & Power */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Easy / Advanced Toggle */}
-          <button
-            onClick={() => setMode(eqState.mode === 'easy' ? 'advanced' : 'easy')}
-            style={{
-              background: eqState.mode === 'advanced' ? 'var(--accent-color)' : 'var(--bg-primary)',
-              color: eqState.mode === 'advanced' ? 'var(--text-inverse)' : 'var(--text-secondary)',
-              border: eqState.mode === 'advanced' ? '1px solid var(--accent-color)' : '1px solid var(--border-bright)',
-              padding: '3px 8px',
-              fontSize: '8px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              cursor: 'pointer',
-              transition: 'all 0.12s ease',
-            }}
-            title={eqState.mode === 'easy' ? 'Switch to 10-Band Advanced Mode' : 'Switch to Easy Mode'}
-          >
-            {eqState.mode === 'easy' ? 'ADVANCED' : 'EASY'}
-          </button>
+          {isExpanded && (
+            <button
+              onClick={() => setMode(eqState.mode === 'easy' ? 'advanced' : 'easy')}
+              style={{
+                background: eqState.mode === 'advanced' ? 'var(--accent-color)' : 'var(--bg-primary)',
+                color: eqState.mode === 'advanced' ? 'var(--text-inverse)' : 'var(--text-secondary)',
+                border: eqState.mode === 'advanced' ? '1px solid var(--accent-color)' : '1px solid var(--border-bright)',
+                padding: '3px 7px',
+                fontSize: '8px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                cursor: 'pointer',
+                transition: 'all 0.12s ease',
+              }}
+              title={eqState.mode === 'easy' ? 'Switch to 10-Band Advanced Mode' : 'Switch to Easy Mode'}
+            >
+              {eqState.mode === 'easy' ? 'ADV' : 'EASY'}
+            </button>
+          )}
 
           {/* Active / Bypass Toggle */}
           <button
@@ -239,7 +277,7 @@ export const SidebarEqualizer: React.FC = () => {
               background: eqState.enabled ? 'rgba(74, 222, 128, 0.15)' : 'transparent',
               color: eqState.enabled ? 'var(--status-active)' : 'var(--text-muted)',
               border: eqState.enabled ? '1px solid var(--status-active)' : '1px solid var(--border-subtle)',
-              padding: '3px 8px',
+              padding: '3px 7px',
               fontSize: '8px',
               fontWeight: 700,
               letterSpacing: '0.08em',
@@ -260,11 +298,23 @@ export const SidebarEqualizer: React.FC = () => {
                 boxShadow: eqState.enabled ? '0 0 5px var(--status-active)' : 'none',
               }}
             />
-            {eqState.enabled ? 'ON' : 'BYPASS'}
+            {eqState.enabled ? 'ON' : 'OFF'}
+          </button>
+
+          {/* Collapse/Expand Toggle Chevron */}
+          <button
+            onClick={toggleExpand}
+            className="bma-btn-icon"
+            style={{ padding: '2px 4px' }}
+            title={isExpanded ? 'Collapse Equalizer' : 'Expand Equalizer'}
+          >
+            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         </div>
       </div>
 
+      {isExpanded && (
+        <>
       {/* Dynamic Visual Frequency Response Curve Screen */}
       <div
         style={{
@@ -844,6 +894,8 @@ export const SidebarEqualizer: React.FC = () => {
             />
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

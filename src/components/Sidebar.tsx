@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Heart, Shuffle, Command, Disc, Radio } from 'lucide-react';
+import { Heart, Shuffle, Command, Disc, Radio, Sparkles } from 'lucide-react';
 import { SidebarEqualizer } from './SidebarEqualizer';
 
 const DEFAULT_SIDEBAR_WIDTH = 300;
@@ -24,6 +24,7 @@ export const Sidebar: React.FC = () => {
     playerMode,
     setPlayerMode,
     theme,
+    setIsChangelogOpen,
   } = usePlayer();
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
@@ -326,7 +327,7 @@ export const Sidebar: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 18px',
+                padding: '10px 20px',
                 background: isAccentActive
                   ? 'var(--accent-subtle)'
                   : isActive
@@ -344,9 +345,9 @@ export const Sidebar: React.FC = () => {
                   ? 'var(--text-primary)'
                   : 'var(--text-secondary)',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
+                fontSize: '11.5px',
                 fontWeight: isActive ? 700 : 400,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.09em',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.12s ease',
@@ -367,7 +368,7 @@ export const Sidebar: React.FC = () => {
               <span className="nav-label">{item.label}</span>
               <span
                 style={{
-                  fontSize: '9px',
+                  fontSize: '9.5px',
                   color: isAccentActive ? 'var(--accent-color)' : isActive ? 'var(--text-primary)' : 'var(--text-muted)',
                   fontFamily: 'var(--font-mono)',
                   fontWeight: 700,
@@ -383,7 +384,7 @@ export const Sidebar: React.FC = () => {
 
         {/* 007 / MI6 Player Mode Selector (Only in Brutalist themes) */}
         {!isAppleGlass && (
-          <div style={{ padding: '6px 16px 4px 16px', borderTop: '1px solid var(--border-subtle)', marginTop: '4px' }}>
+          <div style={{ padding: '8px 18px 4px 18px', borderTop: '1px solid var(--border-subtle)', marginTop: '6px' }}>
             <button
               onClick={() => setPlayerMode(playerMode === 'MI6' ? 'ARCHIVE' : 'MI6')}
               style={{
@@ -391,7 +392,7 @@ export const Sidebar: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '7px 12px',
+                padding: '8px 12px',
                 background: playerMode === 'MI6' ? 'rgba(212,175,55,0.15)' : 'var(--bg-secondary)',
                 border: playerMode === 'MI6' ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
                 color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-secondary)',
@@ -421,10 +422,10 @@ export const Sidebar: React.FC = () => {
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '14px 16px',
+          padding: '16px 18px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px',
+          gap: '16px',
         }}
       >
         {/* Quick Favourites Action */}
@@ -439,7 +440,7 @@ export const Sidebar: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             width: '100%',
-            padding: isAppleGlass ? '9px 14px' : '8px 12px',
+            padding: isAppleGlass ? '11px 16px' : '10px 14px',
             borderRadius: isAppleGlass ? '14px' : '0',
             background: showFavouritesOnly
               ? isAppleGlass ? 'rgba(255, 45, 85, 0.15)' : 'var(--bg-secondary)'
@@ -449,8 +450,8 @@ export const Sidebar: React.FC = () => {
               : isAppleGlass ? '1px solid var(--glass-border)' : '1px solid var(--border-color)',
             color: showFavouritesOnly ? 'var(--status-live)' : 'var(--text-primary)',
             fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
-            fontSize: isAppleGlass ? '12px' : '10px',
-            fontWeight: isAppleGlass ? 500 : 400,
+            fontSize: isAppleGlass ? '12px' : '10.5px',
+            fontWeight: isAppleGlass ? 500 : 500,
             letterSpacing: isAppleGlass ? 'normal' : '0.08em',
             cursor: 'pointer',
             textAlign: 'left',
@@ -514,6 +515,24 @@ export const Sidebar: React.FC = () => {
             title="Keyboard shortcuts (⌘ / ?)"
           >
             <Command size={12} />
+          </button>
+          <button
+            className="bma-btn"
+            onClick={() => setIsChangelogOpen(true)}
+            style={{
+              padding: isAppleGlass ? '8px 12px' : '7px 10px',
+              fontSize: isAppleGlass ? '11px' : '9px',
+              borderRadius: isAppleGlass ? '999px' : '0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              color: 'var(--accent-color)',
+              borderColor: 'var(--accent-color)',
+            }}
+            title="What's New in Update 01 (v1.1.0)"
+          >
+            <Sparkles size={12} />
+            <span>{isAppleGlass ? "What's New" : "v1.1"}</span>
           </button>
         </div>
       </div>

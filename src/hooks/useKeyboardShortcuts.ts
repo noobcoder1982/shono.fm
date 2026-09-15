@@ -18,6 +18,8 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     isSettingsOpen,
     isSearchOpen,
     setIsSearchOpen,
+    isChangelogOpen,
+    closeChangelog,
     activeTab,
     setActiveTab,
   } = usePlayer();
@@ -91,6 +93,10 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
           break;
         case 'Escape':
           e.preventDefault();
+          if (isChangelogOpen) {
+            closeChangelog(true);
+            break;
+          }
           if (isSearchOpen) {
             setIsSearchOpen(false);
             break;
@@ -117,6 +123,8 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     setIsQueueDrawerOpen,
     setIsShortcutsOpen,
     setIsSettingsOpen,
+    isChangelogOpen,
+    closeChangelog,
     openTrackDetail,
     selectedTrackForDetail,
     isShortcutsOpen,

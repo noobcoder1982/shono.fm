@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { storage, type BrutalistTheme } from '../services/storage';
+import { storage, CURRENT_APP_VERSION, type BrutalistTheme } from '../services/storage';
 import type { TurntableSpeed } from '../types';
 import {
   LayoutGrid,
   Disc,
   Check,
   ExternalLink,
+  Sparkles,
+  Sliders,
+  Volume2,
+  Tv,
+  Database,
 } from 'lucide-react';
 import { SidebarEqualizer } from './SidebarEqualizer';
 
@@ -26,7 +31,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'noir',
     index: '01',
     name: 'NOIR MONOCHROME',
-    description: 'Deep obsidian #090909, hairline borders, stark off-white typography.',
+    description: 'Deep obsidian #090909, hairline borders, and stark off-white typography.',
     previewBg: '#090909',
     previewBorder: '#333333',
     previewText: '#f0f0f0',
@@ -36,7 +41,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'concrete',
     index: '02',
     name: 'CONCRETE SLAB',
-    description: 'Industrial cement slate #151619, cold shadows, crisp steel tones.',
+    description: 'Industrial cement slate #151619, cold shadows, and crisp steel tones.',
     previewBg: '#151619',
     previewBorder: '#4d5463',
     previewText: '#f8fafc',
@@ -46,7 +51,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'amber',
     index: '03',
     name: 'PHOSPHOR AMBER',
-    description: 'Vintage 1980s monochrome CRT terminal, warm phosphor glow.',
+    description: 'Vintage 1980s monochrome CRT terminal with warm amber phosphor glow.',
     previewBg: '#090703',
     previewBorder: '#61481c',
     previewText: '#ffb703',
@@ -66,7 +71,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'paper',
     index: '05',
     name: 'SWISS INVERTED / PAPER',
-    description: 'Stark bone-white editorial catalogue, heavy pure black ink typography.',
+    description: 'Stark bone-white editorial catalogue with heavy pure black ink typography.',
     previewBg: '#ebebe5',
     previewBorder: '#98988a',
     previewText: '#0f0f0f',
@@ -76,7 +81,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'apple-glass',
     index: '06',
     name: 'APPLE GLASS (DARK)',
-    description: 'Frosted translucent obsidian glass, dynamic album artwork refraction, soft depth.',
+    description: 'Frosted translucent obsidian glass, dynamic album refraction, and rich depth.',
     previewBg: '#141419',
     previewBorder: 'rgba(255, 255, 255, 0.22)',
     previewText: '#ffffff',
@@ -86,7 +91,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'apple-glass-light',
     index: '07',
     name: 'APPLE GLASS (LIGHT)',
-    description: 'Luminous crystal frosted glass, daylight refraction, clean crisp typography.',
+    description: 'Luminous crystal frosted glass with daylight refraction and crisp typography.',
     previewBg: '#f5f5f7',
     previewBorder: 'rgba(0, 0, 0, 0.15)',
     previewText: '#1d1d1f',
@@ -108,6 +113,7 @@ export const SettingsPage: React.FC = () => {
     setTurntableSpeed,
     clearQueue,
     archives,
+    setIsChangelogOpen,
   } = usePlayer();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('GENERAL');
@@ -133,7 +139,7 @@ export const SettingsPage: React.FC = () => {
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      setCurrentTimeStr(`${dayName}, ${day} ${month} ${year}  ${hours}:${minutes}:${seconds}`);
+      setCurrentTimeStr(`${dayName}, ${day} ${month} ${year} • ${hours}:${minutes}:${seconds}`);
     };
 
     updateTime();
@@ -205,7 +211,7 @@ export const SettingsPage: React.FC = () => {
   const handleExportSettings = () => {
     try {
       const data = {
-        version: '1.0.0',
+        version: CURRENT_APP_VERSION,
         exportedAt: new Date().toISOString(),
         settings: storage.getSettings(),
         playerMode: storage.getPlayerMode(),
@@ -282,19 +288,21 @@ export const SettingsPage: React.FC = () => {
             right: '24px',
             background: 'var(--bg-secondary)',
             border: '1px solid var(--accent-color)',
-            padding: '8px 16px',
+            borderRadius: '8px',
+            padding: '10px 18px',
             fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            letterSpacing: '0.12em',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
             color: 'var(--accent-color)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5), 0 0 12px var(--accent-subtle)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.6), 0 0 16px var(--accent-subtle)',
             zIndex: 99,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
           }}
         >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-color)' }} />
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
           {actionNotice}
         </div>
       )}
@@ -313,8 +321,8 @@ export const SettingsPage: React.FC = () => {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          padding: '24px 32px 18px 32px',
+          alignItems: 'center',
+          padding: '24px 36px 18px 36px',
           borderBottom: '1px solid var(--border-color)',
           flexShrink: 0,
           background: 'var(--bg-secondary)',
@@ -325,52 +333,48 @@ export const SettingsPage: React.FC = () => {
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '34px',
+              fontSize: '36px',
               lineHeight: 1,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.04em',
               color: 'var(--text-primary)',
               margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
             }}
           >
             SETTINGS
           </h1>
           <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9.5px',
-              letterSpacing: '0.14em',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '13px',
               color: 'var(--text-secondary)',
-              textTransform: 'uppercase',
               marginTop: '5px',
+              fontWeight: 500,
             }}
           >
-            CUSTOMISE YOUR LISTENING EXPERIENCE
+            Configure audio telemetry, playback physics, and architectural interface themes.
           </div>
         </div>
 
-        {/* Right Corner: Quote & Live Clock */}
+        {/* Right Corner: Live Clock */}
         <div style={{ textAlign: 'right' }}>
           <div
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '9px',
-              letterSpacing: '0.15em',
+              fontSize: '11px',
+              letterSpacing: '0.12em',
               color: 'var(--text-muted)',
               textTransform: 'uppercase',
               marginBottom: '4px',
             }}
           >
-            “SAME SONGS. DIFFERENT WORLDS.”
+            SYSTEM CLOCK
           </div>
           <div
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
+              fontSize: '12px',
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.06em',
               color: 'var(--accent-color)',
             }}
           >
@@ -384,8 +388,8 @@ export const SettingsPage: React.FC = () => {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '2px',
-          padding: '0 32px',
+          gap: '4px',
+          padding: '0 36px',
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--bg-secondary)',
           flexShrink: 0,
@@ -403,11 +407,11 @@ export const SettingsPage: React.FC = () => {
                 background: 'transparent',
                 border: 'none',
                 borderBottom: isActive ? '2px solid var(--accent-color)' : '2px solid transparent',
-                padding: '12px 18px',
+                padding: '13px 20px',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '10.5px',
+                fontSize: '11.5px',
                 fontWeight: isActive ? 700 : 500,
-                letterSpacing: '0.14em',
+                letterSpacing: '0.1em',
                 color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -432,10 +436,10 @@ export const SettingsPage: React.FC = () => {
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
-          padding: '24px 32px 40px 32px',
+          padding: '28px 36px 48px 36px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '20px',
+          gap: '24px',
           background: 'var(--bg-primary)',
           transition: 'background-color 0.2s ease',
         }}
@@ -449,43 +453,18 @@ export const SettingsPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
-                gap: '18px',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
+                gap: '24px',
               }}
             >
               {/* CARD 01: PLAYER MODE */}
-              <div
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    PLAYER MODE
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">
+                    <LayoutGrid size={15} color="var(--accent-color)" />
+                    <span>PLAYER MODE</span>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    01
-                  </div>
+                  <div className="settings-card-badge">01</div>
                 </div>
 
                 {/* Mode Selector Cards */}
@@ -493,34 +472,22 @@ export const SettingsPage: React.FC = () => {
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
-                    gap: '12px',
+                    gap: '14px',
                   }}
                 >
                   {/* ARCHIVE MODE CARD */}
                   <div
+                    className={`settings-mode-card ${playerMode === 'ARCHIVE' ? 'is-active' : ''}`}
                     onClick={() => setPlayerMode('ARCHIVE')}
-                    style={{
-                      background: playerMode === 'ARCHIVE' ? 'var(--bg-hover)' : 'var(--bg-tertiary)',
-                      border: playerMode === 'ARCHIVE' ? '1.5px solid var(--accent-color)' : '1px solid var(--border-subtle)',
-                      padding: '16px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      minHeight: '130px',
-                      boxShadow: playerMode === 'ARCHIVE' ? '0 0 16px var(--accent-subtle)' : 'none',
-                      transition: 'all 0.15s ease',
-                      position: 'relative',
-                    }}
                   >
                     {/* Radio Indicator */}
                     <div
                       style={{
                         position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        width: '12px',
-                        height: '12px',
+                        top: '14px',
+                        right: '14px',
+                        width: '16px',
+                        height: '16px',
                         borderRadius: '50%',
                         border: playerMode === 'ARCHIVE' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
                         display: 'flex',
@@ -529,62 +496,51 @@ export const SettingsPage: React.FC = () => {
                       }}
                     >
                       {playerMode === 'ARCHIVE' && (
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-color)' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
                       )}
                     </div>
 
-                    <LayoutGrid size={24} color={playerMode === 'ARCHIVE' ? 'var(--accent-color)' : 'var(--text-muted)'} />
+                    <LayoutGrid size={26} color={playerMode === 'ARCHIVE' ? 'var(--accent-color)' : 'var(--text-muted)'} />
 
-                    <div>
+                    <div style={{ marginTop: '12px' }}>
                       <div
                         style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '18px',
-                          letterSpacing: '0.06em',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          letterSpacing: '0.02em',
                           color: playerMode === 'ARCHIVE' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          marginBottom: '3px',
+                          marginBottom: '4px',
                         }}
                       >
-                        ARCHIVE
+                        ARCHIVE MODE
                       </div>
                       <div
                         style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9.5px',
-                          color: 'var(--text-muted)',
-                          lineHeight: 1.35,
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '12.5px',
+                          color: 'var(--text-secondary)',
+                          lineHeight: 1.45,
                         }}
                       >
-                        Standard brutalist 3-column index.
+                        Standard brutalist 3-column index with precision track catalogue and telemetry.
                       </div>
                     </div>
                   </div>
 
                   {/* 007 / MI6 MODE CARD */}
                   <div
+                    className={`settings-mode-card ${playerMode === 'MI6' ? 'is-active' : ''}`}
                     onClick={() => setPlayerMode('MI6')}
-                    style={{
-                      background: playerMode === 'MI6' ? 'var(--bg-hover)' : 'var(--bg-tertiary)',
-                      border: playerMode === 'MI6' ? '1.5px solid var(--accent-color)' : '1px solid var(--border-subtle)',
-                      padding: '16px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      minHeight: '130px',
-                      boxShadow: playerMode === 'MI6' ? '0 0 16px var(--accent-subtle)' : 'none',
-                      transition: 'all 0.15s ease',
-                      position: 'relative',
-                    }}
                   >
                     {/* Radio Indicator */}
                     <div
                       style={{
                         position: 'absolute',
-                        top: '12px',
-                        right: '12px',
-                        width: '12px',
-                        height: '12px',
+                        top: '14px',
+                        right: '14px',
+                        width: '16px',
+                        height: '16px',
                         borderRadius: '50%',
                         border: playerMode === 'MI6' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
                         display: 'flex',
@@ -593,33 +549,34 @@ export const SettingsPage: React.FC = () => {
                       }}
                     >
                       {playerMode === 'MI6' && (
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-color)' }} />
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
                       )}
                     </div>
 
-                    <Disc size={24} color={playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-muted)'} />
+                    <Disc size={26} color={playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-muted)'} />
 
-                    <div>
+                    <div style={{ marginTop: '12px' }}>
                       <div
                         style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '18px',
-                          letterSpacing: '0.06em',
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '16px',
+                          fontWeight: 700,
+                          letterSpacing: '0.02em',
                           color: playerMode === 'MI6' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                          marginBottom: '3px',
+                          marginBottom: '4px',
                         }}
                       >
-                        007 / MI6
+                        007 / MI6 DOSSIER
                       </div>
                       <div
                         style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '9.5px',
-                          color: 'var(--text-muted)',
-                          lineHeight: 1.35,
+                          fontFamily: 'var(--font-sans)',
+                          fontSize: '12.5px',
+                          color: 'var(--text-secondary)',
+                          lineHeight: 1.45,
                         }}
                       >
-                        Analog vinyl turntable & dossier.
+                        Analog vinyl turntable with spinning record, physical tonearm, and vintage dossier.
                       </div>
                     </div>
                   </div>
@@ -627,500 +584,197 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* CARD 02: AUDIO OPTIONS */}
-              <div
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    AUDIO OPTIONS
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">
+                    <Volume2 size={15} color="var(--accent-color)" />
+                    <span>AUDIO OPTIONS</span>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    02
-                  </div>
+                  <div className="settings-card-badge">02</div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
                   {/* Synthesis Audio Fallback */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ paddingRight: '12px' }}>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          letterSpacing: '0.08em',
-                          color: 'var(--text-primary)',
-                          marginBottom: '2px',
-                        }}
-                      >
-                        SYNTHESIS AUDIO FALLBACK
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                        Ambient harmonic chords for restricted videos.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">SYNTHESIS AUDIO FALLBACK</div>
+                      <div className="settings-row-desc">
+                        Generates ambient harmonic chord synthesis when YouTube streams are region-blocked.
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={handleToggleSynthFallback}
-                      style={{
-                        width: '38px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        background: synthFallback ? 'var(--accent-color)' : 'var(--bg-tertiary)',
-                        border: '1px solid ' + (synthFallback ? 'var(--accent-color)' : 'var(--border-bright)'),
-                        position: 'relative',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        transition: 'background 0.2s ease',
-                      }}
+                      className={`settings-toggle ${synthFallback ? 'is-on' : ''}`}
+                      aria-label="Toggle synthesis audio fallback"
                     >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          left: synthFallback ? '20px' : '3px',
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: synthFallback ? 'var(--bg-primary)' : 'var(--text-muted)',
-                          transition: 'left 0.2s ease',
-                        }}
-                      />
+                      <div className="settings-toggle-knob" />
                     </button>
                   </div>
 
                   {/* Continuous Audio Advancement */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ paddingRight: '12px' }}>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          letterSpacing: '0.08em',
-                          color: 'var(--text-primary)',
-                          marginBottom: '2px',
-                        }}
-                      >
-                        CONTINUOUS AUDIO ADVANCEMENT
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                        Automatically play next track in queue.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">CONTINUOUS PLAYBACK</div>
+                      <div className="settings-row-desc">
+                        Automatically advance to the next track in the current archive or playback queue.
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={handleToggleAutoPlay}
-                      style={{
-                        width: '38px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        background: autoPlay ? 'var(--accent-color)' : 'var(--bg-tertiary)',
-                        border: '1px solid ' + (autoPlay ? 'var(--accent-color)' : 'var(--border-bright)'),
-                        position: 'relative',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        transition: 'background 0.2s ease',
-                      }}
+                      className={`settings-toggle ${autoPlay ? 'is-on' : ''}`}
+                      aria-label="Toggle continuous playback"
                     >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          left: autoPlay ? '20px' : '3px',
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: autoPlay ? 'var(--bg-primary)' : 'var(--text-muted)',
-                          transition: 'left 0.2s ease',
-                        }}
-                      />
+                      <div className="settings-toggle-knob" />
                     </button>
                   </div>
 
                   {/* Vinyl Crackle (007 Mode) */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ paddingRight: '12px' }}>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          letterSpacing: '0.08em',
-                          color: 'var(--text-primary)',
-                          marginBottom: '2px',
-                        }}
-                      >
-                        VINYL CRACKLE (007 MODE)
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                        Adds subtle analog lo-fi texture to playback.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">VINYL CRACKLE SIMULATION</div>
+                      <div className="settings-row-desc">
+                        Injects authentic analog vinyl dust & needle friction texture into playback audio.
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={toggleVinylCrackle}
-                      style={{
-                        width: '38px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        background: isVinylCrackle ? 'var(--accent-color)' : 'var(--bg-tertiary)',
-                        border: '1px solid ' + (isVinylCrackle ? 'var(--accent-color)' : 'var(--border-bright)'),
-                        position: 'relative',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        transition: 'background 0.2s ease',
-                      }}
+                      className={`settings-toggle ${isVinylCrackle ? 'is-on' : ''}`}
+                      aria-label="Toggle vinyl crackle"
                     >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          left: isVinylCrackle ? '20px' : '3px',
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: isVinylCrackle ? 'var(--bg-primary)' : 'var(--text-muted)',
-                          transition: 'left 0.2s ease',
-                        }}
-                      />
+                      <div className="settings-toggle-knob" />
                     </button>
                   </div>
 
                   {/* Normalise Volume */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ paddingRight: '12px' }}>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          letterSpacing: '0.08em',
-                          color: 'var(--text-primary)',
-                          marginBottom: '2px',
-                        }}
-                      >
-                        NORMALISE VOLUME
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                        Keep playback loudness and dynamics consistent.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">NORMALIZE VOLUME</div>
+                      <div className="settings-row-desc">
+                        Smooth dynamic range to keep volume output consistent across diverse audio sources.
                       </div>
                     </div>
 
                     <button
+                      type="button"
                       onClick={handleToggleNormalize}
-                      style={{
-                        width: '38px',
-                        height: '20px',
-                        borderRadius: '10px',
-                        background: normalizeVolume ? 'var(--accent-color)' : 'var(--bg-tertiary)',
-                        border: '1px solid ' + (normalizeVolume ? 'var(--accent-color)' : 'var(--border-bright)'),
-                        position: 'relative',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                        transition: 'background 0.2s ease',
-                      }}
+                      className={`settings-toggle ${normalizeVolume ? 'is-on' : ''}`}
+                      aria-label="Toggle volume normalization"
                     >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          left: normalizeVolume ? '20px' : '3px',
-                          width: '14px',
-                          height: '14px',
-                          borderRadius: '50%',
-                          background: normalizeVolume ? 'var(--bg-primary)' : 'var(--text-muted)',
-                          transition: 'left 0.2s ease',
-                        }}
-                      />
+                      <div className="settings-toggle-knob" />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Middle Row: Quick Actions & Appearance */}
+            {/* Middle Row: Quick Actions & Theme Palette */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
-                gap: '18px',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
+                gap: '24px',
               }}
             >
               {/* CARD 03: QUICK ACTIONS */}
-              <div
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    QUICK ACTIONS
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">
+                    <Sliders size={15} color="var(--accent-color)" />
+                    <span>QUICK ACTIONS</span>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    03
-                  </div>
+                  <div className="settings-card-badge">03</div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
                   {/* Clear All Archives */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        CLEAR ALL ARCHIVES
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                        Remove all saved playlists and cached audio data.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">PURGE SAVED ARCHIVES</div>
+                      <div className="settings-row-desc">
+                        Remove all imported playlists and cached audio data from local storage.
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={handleClearArchives}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid var(--status-live)',
-                        color: 'var(--status-live)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        padding: '4px 14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                      }}
+                      className="settings-action-btn is-danger"
                     >
-                      CLEAR
+                      PURGE VAULT
                     </button>
                   </div>
 
                   {/* Reset Settings */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        RESET SETTINGS
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                        Restore system configuration to factory default.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">RESET CONFIGURATION</div>
+                      <div className="settings-row-desc">
+                        Restore all audio preferences, theme, and player modes to factory defaults.
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={handleResetSettings}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid var(--border-bright)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        padding: '4px 14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--accent-color)';
-                        e.currentTarget.style.color = 'var(--accent-color)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-bright)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
+                      className="settings-action-btn"
                     >
-                      RESET
+                      RESET DEFAULT
                     </button>
                   </div>
 
                   {/* Export Settings */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        EXPORT SETTINGS
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                        Save your audio configuration to a JSON file.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">EXPORT CONFIGURATION</div>
+                      <div className="settings-row-desc">
+                        Save a complete JSON snapshot of your preferences and playlist repository.
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={handleExportSettings}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid var(--border-bright)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        padding: '4px 14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--accent-color)';
-                        e.currentTarget.style.color = 'var(--accent-color)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-bright)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
+                      className="settings-action-btn"
                     >
-                      EXPORT
+                      EXPORT JSON
                     </button>
                   </div>
 
                   {/* Import Settings */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        IMPORT SETTINGS
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                        Load configuration from a backup file.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">IMPORT CONFIGURATION</div>
+                      <div className="settings-row-desc">
+                        Load and restore settings or playlists from a previously exported JSON backup.
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid var(--border-bright)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        padding: '4px 14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--accent-color)';
-                        e.currentTarget.style.color = 'var(--accent-color)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-bright)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
+                      className="settings-action-btn"
                     >
-                      IMPORT
+                      IMPORT FILE
                     </button>
                   </div>
 
                   {/* Clear Current Queue */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '10px',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        CLEAR CURRENT QUEUE
-                      </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                        Empty the currently active playback track list.
+                  <div className="settings-row">
+                    <div className="settings-row-text">
+                      <div className="settings-row-title">CLEAR PLAYBACK QUEUE</div>
+                      <div className="settings-row-desc">
+                        Empty all pending tracks from the active playback queue list.
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => {
                         clearQueue();
                         showNotification('PLAYBACK QUEUE CLEARED');
                       }}
-                      style={{
-                        background: 'transparent',
-                        border: '1px solid var(--border-bright)',
-                        color: 'var(--text-primary)',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9.5px',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em',
-                        padding: '4px 14px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--accent-color)';
-                        e.currentTarget.style.color = 'var(--accent-color)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-bright)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
+                      className="settings-action-btn"
                     >
                       CLEAR QUEUE
                     </button>
@@ -1128,39 +782,14 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* CARD 04: APPEARANCE PALETTES */}
-              <div
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      letterSpacing: '0.14em',
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    THEME PALETTE
+              {/* CARD 04: THEME PALETTE */}
+              <div className="settings-card">
+                <div className="settings-card-header">
+                  <div className="settings-card-title">
+                    <Sparkles size={15} color="var(--accent-color)" />
+                    <span>THEME PALETTE</span>
                   </div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '10px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    04
-                  </div>
+                  <div className="settings-card-badge">04</div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1169,50 +798,64 @@ export const SettingsPage: React.FC = () => {
                     return (
                       <div
                         key={thm.id}
+                        className={`settings-theme-row ${isCurrent ? 'is-active' : ''}`}
                         onClick={() => {
                           setTheme(thm.id);
                           showNotification(`THEME APPLIED: ${thm.name}`);
                         }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          background: isCurrent ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
-                          border: isCurrent ? '1px solid var(--accent-color)' : '1px solid var(--border-subtle)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: 0 }}>
                           {/* Color Swatch Dot */}
                           <div
+                            className="settings-theme-swatch"
                             style={{
-                              width: '14px',
-                              height: '14px',
                               background: thm.previewBg,
                               border: `1.5px solid ${thm.previewAccent}`,
-                              flexShrink: 0,
                             }}
-                          />
-                          <div>
+                          >
                             <div
                               style={{
-                                fontFamily: 'var(--font-mono)',
-                                fontSize: '10px',
-                                fontWeight: 600,
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: thm.previewAccent,
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              className="settings-theme-title"
+                              style={{
                                 color: isCurrent ? 'var(--accent-color)' : 'var(--text-primary)',
                               }}
                             >
                               {thm.name}
                             </div>
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', color: 'var(--text-muted)' }}>
-                              {thm.description.slice(0, 52)}...
+                            <div className="settings-theme-desc">
+                              {thm.description}
                             </div>
                           </div>
                         </div>
 
-                        {isCurrent && <Check size={14} color="var(--accent-color)" />}
+                        {isCurrent && (
+                          <div
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              background: 'var(--accent-color)',
+                              color: 'var(--bg-primary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              marginLeft: '12px',
+                            }}
+                          >
+                            <Check size={14} strokeWidth={3} />
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1221,137 +864,157 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             {/* CARD 05: ABOUT & SPECIFICATION (FULL-WIDTH BOTTOM BANNER) */}
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '24px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              {/* Brand & Version Info */}
-              <div style={{ minWidth: '240px', flex: 1 }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '26px',
-                    letterSpacing: '0.06em',
-                    color: 'var(--text-primary)',
-                    lineHeight: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  <span style={{ color: 'var(--accent-color)' }}>|+|</span> SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '9px',
-                    letterSpacing: '0.14em',
-                    color: 'var(--text-secondary)',
-                    margin: '4px 0 10px 0',
-                  }}
-                >
-                  PERSONAL AUDIO SYSTEM • VERSION 1.0.0
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    color: 'var(--text-muted)',
-                    lineHeight: 1.4,
-                    maxWidth: '420px',
-                  }}
-                >
-                  A personal music archive for the ones who listen a little deeper. Built with brute fidelity, analog physics & web audio synthesizers.
-                </div>
-              </div>
-
-              {/* Useful Links */}
+            <div className="settings-card" style={{ padding: '26px 30px' }}>
               <div
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '9.5px',
-                  letterSpacing: '0.1em',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '24px',
                 }}
               >
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-                >
-                  GitHub Repository <ExternalLink size={10} />
-                </a>
-                <a
-                  href="#documentation"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    showNotification('DOCUMENTATION: VAULT AUDIO ENGINE v1.0');
-                  }}
-                  style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-                >
-                  System Manual & Shortcuts <ExternalLink size={10} />
-                </a>
-                <a
-                  href="#report"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    showNotification('FEEDBACK LOGGED TO LOCAL CONSOLE');
-                  }}
-                  style={{ color: 'var(--text-secondary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-                >
-                  Report an Issue <ExternalLink size={10} />
-                </a>
-              </div>
+                {/* Brand & Version Info */}
+                <div style={{ minWidth: '280px', flex: 1 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '28px',
+                      letterSpacing: '0.04em',
+                      color: 'var(--text-primary)',
+                      lineHeight: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span>SHONO.FM</span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: 'rgba(212, 175, 55, 0.15)',
+                        border: '1px solid var(--accent-color)',
+                        color: 'var(--accent-color)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      v{CURRENT_APP_VERSION}
+                    </span>
+                  </div>
 
-              {/* Monolith Quote Block */}
-              <div
-                style={{
-                  textAlign: 'right',
-                  borderLeft: '1px solid var(--border-color)',
-                  paddingLeft: '24px',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.14em',
-                    color: 'var(--text-primary)',
-                    marginBottom: '4px',
-                  }}
-                >
-                  “SAME SONGS. DIFFERENT WORLDS.”
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '13px',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.5,
+                      maxWidth: '520px',
+                      marginTop: '8px',
+                    }}
+                  >
+                    High-fidelity personal music vault engineered with Web Audio synthesizers, analog vinyl physical modeling, and brutalist architecture.
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsChangelogOpen(true)}
+                    className="settings-action-btn"
+                    style={{
+                      marginTop: '14px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: 'var(--accent-color)',
+                      borderColor: 'var(--accent-color)',
+                    }}
+                  >
+                    <Sparkles size={13} />
+                    <span>WHAT'S NEW IN UPDATE 01</span>
+                  </button>
                 </div>
+
+                {/* Useful Links */}
                 <div
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '8.5px',
-                    letterSpacing: '0.16em',
-                    color: 'var(--text-muted)',
-                    textTransform: 'uppercase',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '13px',
                   }}
                 >
-                  SHONO.FM • AUDIO ARCHIVE<br />
-                  KOLKATA, INDIA // 2025
+                  <a
+                    href="https://github.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  >
+                    <span>GitHub Open Source Repository</span>
+                    <ExternalLink size={12} />
+                  </a>
+                  <a
+                    href="#documentation"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      showNotification('DOCUMENTATION: VAULT AUDIO ENGINE v1.1');
+                    }}
+                    style={{
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  >
+                    <span>System Manual & Keyboard Shortcuts</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                {/* Monolith Quote Block */}
+                <div
+                  style={{
+                    textAlign: 'right',
+                    borderLeft: '1px solid var(--border-color)',
+                    paddingLeft: '24px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '18px',
+                      letterSpacing: '0.06em',
+                      color: 'var(--text-primary)',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    “SAME SONGS. DIFFERENT WORLDS.”
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      color: 'var(--text-muted)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    SHONO.FM AUDIO ARCHIVE // 2026
+                  </div>
                 </div>
               </div>
             </div>
@@ -1363,36 +1026,21 @@ export const SettingsPage: React.FC = () => {
         {/* ========================================================= */}
         {activeTab === 'PLAYER' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  letterSpacing: '0.06em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                TURNTABLE & PLAYBACK ENGINE
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-card-title">
+                  <Disc size={15} color="var(--accent-color)" />
+                  <span>TURNTABLE & VINYL ENGINE</span>
+                </div>
+                <div className="settings-card-badge">PHYSICAL MODELING</div>
               </div>
 
-              {/* Speed Selector (33 RPM vs 45 RPM) */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '18px' }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    TURNTABLE ROTATION SPEED
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                    Governs vinyl playback simulation and scratch scrubbing physics.
+              {/* Speed Selector */}
+              <div className="settings-row">
+                <div className="settings-row-text">
+                  <div className="settings-row-title">TURNTABLE ROTATION SPEED</div>
+                  <div className="settings-row-desc">
+                    Governs physical platter angular velocity and analog needle scratch simulation.
                   </div>
                 </div>
 
@@ -1400,20 +1048,16 @@ export const SettingsPage: React.FC = () => {
                   {([33, 45] as const).map((spd) => (
                     <button
                       key={spd}
+                      type="button"
                       onClick={() => {
                         setTurntableSpeed(spd as TurntableSpeed);
-                        showNotification(`PLATTER SPEED SET TO ${spd} RPM`);
+                        showNotification(`PLATTER SPEED: ${spd} RPM`);
                       }}
+                      className="settings-action-btn"
                       style={{
-                        background: turntableSpeed === spd ? 'var(--accent-color)' : 'var(--bg-tertiary)',
+                        background: turntableSpeed === spd ? 'var(--accent-color)' : 'transparent',
                         color: turntableSpeed === spd ? 'var(--bg-primary)' : 'var(--text-primary)',
-                        border: '1px solid ' + (turntableSpeed === spd ? 'var(--accent-color)' : 'var(--border-bright)'),
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '6px 16px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
+                        borderColor: turntableSpeed === spd ? 'var(--accent-color)' : 'var(--border-bright)',
                       }}
                     >
                       {spd} RPM
@@ -1423,42 +1067,21 @@ export const SettingsPage: React.FC = () => {
               </div>
 
               {/* CRT Scanline Phosphor Overlay */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    CRT MONITOR PHOSPHOR SCANLINES
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
-                    Simulates vintage cathode-ray tube surveillance monitors with subtle horizontal sweep lines.
+              <div className="settings-row">
+                <div className="settings-row-text">
+                  <div className="settings-row-title">CRT MONITOR PHOSPHOR SCANLINES</div>
+                  <div className="settings-row-desc">
+                    Overlays hardware-calibrated cathode ray tube phosphor raster scanlines over UI.
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleToggleCrt}
-                  style={{
-                    width: '38px',
-                    height: '20px',
-                    borderRadius: '10px',
-                    background: crtEffect ? 'var(--accent-color)' : 'var(--bg-tertiary)',
-                    border: '1px solid ' + (crtEffect ? 'var(--accent-color)' : 'var(--border-bright)'),
-                    position: 'relative',
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    transition: 'background 0.2s ease',
-                  }}
+                  className={`settings-toggle ${crtEffect ? 'is-on' : ''}`}
+                  aria-label="Toggle CRT Scanlines"
                 >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '2px',
-                      left: crtEffect ? '20px' : '3px',
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                      background: crtEffect ? 'var(--bg-primary)' : 'var(--text-muted)',
-                      transition: 'left 0.2s ease',
-                    }}
-                  />
+                  <div className="settings-toggle-knob" />
                 </button>
               </div>
             </div>
@@ -1466,31 +1089,20 @@ export const SettingsPage: React.FC = () => {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: APPEARANCE (FULL THEMES & DESIGN TOKENS)           */}
+        {/* TAB 3: APPEARANCE (COMPREHENSIVE THEME GALLERY)           */}
         {/* ========================================================= */}
         {activeTab === 'APPEARANCE' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  letterSpacing: '0.06em',
-                  color: 'var(--text-primary)',
-                  marginBottom: '16px',
-                }}
-              >
-                BRUTALIST ARCHITECTURAL THEMES
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-card-title">
+                  <Sparkles size={15} color="var(--accent-color)" />
+                  <span>ARCHITECTURAL THEME GALLERY</span>
+                </div>
+                <div className="settings-card-badge">{THEME_OPTIONS.length} PALETTES</div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px' }}>
                 {THEME_OPTIONS.map((thm) => {
                   const isCurrent = theme === thm.id;
                   return (
@@ -1503,36 +1115,52 @@ export const SettingsPage: React.FC = () => {
                       style={{
                         background: thm.previewBg,
                         border: isCurrent ? '2px solid var(--accent-color)' : `1px solid ${thm.previewBorder}`,
-                        padding: '16px',
+                        borderRadius: '12px',
+                        padding: '20px',
                         cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        minHeight: '140px',
-                        position: 'relative',
-                        boxShadow: isCurrent ? '0 0 14px var(--accent-subtle)' : 'none',
-                        transition: 'all 0.15s ease',
+                        minHeight: '150px',
+                        boxShadow: isCurrent ? '0 0 20px var(--accent-subtle)' : 'none',
+                        transition: 'all 0.16s ease',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: thm.previewAccent, fontWeight: 700 }}>
-                          {thm.index} // PALETTE
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: thm.previewAccent, fontWeight: 700 }}>
+                          PALETTE {thm.index}
                         </span>
-                        {isCurrent && <Check size={16} color="var(--accent-color)" />}
+                        {isCurrent && (
+                          <div
+                            style={{
+                              width: '22px',
+                              height: '22px',
+                              borderRadius: '50%',
+                              background: thm.previewAccent,
+                              color: thm.previewBg,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Check size={13} strokeWidth={3} />
+                          </div>
+                        )}
                       </div>
 
-                      <div>
+                      <div style={{ marginTop: '16px' }}>
                         <div
                           style={{
-                            fontFamily: 'var(--font-display)',
-                            fontSize: '18px',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '16px',
+                            fontWeight: 700,
                             color: thm.previewText,
-                            marginBottom: '4px',
+                            marginBottom: '6px',
                           }}
                         >
                           {thm.name}
                         </div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: thm.previewText, opacity: 0.7 }}>
+                        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12.5px', color: thm.previewText, opacity: 0.8, lineHeight: 1.45 }}>
                           {thm.description}
                         </div>
                       </div>
@@ -1549,26 +1177,13 @@ export const SettingsPage: React.FC = () => {
         {/* ========================================================= */}
         {activeTab === 'INTEGRATIONS' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  letterSpacing: '0.06em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                INGESTION PIPELINE & VAULT STORAGE
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-card-title">
+                  <Database size={15} color="var(--accent-color)" />
+                  <span>STREAM PIPELINE & VAULT STORAGE</span>
+                </div>
+                <div className="settings-card-badge">STATUS // ACTIVE</div>
               </div>
 
               {/* Status Row */}
@@ -1576,19 +1191,20 @@ export const SettingsPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  background: 'var(--bg-tertiary)',
+                  gap: '14px',
+                  background: 'rgba(255, 255, 255, 0.03)',
                   border: '1px solid var(--border-color)',
-                  padding: '14px 18px',
+                  borderRadius: '8px',
+                  padding: '16px 20px',
                 }}
               >
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--status-active)', boxShadow: '0 0 8px var(--status-active)' }} />
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--status-active)', boxShadow: '0 0 10px var(--status-active)' }} />
                 <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    YOUTUBE AUDIO PIPELINE: ACTIVE & SECURED
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    YOUTUBE AUDIO PIPELINE: ACTIVE & ENCRYPTED
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    Server backend credentials managed securely. Web Audio synthesis fallback active for regional restrictions.
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                    Real-time metadata extraction with Web Audio synthesis fallback for regional or copyright restrictions.
                   </div>
                 </div>
               </div>
@@ -1597,22 +1213,28 @@ export const SettingsPage: React.FC = () => {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '12px',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '14px',
                   marginTop: '10px',
                 }}
               >
-                <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', padding: '14px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>SAVED PLAYLISTS</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--accent-color)' }}>{archives.length}</div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>SAVED VAULTS</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--accent-color)', marginTop: '4px' }}>
+                    {archives.length}
+                  </div>
                 </div>
-                <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', padding: '14px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>STORAGE PROTOCOL</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--text-primary)' }}>LOCAL STORAGE</div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>STORAGE DRIVER</div>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '6px' }}>
+                    LOCAL STORAGE
+                  </div>
                 </div>
-                <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', padding: '14px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>STREAM ENGINE</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', color: 'var(--text-primary)' }}>IFRAME / SYNTH</div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>STREAM ENGINE</div>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '6px' }}>
+                    IFRAME + WEB AUDIO
+                  </div>
                 </div>
               </div>
             </div>
@@ -1624,60 +1246,47 @@ export const SettingsPage: React.FC = () => {
         {/* ========================================================= */}
         {activeTab === 'AUDIO' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  letterSpacing: '0.06em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                AUDIO ENGINE & EQUALIZATION
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-card-title">
+                  <Sliders size={15} color="var(--accent-color)" />
+                  <span>DSP EQUALIZATION & SPECTRAL ANALYSIS</span>
+                </div>
+                <div className="settings-card-badge">24-BIT / 48 KHZ</div>
               </div>
 
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Direct Web Audio API pipeline with 256-band Fast Fourier Transform (FFT) real-time spectral analysis, stereo VU meters, and calibrated vinyl needle crackle synthesis.
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Hardware-accelerated Web Audio API pipeline with 256-band Fast Fourier Transform (FFT) real-time spectral matrix, stereo VU peak metering, and parametric EQ.
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '8px' }}>
-                <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '14px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>FFT FREQUENCY BANDS</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--accent-color)', marginTop: '4px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>FFT RESOLUTION</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', fontWeight: 700, color: 'var(--accent-color)', marginTop: '4px' }}>
                     256 BINS (32Hz — 16kHz)
                   </div>
                 </div>
-                <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '14px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)' }}>SAMPLE RATE</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--status-active)', marginTop: '4px' }}>
-                    48,000 HZ • 24-BIT HIGH FIDELITY
+                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>AUDIO SAMPLE RATE</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', fontWeight: 700, color: 'var(--status-active)', marginTop: '4px' }}>
+                    48,000 HZ • STUDIO MASTER
                   </div>
                 </div>
               </div>
 
-              {/* Live Master Studio Equalizer Module */}
-              <div style={{ marginTop: '14px', maxWidth: '440px' }}>
+              {/* Master Studio Equalizer Module */}
+              <div style={{ marginTop: '16px', maxWidth: '480px' }}>
                 <div
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '9px',
-                    letterSpacing: '0.12em',
+                    fontSize: '11px',
+                    letterSpacing: '0.1em',
                     color: 'var(--text-muted)',
-                    marginBottom: '8px',
+                    marginBottom: '10px',
                     textTransform: 'uppercase',
                   }}
                 >
-                  LIVE FREQUENCY MATRIX & DSP EQUALIZATION
+                  LIVE FREQUENCY MATRIX
                 </div>
                 <SidebarEqualizer />
               </div>
@@ -1690,46 +1299,46 @@ export const SettingsPage: React.FC = () => {
         {/* ========================================================= */}
         {activeTab === 'ADVANCED' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                padding: '24px 28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                transition: 'background-color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  letterSpacing: '0.06em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                ADVANCED SYSTEM DIAGNOSTICS
+            <div className="settings-card">
+              <div className="settings-card-header">
+                <div className="settings-card-title">
+                  <Tv size={15} color="var(--accent-color)" />
+                  <span>ADVANCED SYSTEM DIAGNOSTICS</span>
+                </div>
+                <div className="settings-card-badge">MAINTENANCE</div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '12px 16px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-primary)' }}>PURGE LOCAL STORAGE CACHE</span>
+              <div>
+                <div className="settings-row">
+                  <div className="settings-row-text">
+                    <div className="settings-row-title">PURGE LOCAL STORAGE CACHE</div>
+                    <div className="settings-row-desc">
+                      Clears all cached tokens, playback positions, and preferences, resetting application state.
+                    </div>
+                  </div>
                   <button
+                    type="button"
                     onClick={() => {
                       localStorage.clear();
                       window.location.reload();
                     }}
-                    style={{ background: 'var(--status-live)', color: '#fff', border: 'none', padding: '6px 14px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}
+                    className="settings-action-btn is-danger"
                   >
                     PURGE ALL CACHE
                   </button>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', padding: '12px 16px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-primary)' }}>EXPORT FULL DATABASE TO JSON</span>
+
+                <div className="settings-row">
+                  <div className="settings-row-text">
+                    <div className="settings-row-title">DOWNLOAD COMPLETE DATABASE</div>
+                    <div className="settings-row-desc">
+                      Exports all playlists, history, tracks, and metadata into a raw JSON archive.
+                    </div>
+                  </div>
                   <button
+                    type="button"
                     onClick={handleExportSettings}
-                    style={{ background: 'var(--accent-color)', color: 'var(--bg-primary)', border: 'none', padding: '6px 14px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}
+                    className="settings-action-btn"
                   >
                     DOWNLOAD DATABASE
                   </button>

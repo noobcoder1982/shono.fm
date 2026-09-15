@@ -27,7 +27,7 @@ export const PlaylistImporter: React.FC = () => {
   return (
     <section
       style={{
-        padding: isAppleGlass ? '18px 22px 10px 22px' : '12px 20px',
+        padding: isAppleGlass ? '20px 28px 12px 28px' : '18px 26px 14px 26px',
         borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-color)',
         position: 'relative',
         background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
@@ -40,14 +40,14 @@ export const PlaylistImporter: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
-          marginBottom: isAppleGlass ? '12px' : '10px',
+          marginBottom: isAppleGlass ? '14px' : '12px',
         }}
       >
         <div>
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isAppleGlass ? '24px' : '32px',
+              fontSize: isAppleGlass ? '26px' : '34px',
               lineHeight: isAppleGlass ? 1.1 : 0.88,
               letterSpacing: isAppleGlass ? '-0.02em' : '0.02em',
               fontWeight: isAppleGlass ? 700 : 400,
@@ -96,13 +96,13 @@ export const PlaylistImporter: React.FC = () => {
             disabled={isImporting}
             style={{
               flex: 1,
-              height: isAppleGlass ? '38px' : '34px',
+              height: isAppleGlass ? '42px' : '38px',
               border: isAppleGlass ? 'none' : undefined,
               borderRight: 'none',
               background: isAppleGlass ? 'transparent' : undefined,
               fontFamily: isAppleGlass ? 'var(--font-sans)' : 'var(--font-mono)',
-              fontSize: isAppleGlass ? '12.5px' : '11px',
-              padding: isAppleGlass ? '8px 16px' : '6px 12px',
+              fontSize: isAppleGlass ? '13px' : '11.5px',
+              padding: isAppleGlass ? '10px 18px' : '8px 14px',
               outline: 'none',
             }}
           />
@@ -111,8 +111,8 @@ export const PlaylistImporter: React.FC = () => {
             className="bma-btn bma-btn-primary"
             disabled={isImporting}
             style={{
-              height: isAppleGlass ? '38px' : '34px',
-              padding: isAppleGlass ? '0 20px' : '0 18px',
+              height: isAppleGlass ? '42px' : '38px',
+              padding: isAppleGlass ? '0 22px' : '0 20px',
               border: 'none',
               borderLeft: isAppleGlass ? 'none' : '1px solid var(--border-active)',
               borderRadius: isAppleGlass ? '0 20px 20px 0' : '0',

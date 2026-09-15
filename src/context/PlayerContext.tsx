@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import type { Archive, Track, PlaybackStatus, RepeatMode, SystemStatusInfo, PlayerMode, TurntableSpeed } from '../types';
 import { audioEngine } from '../services/audioEngine';
 import { playlistService } from '../services/playlistService';
-import { storage, type BrutalistTheme } from '../services/storage';
+import { storage, CURRENT_APP_VERSION, type BrutalistTheme } from '../services/storage';
 
 interface PlayerContextType {
   archives: Archive[];
@@ -23,6 +23,7 @@ interface PlayerContextType {
   isShortcutsOpen: boolean;
   isSettingsOpen: boolean;
   isQueueDrawerOpen: boolean;
+  isChangelogOpen: boolean;
   activeTab: string;
   isImporting: boolean;
   importProgressText: string;
@@ -60,6 +61,8 @@ interface PlayerContextType {
   setIsShortcutsOpen: (open: boolean) => void;
   setIsSettingsOpen: (open: boolean) => void;
   setIsQueueDrawerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  setIsChangelogOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
+  closeChangelog: (markAsSeen?: boolean) => void;
   setActiveTab: (tab: string) => void;
   importPlaylist: (url: string) => Promise<Archive>;
   deleteArchive: (id: string) => void;
@@ -105,6 +108,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isQueueDrawerOpen, setIsQueueDrawerOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState<boolean>(() => storage.shouldShowChangelog());
   const [activeTab, setActiveTab] = useState('ARCHIVE');
 
   const [theme, setThemeState] = useState<BrutalistTheme>(() => storage.getSettings().theme || 'noir');
@@ -436,6 +440,13 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     statusText: playbackStatus === 'PLAYING' ? 'STREAMING' : playbackStatus === 'BUFFERING' ? 'BUFFERING' : 'READY',
   };
 
+  const closeChangelog = useCallback((markAsSeen = true) => {
+    setIsChangelogOpen(false);
+    if (markAsSeen) {
+      storage.saveLastSeenChangelogVersion(CURRENT_APP_VERSION);
+    }
+  }, []);
+
   return (
     <PlayerContext.Provider
       value={{
@@ -493,6 +504,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setIsShortcutsOpen,
         setIsSettingsOpen,
         setIsQueueDrawerOpen,
+        isChangelogOpen,
+        setIsChangelogOpen,
+        closeChangelog,
         setActiveTab,
         importPlaylist,
         deleteArchive,

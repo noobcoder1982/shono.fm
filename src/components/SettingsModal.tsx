@@ -19,7 +19,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'noir',
     index: '01',
     name: 'NOIR MONOCHROME',
-    description: 'Deep obsidian #090909, hairline borders, stark off-white typography.',
+    description: 'Deep obsidian #090909, hairline borders, and stark off-white typography.',
     previewBg: '#090909',
     previewBorder: '#333333',
     previewText: '#f0f0f0',
@@ -29,7 +29,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'concrete',
     index: '02',
     name: 'CONCRETE SLAB',
-    description: 'Industrial cement slate #151619, cold shadows, crisp steel tones.',
+    description: 'Industrial cement slate #151619, cold shadows, and crisp steel tones.',
     previewBg: '#151619',
     previewBorder: '#4d5463',
     previewText: '#f8fafc',
@@ -39,7 +39,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'amber',
     index: '03',
     name: 'PHOSPHOR AMBER',
-    description: 'Vintage 1980s monochrome CRT terminal, warm phosphor glow.',
+    description: 'Vintage 1980s monochrome CRT terminal with warm phosphor glow.',
     previewBg: '#090703',
     previewBorder: '#61481c',
     previewText: '#ffb703',
@@ -59,7 +59,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'paper',
     index: '05',
     name: 'SWISS INVERTED / PAPER',
-    description: 'Stark bone-white editorial catalogue, heavy pure black ink typography.',
+    description: 'Stark bone-white editorial catalogue with heavy pure black ink typography.',
     previewBg: '#ebebe5',
     previewBorder: '#98988a',
     previewText: '#0f0f0f',
@@ -79,7 +79,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     id: 'apple-glass-light',
     index: '07',
     name: 'APPLE GLASS (LIGHT)',
-    description: 'Luminous crystal frosted glass, daylight refraction, clean crisp typography.',
+    description: 'Luminous crystal frosted glass with daylight refraction and clean crisp typography.',
     previewBg: '#f5f5f7',
     previewBorder: 'rgba(0, 0, 0, 0.15)',
     previewText: '#1d1d1f',
@@ -116,7 +116,7 @@ export const SettingsModal: React.FC = () => {
   };
 
   const handleResetArchives = () => {
-    if (window.confirm('PURGE ALL SAVED ARCHIVES AND RESET VAULT?')) {
+    if (window.confirm('PURGE ALL SAVED ARCHIVES AND RESET VAULT? This cannot be undone.')) {
       storage.saveArchives([]);
       storage.setActiveArchiveId('');
       storage.saveQueue([]);
@@ -129,7 +129,7 @@ export const SettingsModal: React.FC = () => {
       <div
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '580px', maxHeight: '90vh', overflowY: 'auto' }}
+        style={{ maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto' }}
       >
         {/* Header */}
         <div
@@ -137,7 +137,7 @@ export const SettingsModal: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '14px 20px',
+            padding: '16px 24px',
             borderBottom: '1px solid var(--border-color)',
             background: 'var(--bg-secondary)',
             position: 'sticky',
@@ -145,17 +145,18 @@ export const SettingsModal: React.FC = () => {
             zIndex: 10,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sliders size={14} color="var(--text-secondary)" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Sliders size={16} color="var(--accent-color)" />
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                letterSpacing: '0.12em',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
                 color: 'var(--text-primary)',
               }}
             >
-              SHONO.FM SYSTEM & THEME CONFIGURATION
+              SYSTEM CONFIGURATION
             </span>
           </div>
           <button
@@ -163,33 +164,33 @@ export const SettingsModal: React.FC = () => {
             onClick={() => setIsSettingsOpen(false)}
             style={{ padding: '4px' }}
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSave} style={{ padding: '20px' }}>
-          {/* Permanent Locked Ingestion Status Banner */}
+        <form onSubmit={handleSave} style={{ padding: '24px' }}>
+          {/* Locked Ingestion Status Banner */}
           <div
             style={{
-              padding: '10px 14px',
+              padding: '12px 16px',
+              borderRadius: '8px',
               border: '1px solid var(--border-color)',
               background: 'var(--bg-secondary)',
-              marginBottom: '20px',
+              marginBottom: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <ShieldCheck size={16} color="var(--status-active)" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <ShieldCheck size={18} color="var(--status-active)" />
               <div>
                 <div
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    letterSpacing: '0.08em',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '13px',
+                    fontWeight: 700,
                     color: 'var(--text-primary)',
                   }}
                 >
@@ -197,12 +198,13 @@ export const SettingsModal: React.FC = () => {
                 </div>
                 <div
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '8.5px',
-                    color: 'var(--text-muted)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    marginTop: '2px',
                   }}
                 >
-                  Global API credentials locked &bull; Ingestion pipeline ready
+                  Global API credentials locked • Stream ingestion pipeline ready
                 </div>
               </div>
             </div>
@@ -212,19 +214,20 @@ export const SettingsModal: React.FC = () => {
                 alignItems: 'center',
                 gap: '6px',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '8.5px',
+                fontSize: '10px',
                 color: 'var(--status-active)',
                 border: '1px solid var(--status-active)',
-                padding: '2px 8px',
+                borderRadius: '4px',
+                padding: '3px 8px',
               }}
             >
-              <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--status-active)' }} />
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--status-active)' }} />
               DEFAULT_LOCKED
             </span>
           </div>
 
-          {/* PLAYER MODE SELECTOR (Archive vs 007 / MI6) */}
-          <div style={{ marginBottom: '22px' }}>
+          {/* PLAYER MODE SELECTOR */}
+          <div style={{ marginBottom: '26px' }}>
             <div
               style={{
                 display: 'flex',
@@ -233,13 +236,13 @@ export const SettingsModal: React.FC = () => {
                 marginBottom: '10px',
               }}
             >
-              <Disc size={13} color="var(--text-secondary)" />
+              <Disc size={15} color="var(--accent-color)" />
               <label
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  letterSpacing: '0.12em',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
                   color: 'var(--text-primary)',
                 }}
               >
@@ -251,7 +254,7 @@ export const SettingsModal: React.FC = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: '10px',
+                gap: '12px',
               }}
             >
               {/* Option 1: ARCHIVE */}
@@ -259,9 +262,10 @@ export const SettingsModal: React.FC = () => {
                 type="button"
                 onClick={() => setPlayerMode('ARCHIVE')}
                 style={{
-                  padding: '12px 14px',
+                  padding: '14px 16px',
+                  borderRadius: '8px',
                   background: playerMode === 'ARCHIVE' ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
-                  border: playerMode === 'ARCHIVE' ? '2px solid var(--text-primary)' : '1px solid var(--border-color)',
+                  border: playerMode === 'ARCHIVE' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
                   color: 'var(--text-primary)',
                   textAlign: 'left',
                   cursor: 'pointer',
@@ -273,10 +277,10 @@ export const SettingsModal: React.FC = () => {
               >
                 <div
                   style={{
-                    width: '14px',
-                    height: '14px',
+                    width: '16px',
+                    height: '16px',
                     borderRadius: '50%',
-                    border: '2px solid var(--text-primary)',
+                    border: playerMode === 'ARCHIVE' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -284,14 +288,14 @@ export const SettingsModal: React.FC = () => {
                   }}
                 >
                   {playerMode === 'ARCHIVE' && (
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
                   )}
                 </div>
                 <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em' }}>
-                    ARCHIVE
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 700 }}>
+                    ARCHIVE MODE
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     Standard brutalist 3-column index
                   </div>
                 </div>
@@ -302,10 +306,11 @@ export const SettingsModal: React.FC = () => {
                 type="button"
                 onClick={() => setPlayerMode('MI6')}
                 style={{
-                  padding: '12px 14px',
-                  background: playerMode === 'MI6' ? 'rgba(212, 175, 55, 0.12)' : 'var(--bg-secondary)',
-                  border: playerMode === 'MI6' ? '2px solid #d4af37' : '1px solid var(--border-color)',
-                  color: playerMode === 'MI6' ? '#d4af37' : 'var(--text-primary)',
+                  padding: '14px 16px',
+                  borderRadius: '8px',
+                  background: playerMode === 'MI6' ? 'rgba(212, 175, 55, 0.1)' : 'var(--bg-secondary)',
+                  border: playerMode === 'MI6' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
+                  color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-primary)',
                   textAlign: 'left',
                   cursor: 'pointer',
                   display: 'flex',
@@ -316,10 +321,10 @@ export const SettingsModal: React.FC = () => {
               >
                 <div
                   style={{
-                    width: '14px',
-                    height: '14px',
+                    width: '16px',
+                    height: '16px',
                     borderRadius: '50%',
-                    border: playerMode === 'MI6' ? '2px solid #d4af37' : '2px solid var(--text-secondary)',
+                    border: playerMode === 'MI6' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -327,14 +332,14 @@ export const SettingsModal: React.FC = () => {
                   }}
                 >
                   {playerMode === 'MI6' && (
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#d4af37' }} />
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
                   )}
                 </div>
                 <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em' }}>
-                    007 / MI6
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 700 }}>
+                    007 / MI6 DOSSIER
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: playerMode === 'MI6' ? '#c5a059' : 'var(--text-secondary)' }}>
+                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     Analog vinyl turntable & dossier
                   </div>
                 </div>
@@ -343,7 +348,7 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           {/* Theme Selector Section */}
-          <div style={{ marginBottom: '22px' }}>
+          <div style={{ marginBottom: '26px' }}>
             <div
               style={{
                 display: 'flex',
@@ -352,18 +357,18 @@ export const SettingsModal: React.FC = () => {
                 marginBottom: '10px',
               }}
             >
-              <Palette size={13} color="var(--text-secondary)" />
+              <Palette size={15} color="var(--accent-color)" />
               <label
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  letterSpacing: '0.12em',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
                   color: 'var(--text-primary)',
                   textTransform: 'uppercase',
                 }}
               >
-                SHONO.FM INTERFACE THEMES
+                INTERFACE THEMES
               </label>
             </div>
 
@@ -379,54 +384,46 @@ export const SettingsModal: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      border: isSelected ? '1px solid var(--text-primary)' : '1px solid var(--border-color)',
-                      background: isSelected ? 'var(--bg-secondary)' : 'transparent',
+                      borderRadius: '8px',
+                      border: isSelected ? '1.5px solid var(--accent-color)' : '1px solid var(--border-color)',
+                      background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                       cursor: 'pointer',
                       transition: 'all 0.12s ease',
                     }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-bright)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-color)';
-                    }}
                   >
-                    {/* Left info */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {/* Live Palette Swatch */}
                       <div
                         style={{
-                          width: '28px',
-                          height: '28px',
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '6px',
                           background: opt.previewBg,
-                          border: `1px solid ${opt.previewBorder}`,
+                          border: `1.5px solid ${opt.previewAccent}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
                         }}
                       >
-                        <span style={{ width: '8px', height: '8px', background: opt.previewAccent }} />
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: opt.previewAccent }} />
                       </div>
 
                       <div>
                         <div
                           style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '10.5px',
-                            fontWeight: isSelected ? 600 : 500,
-                            color: 'var(--text-primary)',
-                            letterSpacing: '0.06em',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: isSelected ? 'var(--accent-color)' : 'var(--text-primary)',
                           }}
                         >
-                          <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>{opt.index}</span>
                           {opt.name}
                         </div>
                         <div
                           style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '8.5px',
-                            color: 'var(--text-muted)',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
                             marginTop: '2px',
                           }}
                         >
@@ -435,17 +432,24 @@ export const SettingsModal: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Radio indicator */}
-                    <div
-                      style={{
-                        width: '12px',
-                        height: '12px',
-                        border: isSelected ? '1px solid var(--text-primary)' : '1px solid var(--border-bright)',
-                        background: isSelected ? 'var(--text-primary)' : 'transparent',
-                        flexShrink: 0,
-                        marginLeft: '12px',
-                      }}
-                    />
+                    {isSelected && (
+                      <div
+                        style={{
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '50%',
+                          background: 'var(--accent-color)',
+                          color: 'var(--bg-primary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginLeft: '12px',
+                        }}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -458,23 +462,23 @@ export const SettingsModal: React.FC = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '10px 0',
+              padding: '12px 0',
               borderTop: '1px solid var(--border-subtle)',
             }}
           >
             <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', color: 'var(--text-primary)' }}>
-                SYNTHESIS AUDIO FALLBACK ENGINE
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                SYNTHESIS AUDIO FALLBACK
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
-                Generates ambient darkwave harmonic chords when YouTube videos are geo-restricted
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Generates ambient harmonic chords when YouTube streams are restricted
               </div>
             </div>
             <input
               type="checkbox"
               checked={synthFallback}
               onChange={(e) => setSynthFallback(e.target.checked)}
-              style={{ width: '15px', height: '15px', accentColor: 'var(--text-primary)' }}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-color)', cursor: 'pointer' }}
             />
           </div>
 
@@ -484,17 +488,17 @@ export const SettingsModal: React.FC = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '10px 0',
+              padding: '12px 0',
               borderTop: '1px solid var(--border-subtle)',
               borderBottom: '1px solid var(--border-subtle)',
-              marginBottom: '20px',
+              marginBottom: '24px',
             }}
           >
             <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', color: 'var(--text-primary)' }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 CONTINUOUS AUDIO ADVANCEMENT
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '8.5px', color: 'var(--text-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Automatically play next track in queue or archive on completion
               </div>
             </div>
@@ -502,7 +506,7 @@ export const SettingsModal: React.FC = () => {
               type="checkbox"
               checked={autoPlay}
               onChange={(e) => setAutoPlay(e.target.checked)}
-              style={{ width: '15px', height: '15px', accentColor: 'var(--text-primary)' }}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-color)', cursor: 'pointer' }}
             />
           </div>
 
@@ -512,19 +516,19 @@ export const SettingsModal: React.FC = () => {
               type="button"
               onClick={handleResetArchives}
               className="bma-btn"
-              style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}
+              style={{ fontSize: '11px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
             >
-              CLEAR ALL ARCHIVES
+              PURGE ALL ARCHIVES
             </button>
 
             <button
               type="submit"
               className="bma-btn bma-btn-primary"
-              style={{ padding: '8px 22px', fontSize: '10px' }}
+              style={{ padding: '10px 24px', fontSize: '12px', fontWeight: 700 }}
             >
               {savedSuccess ? (
                 <>
-                  <Check size={12} style={{ marginRight: '6px' }} /> SAVED
+                  <Check size={14} style={{ marginRight: '6px' }} /> SAVED
                 </>
               ) : (
                 'APPLY CONFIGURATION'

@@ -8,7 +8,6 @@ import { ArchiveHeader } from './components/ArchiveHeader';
 import { TrackList } from './components/TrackList';
 import { SidePlayer } from './components/SidePlayer';
 import { MyArchives } from './components/MyArchives';
-import { SearchModule } from './components/SearchModule';
 import { PersistentPlayer } from './components/PersistentPlayer';
 import { TrackDetailModal } from './components/TrackDetailModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
@@ -19,6 +18,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { CollectionsView } from './components/CollectionsView';
 import { GlassyFloatingSearch } from './components/GlassyFloatingSearch';
 import { AppleGlassBackdrop } from './components/AppleGlassBackdrop';
+import { ChangelogModal } from './components/ChangelogModal';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainLayout: React.FC = () => {
@@ -37,7 +37,7 @@ const MainLayout: React.FC = () => {
       gsap.fromTo(
         containerRef.current,
         { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out' }
+        { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out', clearProps: 'transform' }
       );
     }
   }, []);
@@ -95,20 +95,8 @@ const MainLayout: React.FC = () => {
               <TrackList />
             </div>
 
-            {/* Bottom section of Center Column: My Archives (08) & Search Module (09) */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.2fr 1fr',
-                borderTop: '1px solid var(--border-color)',
-              }}
-            >
-              {/* 08 My Archives */}
-              <MyArchives />
-
-              {/* 09 Search Module */}
-              <SearchModule />
-            </div>
+            {/* 08 My Archives Vault Drawer (Full-Width & Collapsible) */}
+            <MyArchives />
           </section>
 
           {/* Col 3: Right Player Column (SidePlayer with Apple Music Lyrics, Live Visualizer & Queue) */}
@@ -127,6 +115,7 @@ const MainLayout: React.FC = () => {
       <SettingsModal />
       <QueueDrawer />
       <GlassyFloatingSearch />
+      <ChangelogModal />
     </div>
   );
 };
