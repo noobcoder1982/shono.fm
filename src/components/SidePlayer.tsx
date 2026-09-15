@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AppleLyrics } from './AppleLyrics';
 import { MasterWaveform } from './MasterWaveform';
+import { useArtwork } from '../services/artworkService';
 import {
   MoreVertical,
+  Maximize2,
   Disc,
   Trash2,
   ChevronUp,
@@ -21,6 +23,7 @@ export const SidePlayer: React.FC = () => {
     duration,
     seek,
     openTrackDetail,
+    toggleFullscreenPlayer,
     queue,
     clearQueue,
     removeFromQueue,
@@ -28,6 +31,8 @@ export const SidePlayer: React.FC = () => {
     reorderQueue,
     theme,
   } = usePlayer();
+
+  const { artworkUrl, isYouTube } = useArtwork(currentTrack);
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
@@ -304,26 +309,49 @@ export const SidePlayer: React.FC = () => {
             </div>
           </div>
 
-          {/* Dossier Details Button */}
-          <button
-            onClick={() => openTrackDetail(currentTrack)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'color 0.15s ease',
-            }}
-            title="Open Track Dossier & Specifications"
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-          >
-            <MoreVertical size={16} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Fullscreen Player Mode Button */}
+            <button
+              onClick={toggleFullscreenPlayer}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.15s ease',
+              }}
+              title="Open Fullscreen Now Playing & Live Lyrics (F)"
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-color)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            >
+              <Maximize2 size={15} />
+            </button>
+
+            {/* Dossier Details Button */}
+            <button
+              onClick={() => openTrackDetail(currentTrack)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.15s ease',
+              }}
+              title="Open Track Dossier & Specifications"
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+            >
+              <MoreVertical size={16} />
+            </button>
+          </div>
         </div>
       )}
 
@@ -357,8 +385,9 @@ export const SidePlayer: React.FC = () => {
             title="Click to view full dossier"
           >
             <img
-              src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
+              src={artworkUrl || '/assets/now_playing_art.jpg'}
               alt={currentTrack.title}
+              className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
               style={{
                 width: '100%',
                 height: '100%',
@@ -411,24 +440,27 @@ export const SidePlayer: React.FC = () => {
           }}
         >
           <div
+            className="square-artwork-container"
             onClick={() => openTrackDetail(currentTrack)}
             style={{
               width: '100%',
-              aspectRatio: '1 / 0.85',
-              maxHeight: '175px',
-              borderRadius: '6px',
+              aspectRatio: '1 / 1',
+              maxHeight: '260px',
+              borderRadius: '8px',
               overflow: 'hidden',
               border: '1px solid var(--border-color)',
               background: '#000',
               position: 'relative',
               cursor: 'pointer',
               boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+              margin: '0 auto',
             }}
             title="Click to view full dossier"
           >
             <img
-              src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
+              src={artworkUrl || '/assets/now_playing_art.jpg'}
               alt={currentTrack.title}
+              className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
               style={{
                 width: '100%',
                 height: '100%',

@@ -733,6 +733,144 @@ h1, h2, h3, .font-display {
 }
 
 /* ==========================================================================
+   APPLE MUSIC FULLSCREEN DEPTH-OF-FIELD BLUR & KINETIC KARAOKE SYSTEM
+   ========================================================================== */
+.fullscreen-lyrics-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 60px 24px 160px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  scroll-behavior: smooth;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
+  scrollbar-width: none;
+}
+
+.fullscreen-lyrics-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.fullscreen-lyric-line {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(26px, 2.9vw, 38px);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transform-origin: left center;
+  transition:
+    filter 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s ease,
+    background-color 0.2s ease;
+  will-change: filter, opacity, transform;
+}
+
+.fullscreen-lyric-line:hover:not(.is-active) {
+  filter: blur(0px) !important;
+  opacity: 0.92 !important;
+  color: #ffffff !important;
+  transform: scale(1.015) translateX(6px) !important;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fullscreen-lyric-line.is-active {
+  font-weight: 800;
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+  transform: scale(1.035) translateX(8px);
+  color: #ffffff;
+}
+
+.fullscreen-apple-word {
+  display: inline-block;
+  margin: 0 0.05em;
+  transform-origin: center 80%;
+  background-image: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffffff var(--word-sweep, 0%),
+    rgba(255, 255, 255, 0.34) var(--word-sweep, 0%),
+    rgba(255, 255, 255, 0.34) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.4, 1), filter 0.16s ease-out;
+  will-change: transform, filter;
+}
+
+/* ==========================================================================
+   FULLSCREEN LYRICS OPTICAL PLACEMENT & ALIGNMENT MODES
+   ========================================================================== */
+.fullscreen-lyrics-scroll.align-right .fullscreen-lyric-line {
+  text-align: right;
+  transform-origin: right center;
+}
+
+.fullscreen-lyrics-scroll.align-right .fullscreen-lyric-line:hover:not(.is-active) {
+  transform: scale(1.015) translateX(-6px) !important;
+}
+
+.fullscreen-lyrics-scroll.align-right .fullscreen-lyric-line.is-active {
+  transform: scale(1.035) translateX(-8px) !important;
+}
+
+.fullscreen-lyrics-scroll.align-center .fullscreen-lyric-line {
+  text-align: center;
+  transform-origin: center center;
+}
+
+.fullscreen-lyrics-scroll.align-center .fullscreen-lyric-line:hover:not(.is-active) {
+  transform: scale(1.015) !important;
+}
+
+.fullscreen-lyrics-scroll.align-center .fullscreen-lyric-line.is-active {
+  transform: scale(1.035) !important;
+}
+
+.fullscreen-lyrics-scroll.align-left .fullscreen-lyric-line {
+  text-align: left;
+  transform-origin: left center;
+}
+
+/* ==========================================================================
+   HIGH-DEFINITION SQUARE ALBUM ARTWORK ENGINE
+   Eliminates pillarbox/letterbox bars with smart fallback scaling
+   ========================================================================== */
+.square-artwork-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #09090b;
+}
+
+.square-artwork-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+/* When falling back to a 16:9 YouTube thumbnail, smartly zoom 1.36x to trim black/brown pillarbox borders */
+.square-artwork-img.is-yt-fallback {
+  transform: scale(1.36);
+  transform-origin: center center;
+}
+
+/* ==========================================================================
    APPLE-LIKE GLASSY FLOATING SEARCH BAR & SPOTLIGHT
    Emerges smoothly from the bottom up to the middle of the screen.
    ========================================================================== */
@@ -1849,4 +1987,54 @@ h1, h2, h3, .font-display {
   color: var(--accent-color);
   pointer-events: none;
   animation: sparkleFloat 0.9s ease-out forwards;
+}
+
+/* ==================================================
+   UPDATE 04: CINEMATIC FULLSCREEN NOW PLAYING & LIVE LYRICS
+   ================================================== */
+
+@media (max-width: 900px) {
+  .fullscreen-player-viewport main {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    padding: 0 20px !important;
+    overflow-y: auto !important;
+    align-items: flex-start !important;
+  }
+
+  .fullscreen-player-viewport header {
+    padding: 0 20px !important;
+  }
+
+  .fullscreen-player-viewport footer {
+    padding: 0 20px !important;
+  }
+}
+
+/* ==================================================
+   UPDATE 08: PERSISTENT BOTTOM DOCK STABILIZATION
+   ================================================== */
+.persistent-player-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--bottom-bar-height, 74px);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 300px 1fr auto;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 900px) {
+  .persistent-player-bottom {
+    grid-template-columns: 1fr auto;
+    padding: 0 16px;
+  }
 }

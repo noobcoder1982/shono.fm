@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { Track, Archive } from '../types';
+import { isYouTubeArtwork } from '../services/artworkService';
 
 type SearchCategory = 'ALL' | 'TRACKS' | 'ARTISTS' | 'ALBUMS' | 'ARCHIVES' | 'LIKED';
 
@@ -604,6 +605,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                           <img
                             src={art.thumbnail}
                             alt={art.name}
+                            className={`square-artwork-img ${isYouTubeArtwork(art.thumbnail) ? 'is-yt-fallback' : ''}`}
                             onError={(e) => {
                               (e.currentTarget as HTMLImageElement).style.display = 'none';
                             }}
@@ -812,6 +814,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                           'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&auto=format&fit=crop&q=80'
                         }
                         alt={item.track.title}
+                        className={`square-artwork-img ${isYouTubeArtwork(item.track.thumbnail) ? 'is-yt-fallback' : ''}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       {isPlayingThis && (
@@ -972,6 +975,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                           <img
                             src={alb.thumbnail}
                             alt={alb.title}
+                            className={`square-artwork-img ${isYouTubeArtwork(alb.thumbnail) ? 'is-yt-fallback' : ''}`}
                             onError={(e) => {
                               (e.currentTarget as HTMLImageElement).style.display = 'none';
                             }}
@@ -1148,6 +1152,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                       <img
                         src={item.track.thumbnail}
                         alt={item.track.title}
+                        className={`square-artwork-img ${isYouTubeArtwork(item.track.thumbnail) ? 'is-yt-fallback' : ''}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       {isPlayingThis && (
@@ -1294,6 +1299,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                           'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80'
                         }
                         alt={topResult.track.title}
+                        className={`square-artwork-img ${isYouTubeArtwork(topResult.track.thumbnail) ? 'is-yt-fallback' : ''}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       <div
@@ -1503,6 +1509,7 @@ export const GlassyFloatingSearch: React.FC = () => {
                               'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&auto=format&fit=crop&q=80'
                             }
                             alt={item.track.title}
+                            className={`square-artwork-img ${isYouTubeArtwork(item.track.thumbnail) ? 'is-yt-fallback' : ''}`}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                           {isPlayingThis && (

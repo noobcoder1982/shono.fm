@@ -21,7 +21,7 @@ interface AppleLyricsProps {
   compact?: boolean;
 }
 
-interface TimedWord {
+export interface TimedWord {
   text: string;
   startTime: number;
   endTime: number;
@@ -30,7 +30,7 @@ interface TimedWord {
   intensity: number;
 }
 
-function computeWordTimings(lineText: string, lineStart: number, lineEnd: number): TimedWord[] {
+export function computeWordTimings(lineText: string, lineStart: number, lineEnd: number): TimedWord[] {
   const rawWords = lineText.trim().split(/\s+/);
   if (rawWords.length === 0) return [];
 
@@ -83,7 +83,7 @@ function computeWordTimings(lineText: string, lineStart: number, lineEnd: number
   });
 }
 
-function useSmoothTime(reportedTime: number, isPlaying: boolean): number {
+export function useSmoothTime(reportedTime: number, isPlaying: boolean): number {
   const [smoothTime, setSmoothTime] = useState(reportedTime);
   const currentTimeRef = useRef(reportedTime);
   const isPlayingRef = useRef(isPlaying);

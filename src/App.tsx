@@ -18,6 +18,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { CollectionsView } from './components/CollectionsView';
 import { GlassyFloatingSearch } from './components/GlassyFloatingSearch';
 import { ChangelogModal } from './components/ChangelogModal';
+import { FullscreenPlayer } from './components/FullscreenPlayer';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainLayout: React.FC = () => {
@@ -104,6 +105,9 @@ const MainLayout: React.FC = () => {
 
       {/* 11 Persistent Bottom Player */}
       <PersistentPlayer />
+
+      {/* Fullscreen Now Playing Mode with Live Lyrics */}
+      <FullscreenPlayer />
 
       {/* Modals & Overlays */}
       <TrackDetailModal />

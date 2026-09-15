@@ -529,10 +529,10 @@ export const Sidebar: React.FC = () => {
               color: 'var(--accent-color)',
               borderColor: 'var(--accent-color)',
             }}
-            title="System Changelog (v1.3.0 — Update 03)"
+            title="System Changelog (v1.8.0 — Update 08)"
           >
             <Sparkles size={12} />
-            <span>v1.3 // LOG</span>
+            <span>v1.8 // LOG</span>
           </button>
         </div>
       </div>

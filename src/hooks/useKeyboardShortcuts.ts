@@ -20,6 +20,9 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     setIsSearchOpen,
     isChangelogOpen,
     closeChangelog,
+    isFullscreenPlayerOpen,
+    setIsFullscreenPlayerOpen,
+    toggleFullscreenPlayer,
     activeTab,
     setActiveTab,
   } = usePlayer();
@@ -87,12 +90,21 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
           e.preventDefault();
           setIsQueueDrawerOpen((prev) => !prev);
           break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreenPlayer();
+          break;
         case '?':
           e.preventDefault();
           setIsShortcutsOpen(!isShortcutsOpen);
           break;
         case 'Escape':
           e.preventDefault();
+          if (isFullscreenPlayerOpen) {
+            setIsFullscreenPlayerOpen(false);
+            break;
+          }
           if (isChangelogOpen) {
             closeChangelog(true);
             break;
@@ -125,6 +137,9 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     setIsSettingsOpen,
     isChangelogOpen,
     closeChangelog,
+    isFullscreenPlayerOpen,
+    setIsFullscreenPlayerOpen,
+    toggleFullscreenPlayer,
     openTrackDetail,
     selectedTrackForDetail,
     isShortcutsOpen,

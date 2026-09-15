@@ -132,6 +132,8 @@ export const TrackList: React.FC = () => {
     <div
       style={{
         flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
         overflowX: 'auto',
         background: isAppleGlass ? 'transparent' : 'var(--bg-primary)',
         display: 'flex',

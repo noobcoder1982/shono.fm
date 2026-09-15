@@ -12,6 +12,7 @@ import {
   Maximize2,
 } from 'lucide-react';
 import { MasterWaveform } from './MasterWaveform';
+import { useArtwork } from '../services/artworkService';
 
 export const PersistentPlayer: React.FC = () => {
   const {
@@ -30,12 +31,14 @@ export const PersistentPlayer: React.FC = () => {
     likedTrackIds,
     toggleLike,
     openTrackDetail,
+    toggleFullscreenPlayer,
     setIsQueueDrawerOpen,
     playerMode,
     setPlayerMode,
     theme,
   } = usePlayer();
 
+  const { artworkUrl, isYouTube } = useArtwork(currentTrack);
   const isPlaying = playbackStatus === 'PLAYING';
   const isLiked = currentTrack ? likedTrackIds.includes(currentTrack.id) : false;
   const isMI6 = playerMode === 'MI6';
@@ -43,44 +46,49 @@ export const PersistentPlayer: React.FC = () => {
 
   return (
     <footer
+      className={`persistent-player-bottom ${isAppleGlass ? 'apple-glass-player' : ''}`}
       style={{
         position: 'fixed',
         bottom: 0,
         left: 0,
         width: '100%',
-        height: 'var(--bottom-bar-height)',
+        height: 'var(--bottom-bar-height, 74px)',
         background: isMI6 ? '#0d0e11' : 'var(--bg-secondary)',
         borderTop: isMI6 ? '1px solid #3d3419' : '1px solid var(--border-color)',
         zIndex: 100,
         display: 'grid',
-        gridTemplateColumns: isAppleGlass ? '280px 1fr auto' : '320px 1fr auto',
+        gridTemplateColumns: '300px 1fr auto',
         alignItems: 'center',
         padding: '0 24px',
-        gap: '24px',
+        gap: '20px',
+        boxSizing: 'border-box',
+        boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.5)',
         transition: 'background-color 0.3s ease, border-color 0.3s ease',
       }}
     >
       {/* Left: Track Thumbnail, Title, Artist, Like */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isAppleGlass ? '14px' : '12px', minWidth: 0, width: '280px' }}>
         <div
+          className="square-artwork-container"
           style={{
-            width: isAppleGlass ? '46px' : '38px',
-            height: isAppleGlass ? '46px' : '38px',
+            width: isAppleGlass ? '46px' : '40px',
+            height: isAppleGlass ? '46px' : '40px',
             borderRadius: isAppleGlass ? '14px' : '0',
-            border: isAppleGlass ? 'none' : '1px solid var(--border-color)',
-            background: '#000',
-            overflow: 'hidden',
+            border: isAppleGlass ? '1px solid rgba(255,255,255,0.15)' : '1px solid var(--border-bright)',
             flexShrink: 0,
+            overflow: 'hidden',
+            background: 'var(--bg-primary)',
             cursor: 'pointer',
             boxShadow: isAppleGlass ? '0 4px 12px rgba(0,0,0,0.3)' : 'none',
           }}
           onClick={() => currentTrack && openTrackDetail(currentTrack)}
           title="View Track Details"
         >
-          {currentTrack?.thumbnail && (
+          {artworkUrl && (
             <img
-              src={currentTrack.thumbnail}
-              alt={currentTrack.title}
+              src={artworkUrl}
+              alt={currentTrack?.title || 'Cover'}
+              className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
               style={{
                 width: '100%',
                 height: '100%',
@@ -272,8 +280,8 @@ export const PersistentPlayer: React.FC = () => {
         {/* Track Detail / Fullscreen */}
         <button
           className="bma-btn-icon hide-mobile"
-          onClick={() => currentTrack && openTrackDetail(currentTrack)}
-          title="Track Detail View"
+          onClick={toggleFullscreenPlayer}
+          title="Fullscreen Now Playing (F)"
           style={{ padding: '6px', borderRadius: isAppleGlass ? '50%' : '0' }}
         >
           <Maximize2 size={16} />

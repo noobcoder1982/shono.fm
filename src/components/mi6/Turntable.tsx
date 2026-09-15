@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { Track, TurntableSpeed } from '../../types';
 import { audioEngine } from '../../services/audioEngine';
+import { useArtwork } from '../../services/artworkService';
 import { Disc } from 'lucide-react';
 
 interface TurntableProps {
@@ -36,6 +37,7 @@ export const Turntable: React.FC<TurntableProps> = ({
   onSeek,
   onDropTrack,
 }) => {
+  const { artworkUrl, isYouTube } = useArtwork(currentTrack);
   // Smooth continuous physical rotation state
   const angleRef = useRef(0);
   const isScratchingRef = useRef(false);
@@ -462,10 +464,11 @@ export const Turntable: React.FC<TurntableProps> = ({
               }}
             >
               {/* Full Color Real Song Cover Photo */}
-              {currentTrack?.thumbnail ? (
+              {artworkUrl ? (
                 <img
-                  src={currentTrack.thumbnail}
-                  alt={currentTrack.title}
+                  src={artworkUrl}
+                  alt={currentTrack?.title || 'Vinyl Cover'}
+                  className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
                   style={{
                     position: 'absolute',
                     inset: 0,

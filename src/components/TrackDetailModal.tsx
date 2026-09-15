@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Play, Pause, X, Heart, ExternalLink } from 'lucide-react';
+import { useArtwork, setCustomTrackArtwork } from '../services/artworkService';
+import { Play, Pause, X, Heart, ExternalLink, Image as ImageIcon, Check } from 'lucide-react';
 
 export const TrackDetailModal: React.FC = () => {
   const {
@@ -16,16 +17,33 @@ export const TrackDetailModal: React.FC = () => {
 
   if (!selectedTrackForDetail) return null;
 
+  const { artworkUrl, isYouTube } = useArtwork(selectedTrackForDetail);
+  const [customArtInput, setCustomArtInput] = useState('');
+  const [isEditingArt, setIsEditingArt] = useState(false);
+  const [artSaved, setArtSaved] = useState(false);
+
   const isCurrent = currentTrack?.id === selectedTrackForDetail.id;
   const isPlaying = isCurrent && playbackStatus === 'PLAYING';
   const isLiked = likedTrackIds.includes(selectedTrackForDetail.id);
+
+  const handleSaveCustomArt = () => {
+    if (!customArtInput.trim()) return;
+    setCustomTrackArtwork(selectedTrackForDetail.id, customArtInput.trim());
+    setArtSaved(true);
+    setTimeout(() => {
+      setArtSaved(false);
+      setIsEditingArt(false);
+      // Trigger reload of artwork
+      window.location.reload();
+    }, 800);
+  };
 
   return (
     <div className="modal-backdrop" onClick={() => openTrackDetail(null)}>
       <div
         className="modal-card"
         onClick={(e) => e.stopPropagation()}
-        style={{ padding: '0', overflow: 'hidden' }}
+        style={{ padding: '0', overflow: 'hidden', maxWidth: '780px' }}
       >
         {/* Top bar */}
         <div
@@ -61,29 +79,106 @@ export const TrackDetailModal: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: '1fr 1.15fr',
             background: 'var(--bg-primary)',
           }}
         >
-          {/* Left: Artwork */}
+          {/* Left: Artwork with Anti-Pillarbox Scaling & Custom URL Editor */}
           <div
             style={{
               borderRight: '1px solid var(--border-color)',
-              background: '#000',
+              background: '#09090b',
               position: 'relative',
-              minHeight: '340px',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <img
-              src={selectedTrackForDetail.thumbnail}
-              alt={selectedTrackForDetail.title}
+            <div
+              className="square-artwork-container"
               style={{
                 width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                filter: 'grayscale(100%) contrast(120%)',
+                aspectRatio: '1 / 1',
+                overflow: 'hidden',
+                background: '#000',
               }}
-            />
+            >
+              <img
+                src={artworkUrl || selectedTrackForDetail.thumbnail}
+                alt={selectedTrackForDetail.title}
+                className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+
+            {/* Custom Artwork / Genius URL Bar */}
+            <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)' }}>
+              {!isEditingArt ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingArt(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                    background: 'transparent',
+                    border: '1px dashed var(--border-bright)',
+                    color: 'var(--text-muted)',
+                    padding: '6px 10px',
+                    borderRadius: '2px',
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--font-mono)',
+                    cursor: 'pointer',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ImageIcon size={12} />
+                  <span>SET SQUARE ARTWORK (GENIUS / WEB)</span>
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <input
+                    type="text"
+                    placeholder="Paste Genius or image URL..."
+                    value={customArtInput}
+                    onChange={(e) => setCustomArtInput(e.target.value)}
+                    style={{
+                      padding: '6px 8px',
+                      fontSize: '10px',
+                      fontFamily: 'var(--font-mono)',
+                      background: 'var(--bg-primary)',
+                      border: '1px solid var(--border-bright)',
+                      color: 'var(--text-primary)',
+                      borderRadius: '2px',
+                      outline: 'none',
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={handleSaveCustomArt}
+                      className="bma-btn bma-btn-primary"
+                      style={{ flex: 1, padding: '4px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                    >
+                      {artSaved ? <Check size={11} /> : null}
+                      <span>{artSaved ? 'SAVED' : 'SAVE ARTWORK'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingArt(false)}
+                      className="bma-btn"
+                      style={{ padding: '4px 8px', fontSize: '9px' }}
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right: Brutalist Editorial Metadata */}

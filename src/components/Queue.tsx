@@ -136,9 +136,11 @@ export const Queue: React.FC = () => {
 
                 {/* Thumb */}
                 <div
+                  className="square-artwork-container"
                   style={{
                     width: '28px',
                     height: '28px',
+                    borderRadius: '2px',
                     border: '1px solid var(--border-color)',
                     background: '#000',
                     overflow: 'hidden',
@@ -148,6 +150,7 @@ export const Queue: React.FC = () => {
                   <img
                     src={track.thumbnail}
                     alt={track.title}
+                    className="square-artwork-img is-yt-fallback"
                     style={{
                       width: '100%',
                       height: '100%',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Track } from '../../types';
 import { Disc } from 'lucide-react';
+import { isYouTubeArtwork } from '../../services/artworkService';
 
 interface MI6TracklistProps {
   tracks: Track[];
@@ -253,6 +254,7 @@ export const MI6Tracklist: React.FC<MI6TracklistProps> = ({
                       <img
                         src={track.thumbnail}
                         alt={track.title}
+                        className={`square-artwork-img ${isYouTubeArtwork(track.thumbnail) ? 'is-yt-fallback' : ''}`}
                         style={{
                           width: '100%',
                           height: '100%',

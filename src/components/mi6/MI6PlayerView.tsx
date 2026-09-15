@@ -3,6 +3,7 @@ import { usePlayer } from '../../context/PlayerContext';
 import { Turntable } from './Turntable';
 import { MI6Tracklist } from './MI6Tracklist';
 import { MasterWaveform } from '../MasterWaveform';
+import { useArtwork } from '../../services/artworkService';
 import {
   Shuffle,
   SkipBack,
@@ -50,6 +51,7 @@ export const MI6PlayerView: React.FC = () => {
 
   const isPlaying = playbackStatus === 'PLAYING';
   const tracks = activeArchive?.tracks || [];
+  const { artworkUrl, isYouTube } = useArtwork(currentTrack);
 
   return (
     <div
@@ -366,11 +368,13 @@ export const MI6PlayerView: React.FC = () => {
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {/* Vinyl / Cover Artwork Frame */}
               <div
+                className="square-artwork-container"
                 style={{
-                  width: '90px',
-                  height: '90px',
-                  background: '#07080a',
-                  border: '1px solid #2f3440',
+                  width: '68px',
+                  height: '68px',
+                  borderRadius: '3px',
+                  border: '1px solid #3d3419',
+                  background: '#070709',
                   overflow: 'hidden',
                   flexShrink: 0,
                   position: 'relative',
@@ -379,10 +383,11 @@ export const MI6PlayerView: React.FC = () => {
                 onClick={() => currentTrack && openTrackDetail(currentTrack)}
                 title="View Full Track Dossier"
               >
-                {currentTrack?.thumbnail ? (
+                {artworkUrl ? (
                   <img
-                    src={currentTrack.thumbnail}
-                    alt={currentTrack.title}
+                    src={artworkUrl}
+                    alt={currentTrack?.title || 'Cover'}
+                    className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
                     style={{
                       width: '100%',
                       height: '100%',

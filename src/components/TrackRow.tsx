@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Track } from '../types';
 import { usePlayer } from '../context/PlayerContext';
+import { useArtwork } from '../services/artworkService';
 import { MoreHorizontal, Play, Plus, ListPlus, Heart, Info, Copy } from 'lucide-react';
 
 interface TrackRowProps {
@@ -20,6 +21,8 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
     openTrackDetail,
     theme,
   } = usePlayer();
+
+  const { artworkUrl, isYouTube } = useArtwork(track);
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
@@ -88,6 +91,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
       {/* Thumbnail */}
       <td style={{ width: isAppleGlass ? '54px' : '50px', padding: '6px 10px' }}>
         <div
+          className="square-artwork-container"
           style={{
             width: isAppleGlass ? '40px' : '36px',
             height: isAppleGlass ? '40px' : '36px',
@@ -99,8 +103,9 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
           }}
         >
           <img
-            src={track.thumbnail}
+            src={artworkUrl || track.thumbnail}
             alt={track.title}
+            className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
             style={{
               width: '100%',
               height: '100%',

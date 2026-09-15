@@ -10,6 +10,7 @@ import {
   Repeat1,
 } from 'lucide-react';
 import { MasterWaveform } from './MasterWaveform';
+import { useArtwork } from '../services/artworkService';
 
 export const NowPlaying: React.FC = () => {
   const {
@@ -27,6 +28,8 @@ export const NowPlaying: React.FC = () => {
     cycleRepeat,
     openTrackDetail,
   } = usePlayer();
+
+  const { artworkUrl, isYouTube } = useArtwork(currentTrack);
 
   const isPlaying = playbackStatus === 'PLAYING';
 
@@ -127,15 +130,16 @@ export const NowPlaying: React.FC = () => {
         </span>
       </div>
 
-      {/* Brutalist Cover Artwork */}
+      {/* Center Artwork */}
       <div
+        className="square-artwork-container"
         style={{
           width: '100%',
-          height: '130px',
-          background: '#000',
+          aspectRatio: '1 / 1',
+          background: 'var(--bg-primary)',
           border: '1px solid var(--border-color)',
           overflow: 'hidden',
-          marginBottom: '8px',
+          marginBottom: '20px',
           position: 'relative',
           cursor: 'pointer',
         }}
@@ -143,8 +147,9 @@ export const NowPlaying: React.FC = () => {
         title="Click to view track details"
       >
         <img
-          src={currentTrack.thumbnail || '/assets/now_playing_art.jpg'}
+          src={artworkUrl || '/assets/now_playing_art.jpg'}
           alt={currentTrack.title}
+          className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
           style={{
             width: '100%',
             height: '100%',
@@ -152,8 +157,8 @@ export const NowPlaying: React.FC = () => {
             filter: 'grayscale(100%) contrast(120%) brightness(95%)',
             transition: 'transform 0.5s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = isYouTube ? 'scale(1.38)' : 'scale(1.02)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = isYouTube ? 'scale(1.36)' : 'scale(1)')}
         />
         {/* Subtle hover prompt */}
         <div
