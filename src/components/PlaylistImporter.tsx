@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
+import type { Archive } from '../types';
 import {
   DownloadCloud,
+  Download,
   Sparkles,
   Clipboard,
   X,
@@ -50,12 +52,14 @@ export const PlaylistImporter: React.FC = () => {
   const [showVoila, setShowVoila] = useState(false);
   const [ingestedTitle, setIngestedTitle] = useState<string>('');
   const [ingestedCount, setIngestedCount] = useState<number>(0);
+  const [lastIngestedArchive, setLastIngestedArchive] = useState<Archive | null>(null);
 
   const {
     importPlaylist,
     isImporting,
     importProgressText,
     importProgressPercent,
+    openZipModal,
   } = usePlayer();
 
   const hasLink = url.trim().length > 0;
@@ -68,7 +72,7 @@ export const PlaylistImporter: React.FC = () => {
       setShowVoila(true);
       const timer = setTimeout(() => {
         setShowVoila(false);
-      }, 3400);
+      }, 7000);
       return () => clearTimeout(timer);
     }
   }, [isImporting, importProgressPercent]);
@@ -83,12 +87,13 @@ export const PlaylistImporter: React.FC = () => {
 
     try {
       const importedArchive = await importPlaylist(url);
+      setLastIngestedArchive(importedArchive);
       setIngestedTitle(importedArchive.title);
       setIngestedCount(importedArchive.tracks.length);
       setUrl('');
       setShowVoila(true);
       playVoilaChime();
-      setTimeout(() => setShowVoila(false), 3600);
+      setTimeout(() => setShowVoila(false), 9000);
     } catch (err: any) {
       setErrorMessage(err.message || 'INGESTION ERROR: UNABLE TO PARSE PLAYLIST');
     }
@@ -471,19 +476,49 @@ export const PlaylistImporter: React.FC = () => {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowVoila(false)}
-              className="bma-btn"
-              style={{
-                padding: '5px 12px',
-                fontSize: '9.5px',
-                borderColor: 'var(--accent-color)',
-                color: 'var(--accent-color)',
-              }}
-            >
-              DISMISS
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (lastIngestedArchive) {
+                    openZipModal(lastIngestedArchive);
+                  } else {
+                    openZipModal();
+                  }
+                }}
+                className="bma-btn"
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '9.5px',
+                  background: 'var(--accent-color)',
+                  color: 'var(--text-inverse)',
+                  borderColor: 'var(--accent-color)',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 0 14px var(--accent-glow)',
+                }}
+                title="Download entire playlist archive as .ZIP"
+              >
+                <Download size={11} />
+                <span>DOWNLOAD ZIP</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowVoila(false)}
+                className="bma-btn"
+                style={{
+                  padding: '5px 12px',
+                  fontSize: '9.5px',
+                  borderColor: 'var(--border-bright)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                DISMISS
+              </button>
+            </div>
           </div>
         )}
       </div>

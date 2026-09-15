@@ -66,6 +66,10 @@ interface PlayerContextType {
   isFullscreenPlayerOpen: boolean;
   setIsFullscreenPlayerOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   toggleFullscreenPlayer: () => void;
+  isZipModalOpen: boolean;
+  archiveToExport: Archive | null;
+  openZipModal: (archive?: Archive | null) => void;
+  closeZipModal: () => void;
   setActiveTab: (tab: string) => void;
   importPlaylist: (url: string) => Promise<Archive>;
   deleteArchive: (id: string) => void;
@@ -113,10 +117,21 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isQueueDrawerOpen, setIsQueueDrawerOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState<boolean>(() => storage.shouldShowChangelog());
   const [isFullscreenPlayerOpen, setIsFullscreenPlayerOpen] = useState(false);
+  const [isZipModalOpen, setIsZipModalOpen] = useState(false);
+  const [archiveToExport, setArchiveToExport] = useState<Archive | null>(null);
   const [activeTab, setActiveTab] = useState('ARCHIVE');
 
   const toggleFullscreenPlayer = useCallback(() => {
     setIsFullscreenPlayerOpen((prev) => !prev);
+  }, []);
+
+  const openZipModal = useCallback((archive?: Archive | null) => {
+    setArchiveToExport(archive || activeArchive || null);
+    setIsZipModalOpen(true);
+  }, [activeArchive]);
+
+  const closeZipModal = useCallback(() => {
+    setIsZipModalOpen(false);
   }, []);
 
   const [theme, setThemeState] = useState<BrutalistTheme>(() => storage.getSettings().theme || 'noir');
@@ -518,6 +533,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isFullscreenPlayerOpen,
         setIsFullscreenPlayerOpen,
         toggleFullscreenPlayer,
+        isZipModalOpen,
+        archiveToExport,
+        openZipModal,
+        closeZipModal,
         setActiveTab,
         importPlaylist,
         deleteArchive,

@@ -12,9 +12,12 @@ import {
   Maximize2,
   Mic2,
   Tv,
+  Download,
+  FolderArchive,
+  Layers,
 } from 'lucide-react';
 
-type VersionTab = 'v1.8.0' | 'v1.7.0' | 'v1.6.0' | 'v1.5.0' | 'v1.4.0' | 'v1.3.0' | 'v1.2.0' | 'v1.1.0' | 'v1.0.0';
+type VersionTab = 'v1.9.0' | 'v1.8.0' | 'v1.7.0' | 'v1.6.0' | 'v1.5.0' | 'v1.4.0' | 'v1.3.0' | 'v1.2.0' | 'v1.1.0' | 'v1.0.0';
 
 export const ChangelogModal: React.FC = () => {
   const {
@@ -24,9 +27,10 @@ export const ChangelogModal: React.FC = () => {
     theme,
     setActiveTab,
     toggleFullscreenPlayer,
+    openZipModal,
   } = usePlayer();
 
-  const [activeVersionTab, setActiveVersionTab] = useState<VersionTab>('v1.8.0');
+  const [activeVersionTab, setActiveVersionTab] = useState<VersionTab>('v1.9.0');
   const [dontShowAgain, setDontShowAgain] = useState(true);
 
   if (!isChangelogOpen) return null;
@@ -91,7 +95,7 @@ export const ChangelogModal: React.FC = () => {
                 borderRadius: '2px',
               }}
             >
-              UPDATE 08
+              UPDATE 09
             </div>
             <div>
               <div
@@ -114,7 +118,7 @@ export const ChangelogModal: React.FC = () => {
                   letterSpacing: '0.06em',
                 }}
               >
-                RELEASE v{CURRENT_APP_VERSION} &bull; PERSISTENT PLAYER DOCK ARCHITECTURE & LAYOUT STABILIZATION
+                RELEASE v{CURRENT_APP_VERSION} &bull; CLIENT-SIDE PLAYLIST ARCHIVE ZIP EXPORTER & DOSSIER BUNDLER
               </div>
             </div>
           </div>
@@ -143,6 +147,38 @@ export const ChangelogModal: React.FC = () => {
         >
           <button
             type="button"
+            onClick={() => setActiveVersionTab('v1.9.0')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '2px',
+              background: activeVersionTab === 'v1.9.0' ? 'var(--bg-secondary)' : 'transparent',
+              border: activeVersionTab === 'v1.9.0' ? '1px solid var(--border-bright)' : '1px solid transparent',
+              color: activeVersionTab === 'v1.9.0' ? 'var(--text-primary)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Sparkles size={12} color={activeVersionTab === 'v1.9.0' ? 'var(--accent-color)' : 'currentColor'} />
+            v1.9.0 (Update 09 // Playlist Archive ZIP Exporter)
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--status-active)',
+                display: 'inline-block',
+              }}
+            />
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveVersionTab('v1.8.0')}
             style={{
               padding: '6px 14px',
@@ -160,17 +196,8 @@ export const ChangelogModal: React.FC = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            <Sparkles size={12} color={activeVersionTab === 'v1.8.0' ? 'var(--accent-color)' : 'currentColor'} />
+            <History size={12} />
             v1.8.0 (Update 08 // Player Dock Stabilization)
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--status-active)',
-                display: 'inline-block',
-              }}
-            />
           </button>
 
           <button
@@ -369,7 +396,296 @@ export const ChangelogModal: React.FC = () => {
             gap: '22px',
           }}
         >
-          {activeVersionTab === 'v1.8.0' ? (
+          {activeVersionTab === 'v1.9.0' ? (
+            <>
+              {/* Manifesto & Architecture Overview */}
+              <div
+                style={{
+                  padding: '18px 20px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-bright)',
+                  borderRadius: '3px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <Sparkles size={16} color="var(--accent-color)" />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      letterSpacing: '0.12em',
+                      color: 'var(--text-primary)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Manifesto // Client-Side Playlist Archive ZIP Exporter & Standalone Dossier Bundler
+                  </span>
+                </div>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '13.5px',
+                    lineHeight: '1.65',
+                    color: 'var(--text-secondary)',
+                    marginBottom: '12px',
+                  }}
+                >
+                  Digital music vaults must respect data sovereignty. When you curate, collect, or import a playlist into SHONO.FM, your library should never remain trapped in a closed browser tab or tied to third-party streaming whims. True audio preservation demands unencumbered, standalone offline portability.
+                </p>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '13.5px',
+                    lineHeight: '1.65',
+                    color: 'var(--text-secondary)',
+                    marginBottom: '14px',
+                  }}
+                >
+                  Update 09 introduces the <strong>Client-Side Playlist Archive ZIP Exporter</strong>. Operating entirely within browser memory via <code>JSZip</code>, SHONO.FM compiles a comprehensive, multi-tiered archive dossier for any active or imported playlist into a clean <code>.zip</code> package with zero server proxying, zero compression degradation, and instantaneous local generation.
+                </p>
+
+                {/* Quick Launch CTA */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    paddingTop: '10px',
+                    borderTop: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeChangelog(dontShowAgain);
+                      openZipModal();
+                    }}
+                    className="bma-btn"
+                    style={{
+                      padding: '7px 16px',
+                      fontSize: '10px',
+                      background: 'var(--accent-color)',
+                      color: 'var(--text-inverse)',
+                      borderColor: 'var(--accent-color)',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 0 14px var(--accent-glow)',
+                    }}
+                  >
+                    <Download size={13} /> LAUNCH ZIP EXPORTER FOR CURRENT ARCHIVE
+                  </button>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9px',
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    Packages covers, synced .lrc lyrics, .m3u8, .json, and 1-click audio scripts.
+                  </span>
+                </div>
+              </div>
+
+              {/* SECTION: 5-TIER DOSSIER PACKAGE BREAKDOWN */}
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    borderBottom: '1px solid var(--border-color)',
+                    paddingBottom: '8px',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <FolderArchive size={14} color="var(--accent-color)" />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      letterSpacing: '0.12em',
+                      color: 'var(--text-primary)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    01 // 5-TIER DOSSIER SPECIFICATION (INSIDE THE GENERATED .ZIP)
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gap: '12px',
+                  }}
+                >
+                  {/* Item 1 */}
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      covers/*.jpg
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                      Studio 1000x1000 Square Artwork
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Full uncompressed 1000x1000 studio square artwork retrieved per track via high-res CDN resolvers with HTML5 Canvas binary extraction fallbacks.
+                    </p>
+                  </div>
+
+                  {/* Item 2 */}
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      lyrics/*.lrc
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                      Synced Karaoke Lyrics Files
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Individual <code>.lrc</code> files containing exact millimeter timestamps formatted <code>[mm:ss.xx]</code> compatible with Apple Music, VLC, DAPs, and Sony Walkmans.
+                    </p>
+                  </div>
+
+                  {/* Item 3 */}
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      playlist.m3u8
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                      Universal M3U8 Playlist
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Standardized UTF-8 playlist file pre-configured for one-drag playback into desktop media engines including VLC, AIMP, foobar2000, and iTunes.
+                    </p>
+                  </div>
+
+                  {/* Item 4 */}
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      playlist.json & README.txt
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                      Structured Metadata Dossier
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Machine-readable JSON specification containing video IDs, durations, audio tokens, and track metadata alongside a brutalist monospaced catalog document.
+                    </p>
+                  </div>
+
+                  {/* Item 5 */}
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                      gridColumn: '1 / -1',
+                    }}
+                  >
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      download_audio_windows.bat & download_audio_mac_linux.sh
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                      1-Click yt-dlp Automated Audio Extraction Scripts
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                      Pre-populated bash and Windows batch scripts with all track streaming URLs. Running the script automatically fetches studio-grade 320kbps MP3s with embedded thumbnails and tags directly into a local <code>audio/</code> folder.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION: DISCOVERY & ACCESS POINTS */}
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    borderBottom: '1px solid var(--border-color)',
+                    paddingBottom: '8px',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <Layers size={14} color="var(--accent-color)" />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      letterSpacing: '0.12em',
+                      color: 'var(--text-primary)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    02 // 3 EASY DISCOVERY POINTS ACROSS THE VAULT
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '3px 8px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--accent-color)' }}>
+                      01 / ARCHIVE HEADER
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Click <strong>[DOWNLOAD ZIP]</strong> in the top header next to PLAY ALL and SHUFFLE.
+                    </span>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '3px 8px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--accent-color)' }}>
+                      02 / IMPORT BANNER
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Upon ingesting any YouTube playlist, the glowing Voila celebration banner features an instant <strong>[DOWNLOAD ZIP]</strong> button.
+                    </span>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', padding: '3px 8px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--accent-color)' }}>
+                      03 / COLLECTIONS VIEW
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Each archive dossier card in 03 / COLLECTIONS features a quick download cloud icon for 1-click packaging.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : activeVersionTab === 'v1.8.0' ? (
             <>
               {/* Manifesto & Architecture Overview */}
               <div

@@ -192,3 +192,16 @@ export function useArtwork(track: Track | null | undefined): {
     isYouTube: isYouTubeThumbnail(artworkUrl),
   };
 }
+
+/**
+ * Resolves the best artwork URL for a track asynchronously.
+ */
+export async function getBestArtworkUrl(track: Track): Promise<string> {
+  const custom = getCustomTrackArtwork(track.id);
+  if (custom) return custom;
+
+  const resolved = await fetchHighResArtwork(track.artist, track.title);
+  if (resolved) return resolved;
+
+  return track.thumbnail || '/assets/now_playing_art.jpg';
+}

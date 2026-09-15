@@ -12,7 +12,7 @@ const STORAGE_KEYS = {
   LAST_SEEN_CHANGELOG: 'bma_last_seen_changelog_v1',
 };
 
-export const CURRENT_APP_VERSION = '1.8.0';
+export const CURRENT_APP_VERSION = '1.9.0';
 
 export type BrutalistTheme = 'noir' | 'concrete' | 'braun' | 'tapedeck' | 'phosphor' | 'swiss' | 'stealth';
 

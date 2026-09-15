@@ -12,6 +12,7 @@ import {
   Search,
   ArrowRight,
   ListMusic,
+  Download,
 } from 'lucide-react';
 import { PlaylistImporter } from './PlaylistImporter';
 import type { Archive } from '../types';
@@ -24,6 +25,7 @@ export const CollectionsView: React.FC = () => {
     playEntireArchive,
     deleteArchive,
     setActiveTab,
+    openZipModal,
   } = usePlayer();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -887,6 +889,23 @@ export const CollectionsView: React.FC = () => {
                         title="Open tracklist in 01 / ARCHIVE"
                       >
                         <ListMusic size={10} />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openZipModal(archive);
+                        }}
+                        className="bma-btn"
+                        style={{
+                          padding: '5px 8px',
+                          fontSize: '8.5px',
+                          color: 'var(--accent-color)',
+                          borderColor: 'var(--accent-color)',
+                        }}
+                        title="Download complete playlist package as .ZIP"
+                      >
+                        <Download size={10} />
                       </button>
                     </div>
                   </div>

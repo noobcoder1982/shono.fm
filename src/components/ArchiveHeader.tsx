@@ -1,9 +1,9 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Play, Shuffle } from 'lucide-react';
+import { Play, Shuffle, Download } from 'lucide-react';
 
 export const ArchiveHeader: React.FC = () => {
-  const { activeArchive, playEntireArchive, theme } = usePlayer();
+  const { activeArchive, playEntireArchive, theme, openZipModal } = usePlayer();
 
   if (!activeArchive) return null;
 
@@ -104,6 +104,25 @@ export const ArchiveHeader: React.FC = () => {
             title="Shuffle play all tracks"
           >
             <Shuffle size={isAppleGlass ? 13 : 10} style={{ marginRight: '6px' }} /> SHUFFLE
+          </button>
+          <button
+            onClick={() => openZipModal(activeArchive)}
+            className="bma-btn"
+            style={{
+              padding: isAppleGlass ? '8px 20px' : '6px 16px',
+              fontSize: isAppleGlass ? '12px' : '10px',
+              borderRadius: isAppleGlass ? '999px' : '0',
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              background: 'transparent',
+              borderColor: 'var(--accent-color)',
+              color: 'var(--accent-color)',
+            }}
+            title="Download complete playlist package as .ZIP"
+          >
+            <Download size={isAppleGlass ? 13 : 10} style={{ marginRight: '6px' }} /> DOWNLOAD ZIP
           </button>
         </div>
       </div>

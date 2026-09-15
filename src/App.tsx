@@ -19,6 +19,7 @@ import { CollectionsView } from './components/CollectionsView';
 import { GlassyFloatingSearch } from './components/GlassyFloatingSearch';
 import { ChangelogModal } from './components/ChangelogModal';
 import { FullscreenPlayer } from './components/FullscreenPlayer';
+import { PlaylistDownloadModal } from './components/PlaylistDownloadModal';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainLayout: React.FC = () => {
@@ -116,6 +117,7 @@ const MainLayout: React.FC = () => {
       <QueueDrawer />
       <GlassyFloatingSearch />
       <ChangelogModal />
+      <PlaylistDownloadModal />
     </div>
   );
 };
