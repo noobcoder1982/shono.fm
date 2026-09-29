@@ -13,9 +13,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
-    "electron:pack": "npm run build && node electron/pack_asar.cjs",
-    "electron:installer": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --prepackaged release/win-unpacked --config electron-builder-installer.json",
-    "electron:build": "npm run electron:pack && npm run electron:installer",
+    "electron:build:app": "npm run build && electron-builder --win dir",
+    "electron:build:installer": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --config electron-builder-installer.json",
+    "electron:build": "npm run electron:build:app && npm run electron:build:installer",
     "installer": "electron electron/installer.cjs",
     "mac:build": "npm run build && electron-builder --mac"
   },
@@ -79,8 +79,12 @@
       ],
       "icon": "electron/icon.png",
       "category": "public.app-category.music",
+      "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
+    },
+    "dmg": {
+      "sign": false
     }
   }
 }

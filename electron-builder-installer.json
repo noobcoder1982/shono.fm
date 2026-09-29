@@ -22,6 +22,7 @@
     "version": "1.3.0",
     "main": "electron/installer.cjs"
   },
+  "compression": "normal",
   "win": {
     "icon": "build/icon.png",
     "target": "portable",
