@@ -48,6 +48,7 @@
     "directories": {
       "output": "dist-electron/app"
     },
+    "npmRebuild": false,
     "files": [
       "dist/**/*",
       "electron/main.cjs",
@@ -79,12 +80,13 @@
       ],
       "icon": "electron/icon.png",
       "category": "public.app-category.music",
-      "identity": null,
+      "identity": "-",
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
     "dmg": {
-      "sign": false
+      "sign": false,
+      "writeUpdateInfo": false
     }
   }
 }
