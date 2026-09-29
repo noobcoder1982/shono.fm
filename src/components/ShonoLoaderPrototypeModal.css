@@ -1,0 +1,398 @@
+/* ==========================================================================
+   SHONO.FM — Prototype Showcase Modal Styles
+   Clean, brutalist dark layout matching the SHONO aesthetic.
+   ========================================================================== */
+
+.shono-prototype-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(5, 5, 5, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: shono-proto-fade-in 0.25s ease-out;
+}
+
+@keyframes shono-proto-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.shono-prototype-card {
+  width: 100%;
+  max-width: 1040px;
+  max-height: 92vh;
+  background-color: #0d0d0f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: shono-proto-scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes shono-proto-scale-in {
+  from {
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.shono-prototype-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.shono-prototype-header-brand {
+  max-width: 680px;
+}
+
+.shono-prototype-pill {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 3px 8px;
+  background: rgba(255, 149, 0, 0.12);
+  color: #ff9500;
+  border: 1px solid rgba(255, 149, 0, 0.25);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.shono-prototype-header-brand h2 {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.shono-prototype-header-brand p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #909098;
+  margin: 0;
+}
+
+.shono-prototype-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shono-prototype-replay-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #18191e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e2e8;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shono-prototype-replay-btn:hover {
+  background: #23242c;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.shono-prototype-close-btn {
+  background: transparent;
+  border: none;
+  color: #888890;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.shono-prototype-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Body */
+.shono-prototype-body {
+  padding: 24px 28px 32px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.shono-proto-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #a0a0ab;
+  margin-bottom: 16px;
+}
+
+/* 4-Column Grid */
+.shono-proto-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .shono-proto-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.shono-proto-card {
+  background: #111215;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.shono-proto-stage {
+  height: 190px;
+  background-color: #0e0e11;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.shono-proto-stage.dark-bg {
+  background-color: #060608;
+}
+
+.shono-proto-card-meta {
+  padding: 14px 16px;
+  background: #111215;
+}
+
+.shono-proto-card-meta h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0f0f3;
+  margin: 0 0 4px 0;
+}
+
+.shono-proto-card-meta p {
+  font-size: 11px;
+  color: #72727c;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Sub buttons */
+.shono-proto-sub-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #b0b0b8;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shono-proto-sub-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Test Action Button */
+.shono-proto-test-btn {
+  width: 100%;
+  max-width: 180px;
+  height: 38px;
+  background: #1d1e24;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f0f0f5;
+  border-radius: 6px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.shono-proto-test-btn:hover:not(:disabled) {
+  background: #262730;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.shono-proto-test-btn.is-loading {
+  background: #17181d;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #a0a0aa;
+  cursor: wait;
+}
+
+.shono-proto-test-btn.is-success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+/* Breakdown stages */
+.shono-proto-breakdown-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .shono-proto-breakdown-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.shono-proto-step-card {
+  background: #111216;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.shono-proto-step-card:hover {
+  background: #16181d;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.shono-proto-step-card.active {
+  background: #181a21;
+  border-color: #ff9500;
+  box-shadow: 0 0 12px rgba(255, 149, 0, 0.15);
+}
+
+.shono-proto-step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #ff9500;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.shono-proto-step-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f2f2f6;
+  margin-bottom: 2px;
+}
+
+.shono-proto-step-desc {
+  font-size: 10px;
+  color: #72727e;
+}
+
+/* Controls */
+.shono-proto-controls-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  background: #111216;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+@media (max-width: 800px) {
+  .shono-proto-controls-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shono-proto-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shono-proto-ctrl-group label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #cfd0d8;
+}
+
+.shono-proto-ctrl-group input[type="range"] {
+  accent-color: #ff9500;
+  cursor: pointer;
+}
+
+.shono-proto-ctrl-hint {
+  font-size: 10px;
+  color: #686973;
+}
+
+.shono-proto-ctrl-action {
+  justify-content: center;
+}
+
+.shono-prototype-replay-full-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ff9500;
+  color: #000000;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(255, 149, 0, 0.28);
+}
+
+.shono-prototype-replay-full-btn:hover {
+  background: #ffa826;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 149, 0, 0.38);
+}

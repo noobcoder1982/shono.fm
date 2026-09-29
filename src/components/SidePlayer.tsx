@@ -1,26 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AppleLyrics } from './AppleLyrics';
-import { MasterWaveform } from './MasterWaveform';
 import { useArtwork } from '../services/artworkService';
+import { WindowControls } from './WindowControls';
 import {
   MoreVertical,
   Maximize2,
   Disc,
   Trash2,
-  ChevronUp,
-  ChevronDown,
-  RotateCcw,
+  GripVertical,
+  ListMusic,
 } from 'lucide-react';
-
-type SidePlayerTab = 'LYRICS' | 'LIVE' | 'QUEUE';
 
 export const SidePlayer: React.FC = () => {
   const {
     currentTrack,
-    playbackStatus,
-    currentTime,
-    duration,
+    playbackStatus: _playbackStatus,
     seek,
     openTrackDetail,
     toggleFullscreenPlayer,
@@ -30,116 +25,36 @@ export const SidePlayer: React.FC = () => {
     playTrack,
     reorderQueue,
     theme,
+    sidePlayerTab,
+    setSidePlayerTab,
   } = usePlayer();
 
   const { artworkUrl, isYouTube } = useArtwork(currentTrack);
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
-  const [activeTab, setActiveTab] = useState<SidePlayerTab>('LYRICS');
+  const activeTab = sidePlayerTab;
+  const setActiveTab = setSidePlayerTab;
 
-  // Live playback head tracking & Jump to Live control
-  const [isLivePosition, setIsLivePosition] = useState<boolean>(true);
-  const liveHeadRef = useRef<number>(currentTime);
-  const prevTimeRef = useRef<number>(currentTime);
-  const lastWallClockRef = useRef<number>(performance.now());
-  const trackIdRef = useRef<string | null>(currentTrack ? currentTrack.id : null);
-
-  const isPlaying = playbackStatus === 'PLAYING';
-
-  // Track playback time to detect external seeks or natural progression
-  useEffect(() => {
-    // Reset live state when track changes
-    if (currentTrack?.id !== trackIdRef.current) {
-      trackIdRef.current = currentTrack ? currentTrack.id : null;
-      liveHeadRef.current = currentTime;
-      prevTimeRef.current = currentTime;
-      lastWallClockRef.current = performance.now();
-      setIsLivePosition(true);
-      return;
-    }
-
-    const now = performance.now();
-    const dt = (now - lastWallClockRef.current) / 1000;
-    lastWallClockRef.current = now;
-
-    const expectedDelta = isPlaying ? dt : 0;
-    const actualDelta = currentTime - prevTimeRef.current;
-    const timeJump = Math.abs(actualDelta - expectedDelta);
-
-    // Noticeable jump outside standard linear playback (scrub / seek)
-    if (timeJump > 1.2) {
-      if (isLivePosition) {
-        liveHeadRef.current = prevTimeRef.current;
-        setIsLivePosition(false);
-      } else {
-        if (Math.abs(currentTime - liveHeadRef.current) <= 1.2) {
-          setIsLivePosition(true);
-        }
-      }
-    } else {
-      if (isLivePosition) {
-        liveHeadRef.current = currentTime;
-      } else {
-        if (isPlaying && dt > 0 && dt < 2) {
-          liveHeadRef.current = Math.min(duration || Infinity, liveHeadRef.current + dt);
-        }
-        if (currentTime >= liveHeadRef.current - 0.5) {
-          setIsLivePosition(true);
-        }
-      }
-    }
-
-    prevTimeRef.current = currentTime;
-  }, [currentTime, isPlaying, duration, currentTrack?.id, isLivePosition]);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   const handleSeek = (targetTime: number) => {
-    if (isLivePosition) {
-      if (Math.abs(targetTime - currentTime) > 1.0) {
-        liveHeadRef.current = currentTime;
-        setIsLivePosition(false);
-      }
-    } else {
-      if (Math.abs(targetTime - liveHeadRef.current) <= 1.0) {
-        setIsLivePosition(true);
-      }
-    }
-    prevTimeRef.current = targetTime;
     seek(targetTime);
   };
 
-  const handleJumpToLive = () => {
-    if (!isLivePosition) {
-      const target = Math.min(duration || Infinity, Math.max(0, liveHeadRef.current));
-      prevTimeRef.current = target;
-      seek(target);
-      setIsLivePosition(true);
+  const handleDrop = (targetIdx: number) => {
+    if (draggedIdx === null || draggedIdx === targetIdx) {
+      setDraggedIdx(null);
+      setDragOverIdx(null);
+      return;
     }
-    if (activeTab !== 'LIVE') {
-      setActiveTab('LIVE');
-    }
-  };
-
-
-
-  const handleMoveUp = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (idx === 0) return;
     const copy = [...queue];
-    const temp = copy[idx - 1];
-    copy[idx - 1] = copy[idx];
-    copy[idx] = temp;
+    const [draggedItem] = copy.splice(draggedIdx, 1);
+    copy.splice(targetIdx, 0, draggedItem);
     reorderQueue(copy);
-  };
-
-  const handleMoveDown = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (idx === queue.length - 1) return;
-    const copy = [...queue];
-    const temp = copy[idx + 1];
-    copy[idx + 1] = copy[idx];
-    copy[idx] = temp;
-    reorderQueue(copy);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
   };
 
   if (!currentTrack) {
@@ -351,6 +266,10 @@ export const SidePlayer: React.FC = () => {
             >
               <MoreVertical size={16} />
             </button>
+
+            {/* Subtle Divider & Window Controls */}
+            <div style={{ width: '1px', height: '14px', background: 'var(--border-subtle)', margin: '0 4px' }} />
+            <WindowControls />
           </div>
         </div>
       )}
@@ -493,35 +412,7 @@ export const SidePlayer: React.FC = () => {
           {/* TAB 1: APPLE MUSIC TIME-SYNCED LYRICS */}
           {activeTab === 'LYRICS' && <AppleLyrics compact={true} onSeek={handleSeek} />}
 
-          {/* TAB 2: LIVE MASTER WAVEFORM & AUDIO VISUALIZER */}
-          {activeTab === 'LIVE' && (
-            <div
-              style={{
-                height: '100%',
-                padding: '24px 20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                gap: '16px',
-              }}
-            >
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                REAL-TIME SPECTRAL ANALYSIS & WAVEFORM
-              </div>
-              <MasterWaveform
-                track={currentTrack}
-                currentTime={currentTime}
-                duration={duration}
-                isPlaying={isPlaying}
-                onSeek={handleSeek}
-                height={55}
-                compact={false}
-                showTimeLabels={true}
-              />
-            </div>
-          )}
-
-          {/* TAB 3: QUEUE LIST */}
+          {/* TAB 2: QUEUE LIST */}
           {activeTab === 'QUEUE' && (
             <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
               <div
@@ -535,17 +426,34 @@ export const SidePlayer: React.FC = () => {
                   flexShrink: 0,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '9.5px',
-                    fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  QUEUE ({queue.length})
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    QUEUE ({queue.length})
+                  </span>
+                  {queue.length > 1 && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '7.5px',
+                        color: 'var(--text-muted)',
+                        letterSpacing: '0.08em',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        padding: '1px 5px',
+                        borderRadius: '3px',
+                      }}
+                    >
+                      DRAG TO REORDER
+                    </span>
+                  )}
+                </div>
                 {queue.length > 0 && (
                   <button
                     onClick={clearQueue}
@@ -581,30 +489,79 @@ export const SidePlayer: React.FC = () => {
               ) : (
                 queue.map((track, idx) => {
                   const isCurrent = track.id === currentTrack.id;
+                  const isDragged = draggedIdx === idx;
+                  const isOver = dragOverIdx === idx;
+                  const isDropAbove = isOver && draggedIdx !== null && draggedIdx > idx;
+                  const isDropBelow = isOver && draggedIdx !== null && draggedIdx < idx;
+
                   return (
                     <div
                       key={`${track.id}-${idx}`}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        setDraggedIdx(idx);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (dragOverIdx !== idx) setDragOverIdx(idx);
+                      }}
+                      onDragLeave={() => {
+                        setDragOverIdx((prev) => (prev === idx ? null : prev));
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleDrop(idx);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedIdx(null);
+                        setDragOverIdx(null);
+                      }}
                       onClick={() => playTrack(track)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '7px 18px',
-                        borderBottom: '1px solid var(--border-subtle)',
-                        background: isCurrent ? 'var(--bg-tertiary)' : 'transparent',
+                        borderBottom: isDropBelow ? '2px solid var(--accent-color)' : '1px solid var(--border-subtle)',
+                        borderTop: isDropAbove ? '2px solid var(--accent-color)' : 'none',
+                        background: isCurrent
+                          ? 'var(--bg-tertiary)'
+                          : isOver
+                          ? 'var(--bg-hover)'
+                          : 'transparent',
+                        opacity: isDragged ? 0.35 : 1,
                         cursor: 'pointer',
                         fontFamily: 'var(--font-mono)',
                         fontSize: '9.5px',
-                        transition: 'background 0.12s ease',
+                        transition: 'background 0.12s ease, opacity 0.12s ease',
                       }}
                       onMouseEnter={(e) => {
-                        if (!isCurrent) e.currentTarget.style.background = 'var(--bg-hover)';
+                        if (!isCurrent && !isDragged) e.currentTarget.style.background = 'var(--bg-hover)';
                       }}
                       onMouseLeave={(e) => {
-                        if (!isCurrent) e.currentTarget.style.background = 'transparent';
+                        if (!isCurrent && !isDragged && !isOver) e.currentTarget.style.background = 'transparent';
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+                        {/* Tactile Drag Handle */}
+                        <div
+                          style={{
+                            cursor: 'grab',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: isDragged ? 'var(--accent-color)' : 'var(--text-muted)',
+                            opacity: 0.6,
+                            padding: '2px 0',
+                            flexShrink: 0,
+                          }}
+                          title="Drag up or down to reorder songs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical size={13} />
+                        </div>
+
                         <span style={{ color: isCurrent ? 'var(--accent-color)' : 'var(--text-muted)', width: '16px', fontSize: '8px' }}>
                           {(idx + 1).toString().padStart(2, '0')}
                         </span>
@@ -626,28 +583,24 @@ export const SidePlayer: React.FC = () => {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                         <button
-                          onClick={(e) => handleMoveUp(idx, e)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
-                          title="Move up"
-                        >
-                          <ChevronUp size={11} />
-                        </button>
-                        <button
-                          onClick={(e) => handleMoveDown(idx, e)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
-                          title="Move down"
-                        >
-                          <ChevronDown size={11} />
-                        </button>
-                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFromQueue(track.id);
                           }}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
-                          title="Remove"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          title="Remove from queue"
+                          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--status-live)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
@@ -686,7 +639,7 @@ export const SidePlayer: React.FC = () => {
             <button
               onClick={() => setActiveTab('LYRICS')}
               style={{
-                padding: '6px 14px',
+                padding: '6px 16px',
                 borderRadius: '999px',
                 border: 'none',
                 background: activeTab === 'LYRICS' ? 'var(--glass-bg-active)' : 'transparent',
@@ -701,29 +654,9 @@ export const SidePlayer: React.FC = () => {
               Lyrics
             </button>
             <button
-              onClick={handleJumpToLive}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '999px',
-                border: 'none',
-                background: activeTab === 'LIVE' ? 'var(--glass-bg-active)' : 'transparent',
-                color: activeTab === 'LIVE' ? 'var(--text-primary)' : 'var(--text-muted)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '12px',
-                fontWeight: activeTab === 'LIVE' ? 600 : 500,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              Waveform
-            </button>
-            <button
               onClick={() => setActiveTab('QUEUE')}
               style={{
-                padding: '6px 14px',
+                padding: '6px 16px',
                 borderRadius: '999px',
                 border: 'none',
                 background: activeTab === 'QUEUE' ? 'var(--glass-bg-active)' : 'transparent',
@@ -751,160 +684,63 @@ export const SidePlayer: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          {/* Left: LYRICS tab (Image 1 reference) */}
+          {/* Left: LYRICS tab */}
           <button
             onClick={() => setActiveTab('LYRICS')}
             style={{
               background: 'transparent',
               border: 'none',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: '4px',
+              gap: '8px',
               color: activeTab === 'LYRICS' ? 'var(--accent-color)' : 'var(--text-muted)',
               cursor: 'pointer',
-              padding: '4px 8px',
+              padding: '6px 12px',
+              borderRadius: '4px',
               transition: 'all 0.15s ease',
             }}
             title="Lyrics View"
           >
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '17px' }}>
-              <span style={{ fontSize: '15px', lineHeight: 1 }}>💬</span>
-            </div>
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>💬</span>
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '8px',
+                fontSize: '10px',
                 fontWeight: 700,
-                letterSpacing: '0.14em',
+                letterSpacing: '0.12em',
               }}
             >
               LYRICS
             </span>
           </button>
 
-          {/* Center: LIVE Audio Visualizer Pill / Jump to Live Control */}
-          <button
-            onClick={handleJumpToLive}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'var(--accent-subtle)',
-              border: '1px solid var(--accent-color)',
-              borderRadius: '20px',
-              padding: '6px 18px',
-              color: 'var(--accent-color)',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '9.5px',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(212, 175, 55, 0.16)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--accent-subtle)';
-            }}
-            title="Jump to Live Position"
-            aria-label="Jump to Live Position"
-          >
-            {isLivePosition ? (
-              /* Tiny 4-bar waveform icon reacting subtly to playback */
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'flex-end',
-                  gap: '2px',
-                  height: '12px',
-                  width: '14px',
-                  justifyContent: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    width: '2px',
-                    height: isPlaying ? '9px' : '4px',
-                    background: 'currentColor',
-                    borderRadius: '1px',
-                    animation: isPlaying ? 'liveEq1 0.75s ease-in-out infinite alternate' : 'none',
-                  }}
-                />
-                <span
-                  style={{
-                    width: '2px',
-                    height: isPlaying ? '12px' : '8px',
-                    background: 'currentColor',
-                    borderRadius: '1px',
-                    animation: isPlaying ? 'liveEq2 0.65s ease-in-out infinite alternate' : 'none',
-                  }}
-                />
-                <span
-                  style={{
-                    width: '2px',
-                    height: isPlaying ? '11px' : '5px',
-                    background: 'currentColor',
-                    borderRadius: '1px',
-                    animation: isPlaying ? 'liveEq3 0.85s ease-in-out infinite alternate' : 'none',
-                  }}
-                />
-                <span
-                  style={{
-                    width: '2px',
-                    height: isPlaying ? '8px' : '3px',
-                    background: 'currentColor',
-                    borderRadius: '1px',
-                    animation: isPlaying ? 'liveEq4 0.7s ease-in-out infinite alternate' : 'none',
-                  }}
-                />
-              </span>
-            ) : (
-              /* Jump to live return icon */
-              <RotateCcw
-                size={11}
-                strokeWidth={2.4}
-                style={{
-                  display: 'block',
-                  flexShrink: 0,
-                }}
-              />
-            )}
-            <span>LIVE</span>
-          </button>
-
-          {/* Right: QUEUE tab (Image 1 reference) */}
+          {/* Right: QUEUE tab */}
           <button
             onClick={() => setActiveTab('QUEUE')}
             style={{
               background: 'transparent',
               border: 'none',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              gap: '4px',
+              gap: '8px',
               color: activeTab === 'QUEUE' ? 'var(--accent-color)' : 'var(--text-muted)',
               cursor: 'pointer',
-              padding: '4px 8px',
+              padding: '6px 12px',
+              borderRadius: '4px',
               transition: 'all 0.15s ease',
             }}
             title={`Queue (${queue.length})`}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', width: '15px', padding: '3px 0' }}>
-              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
-              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
-              <span style={{ height: '1.5px', background: 'currentColor', borderRadius: '1px', width: '100%' }} />
-            </div>
+            <ListMusic size={15} />
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '8px',
+                fontSize: '10px',
                 fontWeight: 700,
-                letterSpacing: '0.14em',
+                letterSpacing: '0.12em',
               }}
             >
-              QUEUE
+              QUEUE {queue.length > 0 ? `[${queue.length.toString().padStart(2, '0')}]` : ''}
             </span>
           </button>
         </div>

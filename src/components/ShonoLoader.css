@@ -1,0 +1,342 @@
+/* ==========================================================================
+   SHONO.FM — Typographic & Metallic Sheen Loading System
+   Typography: Scholar Editorial Serif Font
+   Motion: Sweeping diagonal specular studio light + Fly-Up Exit Animation
+   ========================================================================== */
+
+:root {
+  --shono-loader-bg: #0A0A0A;
+  --shono-loader-metal-base-top: #f0f0f5;
+  --shono-loader-metal-base-mid: #9a9aa4;
+  --shono-loader-metal-base-bot: #484852;
+  --shono-loader-sheen-duration: 2.1s;
+}
+
+/* Base Wrapper for the Loader */
+.shono-loader-root {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  box-sizing: border-box;
+  position: relative;
+  transition: transform 0.65s cubic-bezier(0.72, 0, 0.2, 1),
+              opacity 0.6s cubic-bezier(0.72, 0, 0.2, 1),
+              filter 0.6s ease-in;
+  will-change: transform, opacity, filter;
+}
+
+/* Exit Motion: Fly Upwards Curtain Lift */
+.shono-loader-root.is-flying-up,
+.shono-loader-root.is-exiting {
+  transform: translateY(-105vh) scale(0.98) !important;
+  opacity: 0 !important;
+  filter: blur(8px) !important;
+  pointer-events: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Variants
+   -------------------------------------------------------------------------- */
+
+/* 1. Fullscreen Variant (App Launch & Splash Curtain) */
+.shono-loader-root.variant-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+  background-color: var(--shono-loader-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 2. Default Variant (Centered Section / Modal Loader) */
+.shono-loader-root.variant-default {
+  padding: 36px;
+  min-height: 220px;
+  width: 100%;
+}
+
+/* 3. Compact Variant (Inline / Small spaces) */
+.shono-loader-root.variant-compact {
+  padding: 6px 12px;
+  gap: 10px;
+  flex-direction: row;
+}
+
+/* 4. Button Loading State */
+.shono-loader-root.variant-button {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Smooth Text Progression UI (Material Symbols Sharp)
+   -------------------------------------------------------------------------- */
+.shono-smooth-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.shono-smooth-text-container {
+  position: relative;
+  font-family: 'Material Symbols Sharp', 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.shono-smooth-text-dim {
+  color: rgba(255, 255, 255, 0.12); /* Dimmed background text */
+}
+
+.shono-smooth-text-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #ffffff; /* Bright filled text */
+  white-space: nowrap;
+  overflow: hidden;
+  /* Use clip-path or width for smooth progression based on CSS var */
+  width: var(--progress-pct, 0%);
+  transition: width 0.1s linear;
+  /* Add a tiny glow to the tip of the fill */
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.4));
+}
+
+/* Quote styling */
+.shono-loader-quote-text {
+  font-family: 'Anonymous Pro', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #a0a0a0;
+  text-align: center;
+  max-width: 480px;
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Monogram Fallback / Mode (If monogram requested)
+   -------------------------------------------------------------------------- */
+.shono-loader-monogram-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shono-loader-monogram-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  mask-image: var(--shono-mask-url);
+  -webkit-mask-image: var(--shono-mask-url);
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  background-color: var(--shono-loader-metal-base-mid);
+}
+
+.shono-loader-metal-base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    175deg,
+    var(--shono-loader-metal-base-top) 0%,
+    #4a4b54 42%,
+    var(--shono-loader-metal-base-mid) 68%,
+    var(--shono-loader-metal-base-bot) 100%
+  );
+}
+
+.shono-loader-bevel-rim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.24) 0%,
+    rgba(255, 255, 255, 0.05) 25%,
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.shono-loader-sheen-track {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    transparent 0%,
+    transparent 36%,
+    rgba(255, 255, 255, 0.02) 41%,
+    rgba(255, 255, 255, 0.22) 46%,
+    rgba(255, 255, 255, 0.72) 48.8%,
+    #ffffff 50%,
+    rgba(255, 250, 235, 0.88) 51.2%,
+    rgba(255, 235, 185, 0.38) 54%,
+    rgba(255, 255, 255, 0.08) 58%,
+    transparent 64%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: shono-sheen-sweep var(--shono-loader-sheen-duration) cubic-bezier(0.45, 0.05, 0.25, 0.95) infinite;
+}
+
+@keyframes shono-sheen-sweep {
+  0% {
+    transform: translate3d(-65%, -45%, 0);
+  }
+  58% {
+    transform: translate3d(60%, 45%, 0);
+  }
+  100% {
+    transform: translate3d(60%, 45%, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Longer, High-Precision Brutalist Progress Bar & Metadata
+   -------------------------------------------------------------------------- */
+.shono-loader-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 28px;
+  gap: 12px;
+  text-align: center;
+}
+
+.shono-loader-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7e7e88;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Longer Progress Bar Container */
+.shono-loader-progress-track {
+  width: 300px;
+  max-width: 82vw;
+  height: 2.5px;
+  background-color: rgba(255, 255, 255, 0.09);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: visible;
+  position: relative;
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Smooth motion progress fill */
+.shono-loader-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9500 0%, #ffbf3b 80%, #ffffff 100%);
+  border-radius: 2px;
+  position: relative;
+  transition: width 0.08s linear;
+  box-shadow: 0 0 10px rgba(255, 149, 0, 0.5), 0 0 20px rgba(255, 149, 0, 0.2);
+}
+
+/* Glowing precision spark at the head of the progress bar */
+.shono-loader-progress-spark {
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 0 8px #ffffff, 0 0 16px #ff9500;
+}
+
+/* Completion Flash Effect */
+.shono-loader-progress-track.is-completed .shono-loader-progress-fill {
+  background: #ffffff !important;
+  box-shadow: 0 0 16px #ffffff, 0 0 32px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Numeric Percentage */
+.shono-loader-pct-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ff9500;
+  margin-top: 4px;
+}
+
+/* Button & Compact variants */
+.variant-button .shono-loader-typo-text {
+  font-size: 14px !important;
+  letter-spacing: 0.1em !important;
+}
+
+.variant-compact .shono-loader-typo-text {
+  font-size: 18px !important;
+  letter-spacing: 0.12em !important;
+}
+
+.variant-compact .shono-loader-compact-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #8e8e95;
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility: Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .shono-loader-typo-sheen-layer,
+  .shono-loader-sheen-track {
+    animation: none !important;
+    background-position: 50% 0 !important;
+    opacity: 0.3 !important;
+  }
+
+  .shono-loader-typo-bloom,
+  .shono-loader-bloom-glow {
+    animation: none !important;
+    opacity: 0.15 !important;
+  }
+
+  .shono-loader-root.is-flying-up,
+  .shono-loader-root.is-exiting {
+    transform: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.25s ease !important;
+  }
+}

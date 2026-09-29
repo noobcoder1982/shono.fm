@@ -15,7 +15,9 @@ export const KeyboardShortcutsModal: React.FC = () => {
     { key: 'R', label: 'Cycle repeat mode (OFF / ALL / ONE)' },
     { key: 'M', label: 'Mute / Unmute master output' },
     { key: '/', label: 'Focus instant archive search' },
-    { key: 'Q', label: 'Toggle queue drawer' },
+    { key: 'Q', label: 'Toggle playback queue in right panel' },
+    { key: 'F', label: 'Toggle fullscreen now playing' },
+    { key: 'I', label: 'Toggle immersive mode (fullscreen)' },
     { key: 'ESC', label: 'Dismiss active overlay or blur search' },
     { key: '?', label: 'Open / close keyboard manual' },
   ];

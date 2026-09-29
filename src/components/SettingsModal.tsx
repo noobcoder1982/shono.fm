@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { storage, type BrutalistTheme } from '../services/storage';
-import { X, Sliders, Check, ShieldCheck, Palette, Disc } from 'lucide-react';
+import { X, Sliders, Check, ShieldCheck, Palette } from 'lucide-react';
 
 interface ThemeOption {
   id: BrutalistTheme;
@@ -78,20 +78,72 @@ const THEME_OPTIONS: ThemeOption[] = [
   {
     id: 'stealth',
     index: '07',
-    name: 'STEALTH // MI6 VOID',
+    name: 'STEALTH // CARBON VOID',
     description: 'Pitch carbon #040405, ultra-dark steel framing, titanium text, and laser violet telemetry.',
     previewBg: '#040405',
     previewBorder: '#1a1b22',
     previewText: '#eceff4',
     previewAccent: '#818cf8',
   },
+  {
+    id: 'dark',
+    index: '08',
+    name: 'DARK // PURE MONOCHROME',
+    description: 'Clean pitch black and crisp silver monochrome aesthetic.',
+    previewBg: '#0a0a0a',
+    previewBorder: '#262626',
+    previewText: '#fafafa',
+    previewAccent: '#f5f5f5',
+  },
+  {
+    id: 'dark_plus',
+    index: '09',
+    name: 'DARK+ // OLED MIDNIGHT',
+    description: 'Ultra deep OLED midnight background with electric cyan glowing telemetry.',
+    previewBg: '#020408',
+    previewBorder: '#172438',
+    previewText: '#f0f9ff',
+    previewAccent: '#38bdf8',
+  },
+  {
+    id: 'blue',
+    index: '10',
+    name: 'BLUE // COBALT MARINE',
+    description: 'Deep naval cobalt with electric sky accents for relaxed focus.',
+    previewBg: '#060e1a',
+    previewBorder: '#1f365c',
+    previewText: '#eff6ff',
+    previewAccent: '#3b82f6',
+  },
+  {
+    id: 'beige',
+    index: '11',
+    name: 'BEIGE // VINTAGE PAPER',
+    description: 'Vintage Hi-Fi warm cream paper and roasted walnut accents.',
+    previewBg: '#151310',
+    previewBorder: '#362e26',
+    previewText: '#fefae0',
+    previewAccent: '#d4a373',
+  },
+  {
+    id: 'green',
+    index: '12',
+    name: 'GREEN // FOREST OBSIDIAN',
+    description: 'Deep forest obsidian with soft sage and emerald needles.',
+    previewBg: '#050d08',
+    previewBorder: '#1e3a29',
+    previewText: '#ecfdf5',
+    previewAccent: '#10b981',
+  },
 ];
 
 export const SettingsModal: React.FC = () => {
-  const { isSettingsOpen, setIsSettingsOpen, theme, setTheme, playerMode, setPlayerMode } = usePlayer();
+  const { isSettingsOpen, setIsSettingsOpen, theme, setTheme } = usePlayer();
   const [selectedTheme, setSelectedTheme] = useState<BrutalistTheme>(theme);
   const [autoPlay, setAutoPlay] = useState(() => storage.getSettings().autoPlayNext);
   const [synthFallback, setSynthFallback] = useState(() => storage.getSettings().synthFallbackEnabled);
+  const [roundedCorners, setRoundedCorners] = useState(() => storage.getSettings().roundedCorners ?? false);
+  const [customCursor, setCustomCursor] = useState(() => storage.getSettings().customCursor || 'none');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   if (!isSettingsOpen) return null;
@@ -107,7 +159,10 @@ export const SettingsModal: React.FC = () => {
       theme: selectedTheme,
       autoPlayNext: autoPlay,
       synthFallbackEnabled: synthFallback,
+      roundedCorners,
+      customCursor,
     });
+    window.dispatchEvent(new CustomEvent('shono:settings-updated'));
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);
@@ -224,127 +279,6 @@ export const SettingsModal: React.FC = () => {
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--status-active)' }} />
               DEFAULT_LOCKED
             </span>
-          </div>
-
-          {/* PLAYER MODE SELECTOR */}
-          <div style={{ marginBottom: '26px' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '10px',
-              }}
-            >
-              <Disc size={15} color="var(--accent-color)" />
-              <label
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.1em',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                PLAYER MODE
-              </label>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px',
-              }}
-            >
-              {/* Option 1: ARCHIVE */}
-              <button
-                type="button"
-                onClick={() => setPlayerMode('ARCHIVE')}
-                style={{
-                  padding: '14px 16px',
-                  borderRadius: '8px',
-                  background: playerMode === 'ARCHIVE' ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
-                  border: playerMode === 'ARCHIVE' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
-                  color: 'var(--text-primary)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '50%',
-                    border: playerMode === 'ARCHIVE' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {playerMode === 'ARCHIVE' && (
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 700 }}>
-                    ARCHIVE MODE
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    Standard brutalist 3-column index
-                  </div>
-                </div>
-              </button>
-
-              {/* Option 2: 007 / MI6 */}
-              <button
-                type="button"
-                onClick={() => setPlayerMode('MI6')}
-                style={{
-                  padding: '14px 16px',
-                  borderRadius: '8px',
-                  background: playerMode === 'MI6' ? 'rgba(212, 175, 55, 0.1)' : 'var(--bg-secondary)',
-                  border: playerMode === 'MI6' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
-                  color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-primary)',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '50%',
-                    border: playerMode === 'MI6' ? '2px solid var(--accent-color)' : '1.5px solid var(--border-bright)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {playerMode === 'MI6' && (
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-color)' }} />
-                  )}
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 700 }}>
-                    007 / MI6 DOSSIER
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    Analog vinyl turntable & dossier
-                  </div>
-                </div>
-              </button>
-            </div>
           </div>
 
           {/* Theme Selector Section */}
@@ -490,8 +424,6 @@ export const SettingsModal: React.FC = () => {
               alignItems: 'center',
               padding: '12px 0',
               borderTop: '1px solid var(--border-subtle)',
-              borderBottom: '1px solid var(--border-subtle)',
-              marginBottom: '24px',
             }}
           >
             <div>
@@ -508,6 +440,73 @@ export const SettingsModal: React.FC = () => {
               onChange={(e) => setAutoPlay(e.target.checked)}
               style={{ width: '18px', height: '18px', accentColor: 'var(--accent-color)', cursor: 'pointer' }}
             />
+          </div>
+
+          {/* Rounded Corner UI Toggle */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 0',
+              borderTop: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                ROUNDED CORNER UI
+              </div>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Toggle soft curved corners for buttons, cards, dialogs, and controls
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={roundedCorners}
+              onChange={(e) => setRoundedCorners(e.target.checked)}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-color)', cursor: 'pointer' }}
+            />
+          </div>
+
+          {/* Custom Cursor Selector */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 0',
+              borderTop: '1px solid var(--border-subtle)',
+              borderBottom: '1px solid var(--border-subtle)',
+              marginBottom: '24px',
+            }}
+          >
+            <div>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                HARDWARE CUSTOM CURSOR
+              </div>
+              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Choose dynamic in-app interactive cursor feel and reticle
+              </div>
+            </div>
+            <select
+              value={customCursor}
+              onChange={(e) => setCustomCursor(e.target.value as any)}
+              style={{
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                padding: '6px 10px',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="none">DEFAULT OS ARROW</option>
+              <option value="dot">NEON CYBER DOT</option>
+              <option value="ring">PRECISION RING</option>
+              <option value="crosshair">TACTICAL CROSSHAIR</option>
+            </select>
           </div>
 
           {/* Action Buttons */}

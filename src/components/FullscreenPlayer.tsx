@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { fetchLyrics, type ParsedLyrics, type LyricLine } from '../services/lyricsService';
-import { MasterWaveform } from './MasterWaveform';
 import { useSmoothTime, computeWordTimings } from './AppleLyrics';
 import { useArtwork } from '../services/artworkService';
+import { WindowControls } from './WindowControls';
 import {
   Play,
   Pause,
@@ -13,7 +13,6 @@ import {
   Repeat,
   Repeat1,
   Heart,
-  MoreHorizontal,
   Volume2,
   VolumeX,
   Minimize2,
@@ -24,7 +23,13 @@ import {
   X,
   Copy,
   Check,
+  Image,
+  EyeOff,
+  MoreHorizontal,
 } from 'lucide-react';
+import { LyricCardModal } from './LyricCardModal';
+import { SpinningVinylTurntable } from './SpinningVinylTurntable';
+import { getTrackBpmAndKey } from '../services/audioAnalysisService';
 
 const FullscreenActiveLyricLine: React.FC<{
   line: LyricLine;
@@ -32,8 +37,8 @@ const FullscreenActiveLyricLine: React.FC<{
 }> = ({ line, effectiveTime }) => {
   const lineEnd = line.endTime || line.time + 3.5;
   const words = React.useMemo(() => {
-    return computeWordTimings(line.text, line.time, lineEnd);
-  }, [line.text, line.time, lineEnd]);
+    return computeWordTimings(line.text, line.time, lineEnd, line.words);
+  }, [line.text, line.time, lineEnd, line.words]);
 
   const progressMapRef = useRef<number[]>([]);
 
@@ -132,6 +137,9 @@ export const FullscreenPlayer: React.FC = () => {
   const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
   const [isFullLyricsModalOpen, setIsFullLyricsModalOpen] = useState(false);
   const [copiedFullLyrics, setCopiedFullLyrics] = useState(false);
+  const [isLyricCardOpen, setIsLyricCardOpen] = useState(false);
+  const [selectedLyricsForCard, setSelectedLyricsForCard] = useState<LyricLine[]>([]);
+  const audioTag = getTrackBpmAndKey(currentTrack);
   const [userScrolled, setUserScrolled] = useState(false);
   const [lyricsAlignment, setLyricsAlignment] = useState<'RIGHT' | 'LEFT' | 'CENTER'>(() => {
     try {
@@ -141,9 +149,90 @@ export const FullscreenPlayer: React.FC = () => {
     }
   });
 
+  // Immersive Mode & QoL states
+  const [isImmersive, setIsImmersive] = useState(false);
+  const [isQoLOpen, setIsQoLOpen] = useState(false);
+  const [autoHideEnabled, setAutoHideEnabled] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('muszix_fullscreen_autohide');
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
+  });
+  const [lyricsScale, setLyricsScale] = useState<'normal' | 'large' | 'xl'>(() => {
+    try {
+      return (localStorage.getItem('muszix_lyrics_scale') as 'normal' | 'large' | 'xl') || 'normal';
+    } catch {
+      return 'normal';
+    }
+  });
+
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
   const userScrollTimeoutRef = useRef<number | null>(null);
+  const idleTimerRef = useRef<number | null>(null);
+
+  const resetIdleTimer = React.useCallback(() => {
+    if (!autoHideEnabled) {
+      setIsImmersive(false);
+      return;
+    }
+    if (isQoLOpen || isFullLyricsModalOpen) {
+      setIsImmersive(false);
+      return;
+    }
+
+    setIsImmersive(false);
+    if (idleTimerRef.current) {
+      window.clearTimeout(idleTimerRef.current);
+    }
+    idleTimerRef.current = window.setTimeout(() => {
+      setIsImmersive(true);
+    }, 3500);
+  }, [autoHideEnabled, isQoLOpen, isFullLyricsModalOpen]);
+
+  useEffect(() => {
+    if (!isFullscreenPlayerOpen) {
+      return;
+    }
+
+    resetIdleTimer();
+
+    const handlePointerActivity = () => {
+      resetIdleTimer();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      resetIdleTimer();
+      if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        setIsImmersive((prev) => !prev);
+      }
+    };
+
+    const handleCustomImmersive = () => {
+      setIsImmersive((prev) => !prev);
+    };
+
+    window.addEventListener('mousemove', handlePointerActivity);
+    window.addEventListener('mousedown', handlePointerActivity);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('touchstart', handlePointerActivity);
+    window.addEventListener('shono-toggle-immersive', handleCustomImmersive);
+
+    return () => {
+      setIsImmersive(false);
+      if (idleTimerRef.current) {
+        window.clearTimeout(idleTimerRef.current);
+      }
+      window.removeEventListener('mousemove', handlePointerActivity);
+      window.removeEventListener('mousedown', handlePointerActivity);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', handlePointerActivity);
+      window.removeEventListener('shono-toggle-immersive', handleCustomImmersive);
+    };
+  }, [isFullscreenPlayerOpen, resetIdleTimer]);
 
   const isPlaying = playbackStatus === 'PLAYING';
   const smoothTime = useSmoothTime(currentTime, isPlaying);
@@ -269,7 +358,8 @@ export const FullscreenPlayer: React.FC = () => {
         flexDirection: 'column',
         overflow: 'hidden',
         userSelect: 'none',
-        animation: 'modalCardFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        cursor: isImmersive ? 'none' : 'default',
+        animation: 'fullscreenSlideUpSnap 0.46s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       }}
     >
       {/* 1. DYNAMIC BLURRED ALBUM ARTWORK BACKDROP */}
@@ -312,42 +402,81 @@ export const FullscreenPlayer: React.FC = () => {
         }}
       />
 
-      {/* 3. TOP NAVIGATION RAIL */}
+      {/* Top Edge Hover Reveal Sensor (Wakes up chrome if user hovers near top edge in immersive mode) */}
+      {isImmersive && (
+        <div
+          onMouseEnter={() => setIsImmersive(false)}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '40px',
+            zIndex: 35,
+            cursor: 'default',
+          }}
+        />
+      )}
+
+      {/* 3. TOP NAVIGATION RAIL (Corner D: Logo, Corner C: Controls / QoL) */}
       <header
+        className="titlebar-drag-region"
         style={{
-          height: '68px',
-          padding: '0 40px',
+          height: '64px',
+          padding: '0 24px 0 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           position: 'relative',
-          zIndex: 10,
+          zIndex: 30,
           flexShrink: 0,
+          ['-webkit-app-region' as any]: 'drag',
+          transform: isImmersive ? 'translateY(-36px)' : 'translateY(0)',
+          opacity: isImmersive ? 0 : 1,
+          pointerEvents: isImmersive ? 'none' : 'auto',
+          transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Top-Left: Brand & Now Playing Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Top-Left: Brand & Now Playing Header (Corner D) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', ['-webkit-app-region' as any]: 'no-drag' }}>
           <div
             style={{
               width: '3.5px',
               height: '20px',
-              background: '#eab308',
+              background: 'var(--accent-color, #eab308)',
               borderRadius: '1px',
-              boxShadow: '0 0 10px rgba(234, 179, 8, 0.55)',
+              boxShadow: '0 0 10px var(--accent-glow, rgba(234, 179, 8, 0.55))',
             }}
           />
           <div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '15px',
-                fontWeight: 800,
-                letterSpacing: '0.12em',
-                color: '#ffffff',
-                lineHeight: 1.1,
-              }}
-            >
-              SHONO.FM
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  letterSpacing: '0.12em',
+                  color: '#ffffff',
+                  lineHeight: 1.1,
+                }}
+              >
+                SHONO.FM
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '8px',
+                  fontWeight: 800,
+                  color: 'var(--accent-color, #eab308)',
+                  background: 'var(--accent-subtle, rgba(234, 179, 8, 0.15))',
+                  border: '1px solid var(--accent-color, #eab308)',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                BETA
+              </span>
             </div>
             <div
               style={{
@@ -364,8 +493,8 @@ export const FullscreenPlayer: React.FC = () => {
           </div>
         </div>
 
-        {/* Top-Right: Tabs, More Options & Fullscreen Exit Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        {/* Top-Right: Tabs, QoL, Immersive Toggle, Dossier, Fullscreen Exit & Custom Window Controls (Corner C) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', ['-webkit-app-region' as any]: 'no-drag' }}>
           {/* Lyrics / Visuals Switcher Pills */}
           <div
             style={{
@@ -384,8 +513,8 @@ export const FullscreenPlayer: React.FC = () => {
               style={{
                 padding: '4px 14px',
                 borderRadius: '999px',
-                border: activeTab === 'LYRICS' ? '1px solid #eab308' : '1px solid transparent',
-                background: activeTab === 'LYRICS' ? 'rgba(234, 179, 8, 0.12)' : 'transparent',
+                border: activeTab === 'LYRICS' ? '1px solid var(--accent-color, #eab308)' : '1px solid transparent',
+                background: activeTab === 'LYRICS' ? 'var(--accent-subtle, rgba(234, 179, 8, 0.12))' : 'transparent',
                 color: activeTab === 'LYRICS' ? '#ffffff' : '#71717a',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
@@ -403,8 +532,8 @@ export const FullscreenPlayer: React.FC = () => {
               style={{
                 padding: '4px 14px',
                 borderRadius: '999px',
-                border: activeTab === 'VISUALS' ? '1px solid #eab308' : '1px solid transparent',
-                background: activeTab === 'VISUALS' ? 'rgba(234, 179, 8, 0.12)' : 'transparent',
+                border: activeTab === 'VISUALS' ? '1px solid var(--accent-color, #eab308)' : '1px solid transparent',
+                background: activeTab === 'VISUALS' ? 'var(--accent-subtle, rgba(234, 179, 8, 0.12))' : 'transparent',
                 color: activeTab === 'VISUALS' ? '#ffffff' : '#71717a',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '10px',
@@ -418,26 +547,62 @@ export const FullscreenPlayer: React.FC = () => {
             </button>
           </div>
 
-          {/* More Options Button */}
+          {/* Dedicated QoL Controls Button */}
           <button
             type="button"
-            onClick={() => openTrackDetail(currentTrack)}
+            onClick={() => setIsQoLOpen((prev) => !prev)}
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#a1a1aa',
+              padding: '5px 12px',
+              borderRadius: '999px',
+              border: isQoLOpen ? '1px solid var(--accent-color, #eab308)' : '1px solid rgba(255, 255, 255, 0.12)',
+              background: isQoLOpen ? 'var(--accent-subtle, rgba(234, 179, 8, 0.18))' : 'rgba(255, 255, 255, 0.05)',
+              color: isQoLOpen ? '#ffffff' : '#a1a1aa',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: '6px',
               transition: 'all 0.15s ease',
             }}
-            title="Track Dossier & Specifications"
+            title="Quality of Life (QoL) Options & Lyrics Alignment"
           >
-            <MoreHorizontal size={17} />
+            <Sparkles size={13} color={isQoLOpen ? 'var(--accent-color, #eab308)' : '#eab308'} />
+            <span>QoL</span>
+          </button>
+
+          {/* Aesthetic Lyric Card / Poster Generator Button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (lyricsData?.lines && lyricsData.lines.length > 0) {
+                const cur = lyricsData.lines[activeIndex] || lyricsData.lines[0];
+                setSelectedLyricsForCard([cur]);
+              }
+              setIsLyricCardOpen(true);
+            }}
+            style={{
+              padding: '5px 12px',
+              borderRadius: '999px',
+              border: isLyricCardOpen ? '1px solid var(--accent-color, #eab308)' : '1px solid rgba(255, 255, 255, 0.12)',
+              background: isLyricCardOpen ? 'var(--accent-subtle, rgba(234, 179, 8, 0.18))' : 'rgba(255, 255, 255, 0.05)',
+              color: isLyricCardOpen ? '#ffffff' : '#a1a1aa',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s ease',
+            }}
+            title="Create Aesthetic Lyric Card / Poster (Save or Share)"
+          >
+            <Image size={13} color={isLyricCardOpen ? 'var(--accent-color, #eab308)' : '#eab308'} />
+            <span>CARD</span>
           </button>
 
           {/* Fullscreen Exit Button */}
@@ -445,8 +610,8 @@ export const FullscreenPlayer: React.FC = () => {
             type="button"
             onClick={() => setIsFullscreenPlayerOpen(false)}
             style={{
-              width: '34px',
-              height: '34px',
+              width: '32px',
+              height: '32px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.06)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -459,10 +624,352 @@ export const FullscreenPlayer: React.FC = () => {
             }}
             title="Exit Fullscreen Player (ESC / F)"
           >
-            <Minimize2 size={16} />
+            <Minimize2 size={15} />
           </button>
+
+          {/* Subtle Vertical Divider */}
+          <div style={{ width: '1px', height: '16px', background: 'rgba(255, 255, 255, 0.15)', margin: '0 2px' }} />
+
+          {/* Custom Window Controls (Never overlapped) */}
+          <WindowControls />
         </div>
       </header>
+
+      {/* FULLSCREEN QoL SETTINGS POPOVER (Positioned right under top controls) */}
+      {isQoLOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '68px',
+            right: '28px',
+            width: '320px',
+            background: 'rgba(15, 15, 20, 0.94)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255, 255, 255, 0.16)',
+            borderRadius: '16px',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.85), 0 0 20px rgba(234, 179, 8, 0.15)',
+            zIndex: 100,
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            animation: 'modalCardFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              paddingBottom: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={14} color="var(--accent-color, #eab308)" />
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  letterSpacing: '0.12em',
+                  color: '#ffffff',
+                }}
+              >
+                FULLSCREEN QoL SETTINGS
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsQoLOpen(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#a1a1aa',
+                cursor: 'pointer',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {/* Section 1: Lyrics Alignment (Moved here!) */}
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                fontWeight: 700,
+                color: '#a1a1aa',
+                letterSpacing: '0.08em',
+                marginBottom: '8px',
+              }}
+            >
+              LYRICS ALIGNMENT
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                padding: '3px',
+                gap: '3px',
+              }}
+            >
+              {(['LEFT', 'CENTER', 'RIGHT'] as const).map((align) => (
+                <button
+                  key={align}
+                  type="button"
+                  onClick={() => {
+                    setLyricsAlignment(align);
+                    try {
+                      localStorage.setItem('muszix_lyrics_alignment', align);
+                    } catch {}
+                  }}
+                  style={{
+                    padding: '6px 0',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: lyricsAlignment === align ? 'var(--accent-color, #eab308)' : 'transparent',
+                    color: lyricsAlignment === align ? '#09090b' : '#a1a1aa',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {align}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 2: Immersive Auto-Float Setting */}
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '6px',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  color: '#a1a1aa',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                IMMERSIVE AUTO-FLOAT
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !autoHideEnabled;
+                  setAutoHideEnabled(next);
+                  try {
+                    localStorage.setItem('muszix_fullscreen_autohide', String(next));
+                  } catch {}
+                }}
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  background: autoHideEnabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                  border: autoHideEnabled ? '1px solid #22c55e' : '1px solid rgba(255, 255, 255, 0.15)',
+                  color: autoHideEnabled ? '#4ade80' : '#71717a',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {autoHideEnabled ? 'ENABLED' : 'OFF'}
+              </button>
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: '11px',
+                color: '#71717a',
+                lineHeight: 1.4,
+                marginBottom: '8px',
+              }}
+            >
+              Corner textual UI floats away after 3.5s idle. Mouse movement restores it.
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setIsQoLOpen(false);
+                setIsImmersive(true);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#f4f4f5',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9.5px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <EyeOff size={13} />
+              <span>FLOAT CHROME NOW (KEY: I)</span>
+            </button>
+          </div>
+
+          {/* Section 3: Lyrics Typography Scale */}
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                fontWeight: 700,
+                color: '#a1a1aa',
+                letterSpacing: '0.08em',
+                marginBottom: '8px',
+              }}
+            >
+              LYRICS TEXT SCALE
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                padding: '3px',
+                gap: '3px',
+              }}
+            >
+              {(['normal', 'large', 'xl'] as const).map((scale) => (
+                <button
+                  key={scale}
+                  type="button"
+                  onClick={() => {
+                    setLyricsScale(scale);
+                    try {
+                      localStorage.setItem('muszix_lyrics_scale', scale);
+                    } catch {}
+                  }}
+                  style={{
+                    padding: '6px 0',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: lyricsScale === scale ? 'var(--accent-color, #eab308)' : 'transparent',
+                    color: lyricsScale === scale ? '#09090b' : '#a1a1aa',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {scale === 'normal' ? '100%' : scale === 'large' ? '115%' : '130%'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 4: Full Lyrics Sheet & Card Generator */}
+          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '10px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsQoLOpen(false);
+                if (lyricsData?.lines && lyricsData.lines.length > 0) {
+                  const cur = lyricsData.lines[activeIndex] || lyricsData.lines[0];
+                  setSelectedLyricsForCard([cur]);
+                }
+                setIsLyricCardOpen(true);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                background: 'rgba(234, 179, 8, 0.16)',
+                border: '1px solid rgba(234, 179, 8, 0.45)',
+                color: '#ffffff',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                marginBottom: '8px',
+              }}
+            >
+              <Image size={14} color="#eab308" />
+              <span>GENERATE LYRIC POSTER / CARD</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsQoLOpen(false);
+                setIsFullLyricsModalOpen(true);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                background: 'rgba(234, 179, 8, 0.12)',
+                border: '1px solid rgba(234, 179, 8, 0.35)',
+                color: '#ffffff',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <MessageSquareQuote size={14} color="#eab308" />
+              <span>VIEW FULL LYRICS SHEET</span>
+            </button>
+          </div>
+
+          {/* Protocol Helper */}
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '8px',
+              color: '#71717a',
+              letterSpacing: '0.05em',
+              textAlign: 'center',
+              lineHeight: 1.5,
+            }}
+          >
+            SPACE: PLAY/PAUSE • I: IMMERSIVE • F/ESC: EXIT • ←/→: SEEK
+          </div>
+        </div>
+      )}
 
       {/* 4. MAIN 2-COLUMN VIEWPORT */}
       <main
@@ -553,10 +1060,29 @@ export const FullscreenPlayer: React.FC = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
                 }}
                 title={currentTrack.artist}
               >
-                {currentTrack.artist}
+                <span>{currentTrack.artist}</span>
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--font-mono)',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: 'var(--accent-color, #eab308)',
+                    letterSpacing: '0.04em',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {audioTag.bpm} BPM • {audioTag.key}
+                </span>
               </div>
             </div>
 
@@ -783,7 +1309,7 @@ export const FullscreenPlayer: React.FC = () => {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: repeatMode !== 'OFF' ? '#eab308' : '#71717a',
+                color: repeatMode !== 'OFF' ? 'var(--accent-color, #eab308)' : '#71717a',
                 cursor: 'pointer',
                 padding: '8px',
                 display: 'flex',
@@ -795,6 +1321,70 @@ export const FullscreenPlayer: React.FC = () => {
             >
               {repeatMode === 'ONE' ? <Repeat1 size={18} /> : <Repeat size={18} />}
             </button>
+          </div>
+
+          {/* Redesigned Sleek Horizontal Volume Dock */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              marginTop: '22px',
+              padding: '6px 18px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '999px',
+              width: 'fit-content',
+              margin: '22px auto 0 auto',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={toggleMute}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: isMuted ? '#ef4444' : '#a1a1aa',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'color 0.15s ease',
+              }}
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </button>
+
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={isMuted ? 0 : volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+              style={{
+                width: '110px',
+                accentColor: 'var(--accent-color, #eab308)',
+                cursor: 'pointer',
+                height: '4px',
+              }}
+            />
+
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#a1a1aa',
+                minWidth: '28px',
+                textAlign: 'right',
+              }}
+            >
+              {isMuted ? '0%' : `${volume}%`}
+            </span>
           </div>
         </div>
 
@@ -822,93 +1412,6 @@ export const FullscreenPlayer: React.FC = () => {
                 overflow: 'hidden',
               }}
             >
-              {/* Apple Lyrics Ambient Header / Badges & Placement Controls */}
-              {lyricsData && lyricsData.lines && lyricsData.lines.length > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '10px',
-                    padding: '0 16px',
-                    flexShrink: 0,
-                    zIndex: 5,
-                  }}
-                >
-                  {/* Alignment / Placement Selector: [RIGHT] [LEFT] [CENTER] */}
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '999px',
-                        padding: '2px',
-                        gap: '2px',
-                      }}
-                      title="Lyrics Placement & Text Alignment"
-                    >
-                      {(['RIGHT', 'LEFT', 'CENTER'] as const).map((align) => (
-                        <button
-                          key={align}
-                          type="button"
-                          onClick={() => {
-                            setLyricsAlignment(align);
-                            try {
-                              localStorage.setItem('muszix_lyrics_alignment', align);
-                            } catch {}
-                          }}
-                          style={{
-                            padding: '3px 9px',
-                            borderRadius: '999px',
-                            border: 'none',
-                            background: lyricsAlignment === align ? 'rgba(234, 179, 8, 0.2)' : 'transparent',
-                            color: lyricsAlignment === align ? '#eab308' : '#71717a',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '8.5px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          {align}
-                        </button>
-                      ))}
-                    </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsFullLyricsModalOpen(true)}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#a1a1aa',
-                      fontSize: '9.5px',
-                      fontFamily: 'var(--font-mono)',
-                      letterSpacing: '0.08em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '4px 10px',
-                      borderRadius: '999px',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#ffffff';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#a1a1aa';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    }}
-                  >
-                    <MessageSquareQuote size={12} />
-                    <span>EXPAND LRC</span>
-                  </button>
-                </div>
-              )}
-
               {/* Scrollable Container with progressive blur and word-level sweep */}
               <div
                 ref={lyricsContainerRef}
@@ -1063,6 +1566,12 @@ export const FullscreenPlayer: React.FC = () => {
                             width: '100%',
                             textAlign: isRight ? 'right' : isCenter ? 'center' : 'left',
                             alignSelf: isRight ? 'flex-end' : isCenter ? 'center' : 'flex-start',
+                            fontSize:
+                              lyricsScale === 'xl'
+                                ? 'clamp(32px, 3.6vw, 48px)'
+                                : lyricsScale === 'large'
+                                ? 'clamp(29px, 3.2vw, 42px)'
+                                : undefined,
                           }}
                           title={`Jump to ${formatTime(line.time)}`}
                         >
@@ -1091,48 +1600,29 @@ export const FullscreenPlayer: React.FC = () => {
                 padding: '24px',
               }}
             >
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '560px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '16px',
-                  padding: '30px 24px',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '11px',
-                    color: '#eab308',
-                    letterSpacing: '0.12em',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <span>LIVE ACOUSTIC TELEMETRY</span>
-                  <span>48.0 KHZ // STEREO</span>
-                </div>
-                <MasterWaveform
-                  track={currentTrack}
-                  currentTime={currentTime}
-                  duration={duration}
-                  isPlaying={isPlaying}
-                  onSeek={seek}
-                  height={140}
-                  showTimeLabels={true}
-                />
-              </div>
+              <SpinningVinylTurntable onSeek={seek} />
             </div>
           )}
         </div>
       </main>
 
-      {/* 5. BOTTOM BAR FOOTER */}
+      {/* Bottom Edge Hover Reveal Sensor */}
+      {isImmersive && (
+        <div
+          onMouseEnter={() => setIsImmersive(false)}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '40px',
+            zIndex: 35,
+            cursor: 'default',
+          }}
+        />
+      )}
+
+      {/* 5. BOTTOM BAR FOOTER (Corner A: YouTube Badge, Corner B: Full Lyrics Button) */}
       <footer
         style={{
           height: '56px',
@@ -1141,11 +1631,15 @@ export const FullscreenPlayer: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           position: 'relative',
-          zIndex: 10,
+          zIndex: 30,
           flexShrink: 0,
+          transform: isImmersive ? 'translateY(36px)' : 'translateY(0)',
+          opacity: isImmersive ? 0 : 1,
+          pointerEvents: isImmersive ? 'none' : 'auto',
+          transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Bottom-Left: Playing on YouTube Badge */}
+        {/* Bottom-Left: Playing on YouTube Badge (Corner A) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
@@ -1182,40 +1676,6 @@ export const FullscreenPlayer: React.FC = () => {
               YOUTUBE
             </div>
           </div>
-        </div>
-
-        {/* Bottom-Center: Volume Slider Control */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={toggleMute}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: isMuted ? '#ef4444' : '#a1a1aa',
-              cursor: 'pointer',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            title={isMuted ? 'Unmute' : 'Mute'}
-          >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={isMuted ? 0 : volume}
-            onChange={(e) => setVolume(Number(e.target.value))}
-            style={{
-              width: '80px',
-              accentColor: '#eab308',
-              cursor: 'pointer',
-              height: '3px',
-            }}
-          />
         </div>
 
         {/* Bottom-Right: Full Lyrics Toggle */}
@@ -1345,6 +1805,14 @@ export const FullscreenPlayer: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Aesthetic Lyric Card / Poster Generator Modal */}
+      <LyricCardModal
+        isOpen={isLyricCardOpen}
+        onClose={() => setIsLyricCardOpen(false)}
+        availableLines={lyricsData?.lines || []}
+        initialSelectedLines={selectedLyricsForCard}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Track } from '../types';
+import { dynamicColorService } from './dynamicColorService';
 
 // In-memory cache for ultra-fast instant lookups
 const artworkMemoryCache = new Map<string, string>();
@@ -52,8 +53,47 @@ export function normalizeGeniusUrl(url: string): string {
 }
 
 /**
+ * Verifies that an iTunes search result closely matches the requested artist and track title.
+ * Prevents non-Western, underground, or rap tracks from getting replaced by unrelated English/film covers.
+ */
+function isLegitimateMatch(targetArtist: string, targetTitle: string, resultArtist: string, resultTitle: string): boolean {
+  if (!resultArtist || !resultTitle) return false;
+  const cleanTargetArt = targetArtist.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanResultArt = resultArtist.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  // 1. If artist is provided, verify artist name overlaps
+  if (cleanTargetArt.length >= 3) {
+    const artistMatches =
+      cleanResultArt.includes(cleanTargetArt) ||
+      cleanTargetArt.includes(cleanResultArt) ||
+      targetArtist.toLowerCase().split(/\s+/).some((word) => word.length >= 3 && resultArtist.toLowerCase().includes(word));
+
+    if (!artistMatches) {
+      return false;
+    }
+  }
+
+  // 2. Verify title overlaps
+  const targetWords = targetTitle
+    .toLowerCase()
+    .replace(/[()[\]{}_-]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+
+  if (targetWords.length > 0) {
+    const matched = targetWords.filter((w) => resultTitle.toLowerCase().includes(w));
+    if (matched.length / targetWords.length < 0.4) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Fetches high-definition square album art (1000x1000) from Apple Music / iTunes API.
  * Completely free, no API key required, open CORS (*).
+ * Strictly verifies artist & title before accepting to eliminate wrong covers.
  */
 export async function fetchHighResArtwork(artist: string, title: string): Promise<string | null> {
   const query = cleanSearchQuery(title, artist);
@@ -63,29 +103,35 @@ export async function fetchHighResArtwork(artist: string, title: string): Promis
 
   // Check memory cache first
   if (artworkMemoryCache.has(cacheKey)) {
-    return artworkMemoryCache.get(cacheKey)!;
+    const cached = artworkMemoryCache.get(cacheKey)!;
+    return cached === '__NO_MATCH__' ? null : cached;
   }
 
   // Check localStorage cache
   try {
     const saved = localStorage.getItem(cacheKey);
     if (saved) {
+      if (saved === '__NO_MATCH__') return null;
       artworkMemoryCache.set(cacheKey, saved);
       return saved;
     }
   } catch {}
 
   try {
-    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=3`;
+    const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=5`;
     const res = await fetch(itunesUrl);
     if (!res.ok) return null;
 
     const data = await res.json();
     if (data.results && data.results.length > 0) {
-      const match = data.results[0];
-      if (match.artworkUrl100) {
+      // Find the first result that strictly matches artist & title
+      const verifiedMatch = data.results.find((item: any) =>
+        isLegitimateMatch(artist, title, item.artistName || '', item.trackName || '')
+      );
+
+      if (verifiedMatch && verifiedMatch.artworkUrl100) {
         // Upgrade from 100x100 thumbnail to 1000x1000 crystal clear studio square cover
-        const highResUrl = match.artworkUrl100.replace('100x100bb', '1000x1000bb');
+        const highResUrl = verifiedMatch.artworkUrl100.replace('100x100bb', '1000x1000bb');
         artworkMemoryCache.set(cacheKey, highResUrl);
         try {
           localStorage.setItem(cacheKey, highResUrl);
@@ -97,6 +143,11 @@ export async function fetchHighResArtwork(artist: string, title: string): Promis
     console.warn('Artwork search fetch error:', err);
   }
 
+  // Cache negative result so we don't repeat failed network lookups
+  artworkMemoryCache.set(cacheKey, '__NO_MATCH__');
+  try {
+    localStorage.setItem(cacheKey, '__NO_MATCH__');
+  } catch {}
   return null;
 }
 
@@ -178,6 +229,7 @@ export function useArtwork(track: Track | null | undefined): {
       if (active && resolved) {
         setArtworkUrl(resolved);
         setIsHighRes(true);
+        dynamicColorService.updateArtwork(resolved);
       }
     });
 

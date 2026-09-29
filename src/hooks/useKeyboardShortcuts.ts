@@ -9,7 +9,7 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     toggleShuffle,
     cycleRepeat,
     toggleMute,
-    setIsQueueDrawerOpen,
+    toggleSidePlayerQueue,
     setIsShortcutsOpen,
     setIsSettingsOpen,
     openTrackDetail,
@@ -88,7 +88,14 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
         case 'q':
         case 'Q':
           e.preventDefault();
-          setIsQueueDrawerOpen((prev) => !prev);
+          toggleSidePlayerQueue();
+          break;
+        case 'i':
+        case 'I':
+          if (isFullscreenPlayerOpen) {
+            e.preventDefault();
+            window.dispatchEvent(new CustomEvent('shono-toggle-immersive'));
+          }
           break;
         case 'f':
         case 'F':
@@ -132,7 +139,7 @@ export const useKeyboardShortcuts = (searchInputRef?: React.RefObject<HTMLInputE
     toggleShuffle,
     cycleRepeat,
     toggleMute,
-    setIsQueueDrawerOpen,
+    toggleSidePlayerQueue,
     setIsShortcutsOpen,
     setIsSettingsOpen,
     isChangelogOpen,

@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import type { Archive } from '../types';
+import { isYouTubeUrl } from '../services/youtubeSearchService';
 import {
   DownloadCloud,
-  Download,
   Sparkles,
   Clipboard,
   X,
-  Radio,
   CheckCircle2,
   AlertCircle,
-  Play,
   Zap,
+  Search,
+  Loader2,
 } from 'lucide-react';
 
 // Web Audio API synthesized magical chime for "Voila!" celebration
@@ -44,26 +43,39 @@ const playVoilaChime = () => {
   }
 };
 
-const SAMPLE_PLAYLIST = 'https://www.youtube.com/playlist?list=PL4fGSI1pDJn6jXS_PEoNEDb428264';
-
 export const PlaylistImporter: React.FC = () => {
-  const [url, setUrl] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showVoila, setShowVoila] = useState(false);
-  const [ingestedTitle, setIngestedTitle] = useState<string>('');
-  const [ingestedCount, setIngestedCount] = useState<number>(0);
-  const [lastIngestedArchive, setLastIngestedArchive] = useState<Archive | null>(null);
-
   const {
     importPlaylist,
     isImporting,
     importProgressText,
     importProgressPercent,
-    openZipModal,
+    universalSearchQuery,
+    setUniversalSearchQuery,
+    universalSearchFilter,
+    performUniversalSearch,
+    clearUniversalSearch,
+    isUniversalSearching,
+    isUniversalSearchActive,
   } = usePlayer();
 
-  const hasLink = url.trim().length > 0;
-  const isYouTubePlaylist = /list=([a-zA-Z0-9_-]+)/.test(url);
+  const [inputVal, setInputVal] = useState(universalSearchQuery);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showVoila, setShowVoila] = useState(false);
+  const [ingestedTitle, setIngestedTitle] = useState<string>('');
+  const [ingestedCount, setIngestedCount] = useState<number>(0);
+
+  const debounceTimerRef = useRef<any>(null);
+
+  // Synchronize when universalSearchQuery is cleared from elsewhere (e.g. Restore Archive button)
+  useEffect(() => {
+    if (!universalSearchQuery && inputVal && !isYouTubeUrl(inputVal)) {
+      setInputVal('');
+    }
+  }, [universalSearchQuery]);
+
+  const isUrl = isYouTubeUrl(inputVal);
+  const hasText = inputVal.trim().length > 0;
+  const isYouTubePlaylist = isUrl && /list=([a-zA-Z0-9_-]+)/.test(inputVal);
 
   // Trigger celebration when import hits 100%
   useEffect(() => {
@@ -77,26 +89,89 @@ export const PlaylistImporter: React.FC = () => {
     }
   }, [isImporting, importProgressPercent]);
 
-  const handleImport = async (e?: React.FormEvent) => {
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputVal(val);
+    if (errorMessage) setErrorMessage(null);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (isYouTubeUrl(val)) {
+      // Detected YouTube URL: do not query search endpoint!
+      if (isUniversalSearchActive) {
+        clearUniversalSearch();
+      }
+    } else {
+      // Normal search query: update search query and debounce ~400ms
+      const trimmed = val.trim();
+      setUniversalSearchQuery(trimmed);
+
+      if (trimmed.length >= 2) {
+        debounceTimerRef.current = setTimeout(() => {
+          performUniversalSearch(trimmed, universalSearchFilter);
+        }, 400);
+      } else if (trimmed.length === 0) {
+        clearUniversalSearch();
+      }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      handleClear();
+    }
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!url.trim()) {
-      setErrorMessage('INPUT REQUIRED: PASTE A YOUTUBE OR YOUTUBE MUSIC PLAYLIST LINK');
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    const trimmed = inputVal.trim();
+    if (!trimmed) {
+      setErrorMessage('INPUT REQUIRED: PASTE A YOUTUBE LINK OR ENTER A SEARCH QUERY');
       return;
     }
-    setErrorMessage(null);
 
-    try {
-      const importedArchive = await importPlaylist(url);
-      setLastIngestedArchive(importedArchive);
-      setIngestedTitle(importedArchive.title);
-      setIngestedCount(importedArchive.tracks.length);
-      setUrl('');
-      setShowVoila(true);
-      playVoilaChime();
-      setTimeout(() => setShowVoila(false), 9000);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'INGESTION ERROR: UNABLE TO PARSE PLAYLIST');
+    if (isYouTubeUrl(trimmed)) {
+      // Existing URL Ingestion Pipeline
+      setErrorMessage(null);
+      try {
+        const importedArchive = await importPlaylist(trimmed);
+        setIngestedTitle(importedArchive.title);
+        setIngestedCount(importedArchive.tracks.length);
+        setInputVal('');
+        setShowVoila(true);
+        playVoilaChime();
+        setTimeout(() => setShowVoila(false), 9000);
+      } catch (err: any) {
+        setErrorMessage(err.message || 'INGESTION ERROR: UNABLE TO PARSE PLAYLIST');
+      }
+    } else {
+      // Instant execution of search query
+      setErrorMessage(null);
+      setUniversalSearchQuery(trimmed);
+      performUniversalSearch(trimmed, universalSearchFilter);
     }
+  };
+
+  const handleClear = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    setInputVal('');
+    setErrorMessage(null);
+    clearUniversalSearch();
   };
 
   const handlePaste = async () => {
@@ -104,18 +179,21 @@ export const PlaylistImporter: React.FC = () => {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         if (text && text.trim()) {
-          setUrl(text.trim());
+          const trimmed = text.trim();
+          setInputVal(trimmed);
           setErrorMessage(null);
+
+          if (isYouTubeUrl(trimmed)) {
+            if (isUniversalSearchActive) clearUniversalSearch();
+          } else {
+            setUniversalSearchQuery(trimmed);
+            performUniversalSearch(trimmed, universalSearchFilter);
+          }
         }
       }
     } catch {
       // Clipboard access denied
     }
-  };
-
-  const handleLoadSample = () => {
-    setUrl(SAMPLE_PLAYLIST);
-    setErrorMessage(null);
   };
 
   return (
@@ -165,27 +243,16 @@ export const PlaylistImporter: React.FC = () => {
               letterSpacing: '0.08em',
             }}
           >
-            INGESTION DOCK // 03
+            {isUrl
+              ? 'PLAYLIST IMPORTER'
+              : isUniversalSearchActive
+              ? 'YOUTUBE SEARCH'
+              : 'SEARCH & IMPORT'}
           </span>
         </div>
 
-        {/* Quick Helper Actions */}
+        {/* Status Tag */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <button
-            type="button"
-            onClick={handleLoadSample}
-            className="chrome-tab-rail-btn"
-            style={{
-              fontSize: '8.5px',
-              padding: '3px 8px',
-              borderColor: 'var(--border-subtle)',
-            }}
-            title="Load popular demo playlist link into console"
-          >
-            <Play size={10} />
-            <span>LOAD DEMO</span>
-          </button>
-
           <span
             style={{
               fontFamily: 'var(--font-mono)',
@@ -194,22 +261,25 @@ export const PlaylistImporter: React.FC = () => {
               letterSpacing: '0.06em',
             }}
           >
-            YT &bull; YT MUSIC
+            YOUTUBE &bull; YOUTUBE MUSIC
           </span>
         </div>
       </div>
 
-      {/* Main Ingestion Console Bar */}
-      <div className={`ingestion-console ${hasLink ? 'has-link' : ''}`}>
+      {/* Main Unified Ingestion & Search Console Bar */}
+      <div
+        data-tutorial="search"
+        className={`ingestion-console ${hasText ? 'has-link' : ''}`}
+      >
         {/* Animated Hairline Scanner Beam (Active when URL is docked or importing) */}
-        {(hasLink || isImporting) && (
+        {(isUrl || isImporting) && (
           <div className="ingestion-beam-bar">
             <div className="ingestion-beam-glow" />
           </div>
         )}
 
         <form
-          onSubmit={handleImport}
+          onSubmit={handleSubmit}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -217,44 +287,94 @@ export const PlaylistImporter: React.FC = () => {
             position: 'relative',
           }}
         >
-          {/* Left Radio/Connection Indicator Icon */}
+          {/* Left Context Indicator Icon */}
           <div
             style={{
               paddingLeft: '14px',
               paddingRight: '6px',
               display: 'flex',
               alignItems: 'center',
-              color: hasLink ? 'var(--accent-color)' : 'var(--text-muted)',
+              color: isUrl
+                ? 'var(--accent-color)'
+                : hasText
+                ? 'var(--text-primary)'
+                : 'var(--text-muted)',
               transition: 'color 0.2s ease',
             }}
           >
-            {hasLink ? (
+            {isUrl ? (
               <Zap size={15} color="var(--accent-color)" />
+            ) : hasText ? (
+              <Search size={15} color={isUniversalSearching ? 'var(--accent-color)' : 'var(--text-secondary)'} />
             ) : (
-              <Radio size={15} />
+              <Search size={14} color="var(--text-muted)" style={{ opacity: 0.8 }} />
             )}
           </div>
 
-          {/* Primary Input Field */}
+          {/* Primary Unified Input Field */}
           <input
             type="text"
             className="ingestion-input"
-            value={url}
-            onChange={(e) => {
-              setUrl(e.target.value);
-              if (errorMessage) setErrorMessage(null);
+            value={inputVal}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onContextMenu={async () => {
+              if (!inputVal) {
+                try {
+                  if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text && text.trim()) {
+                      const trimmed = text.trim();
+                      setInputVal(trimmed);
+                      setErrorMessage(null);
+                      if (isYouTubeUrl(trimmed)) {
+                        if (isUniversalSearchActive) clearUniversalSearch();
+                      } else {
+                        setUniversalSearchQuery(trimmed);
+                        performUniversalSearch(trimmed, universalSearchFilter);
+                      }
+                    }
+                  }
+                } catch {
+                  // Fallback to native context menu
+                }
+              }
             }}
-            placeholder="Paste YouTube or YouTube Music playlist link (e.g. https://www.youtube.com/playlist?list=...)"
+            placeholder={
+              hasText && !isUrl
+                ? 'Search YouTube...'
+                : 'Paste a link or search YouTube...'
+            }
             disabled={isImporting}
             spellCheck={false}
             autoComplete="off"
           />
 
+          {/* Subtle searching indicator inside input */}
+          {isUniversalSearching && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                paddingRight: '8px',
+                color: 'var(--accent-color)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                letterSpacing: '0.04em',
+                flexShrink: 0,
+              }}
+            >
+              <Loader2 size={13} className="animate-spin" />
+              <span className="hide-mobile">SEARCHING</span>
+            </div>
+          )}
+
           {/* Inline Quick Action: Clear Input or Paste from Clipboard */}
-          {hasLink ? (
+          {hasText ? (
             <button
               type="button"
-              onClick={() => setUrl('')}
+              onClick={handleClear}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -266,7 +386,7 @@ export const PlaylistImporter: React.FC = () => {
                 justifyContent: 'center',
                 transition: 'color 0.15s ease',
               }}
-              title="Clear input"
+              title="Clear input and restore archive (Esc)"
             >
               <X size={15} />
             </button>
@@ -290,29 +410,34 @@ export const PlaylistImporter: React.FC = () => {
                 gap: '4px',
                 transition: 'all 0.15s ease',
               }}
-              title="Paste URL from clipboard"
+              title="Paste URL or search query from clipboard"
             >
               <Clipboard size={11} />
               <span>PASTE</span>
             </button>
           )}
 
-          {/* REDESIGNED HIGH-CONTRAST IMPORT BUTTON */}
+          {/* DYNAMIC ACTION BUTTON: IMPORT vs SEARCH */}
           <button
             type="submit"
-            className={`ingestion-btn ${hasLink ? 'is-ready' : 'is-dormant'}`}
+            className={`ingestion-btn ${hasText ? 'is-ready' : 'is-dormant'}`}
             disabled={isImporting}
-            title="Ingest playlist into local vault"
+            title={isUrl ? 'Ingest playlist into local vault' : 'Search YouTube archives'}
           >
             {isImporting ? (
               <>
                 <DownloadCloud size={15} className="animate-spin" />
                 <span>INGESTING...</span>
               </>
-            ) : hasLink ? (
+            ) : isUrl ? (
               <>
                 <Sparkles size={15} />
                 <span>IMPORT PLAYLIST →</span>
+              </>
+            ) : hasText ? (
+              <>
+                <Search size={14} />
+                <span>SEARCH →</span>
               </>
             ) : (
               <>
@@ -419,7 +544,6 @@ export const PlaylistImporter: React.FC = () => {
         {/* MAGICAL VOILA CELEBRATION BANNER */}
         {showVoila && (
           <div className="ingestion-magical-overlay" style={{ background: 'rgba(8, 8, 11, 0.98)' }}>
-            {/* Ambient Sparkle Particles */}
             <span className="sparkle-particle" style={{ left: '15%', top: '20%', ['--tx' as any]: '-20px', ['--ty' as any]: '-30px' }}>✦</span>
             <span className="sparkle-particle" style={{ left: '35%', top: '70%', ['--tx' as any]: '25px', ['--ty' as any]: '-25px' }}>★</span>
             <span className="sparkle-particle" style={{ left: '60%', top: '15%', ['--tx' as any]: '-15px', ['--ty' as any]: '-35px' }}>✧</span>
@@ -479,38 +603,10 @@ export const PlaylistImporter: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => {
-                  if (lastIngestedArchive) {
-                    openZipModal(lastIngestedArchive);
-                  } else {
-                    openZipModal();
-                  }
-                }}
-                className="bma-btn"
-                style={{
-                  padding: '5px 12px',
-                  fontSize: '9.5px',
-                  background: 'var(--accent-color)',
-                  color: 'var(--text-inverse)',
-                  borderColor: 'var(--accent-color)',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  boxShadow: '0 0 14px var(--accent-glow)',
-                }}
-                title="Download entire playlist archive as .ZIP"
-              >
-                <Download size={11} />
-                <span>DOWNLOAD ZIP</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setShowVoila(false)}
                 className="bma-btn"
                 style={{
-                  padding: '5px 12px',
+                  padding: '5px 14px',
                   fontSize: '9.5px',
                   borderColor: 'var(--border-bright)',
                   color: 'var(--text-secondary)',
@@ -523,8 +619,8 @@ export const PlaylistImporter: React.FC = () => {
         )}
       </div>
 
-      {/* Reactive Link Status Indicator Strip */}
-      {hasLink && !isImporting && !showVoila && (
+      {/* Reactive URL Link Status Indicator Strip */}
+      {isUrl && !isImporting && !showVoila && (
         <div
           style={{
             display: 'flex',
@@ -556,8 +652,8 @@ export const PlaylistImporter: React.FC = () => {
               }}
             >
               {isYouTubePlaylist
-                ? 'QUANTUM INGESTION DOCKED // YOUTUBE PLAYLIST IDENTIFIED'
-                : 'LINK DETECTED // READY FOR PARSING'}
+                ? 'PLAYLIST READY // YOUTUBE PLAYLIST IDENTIFIED'
+                : 'LINK DETECTED // READY FOR IMPORT'}
             </span>
           </div>
 
@@ -570,6 +666,57 @@ export const PlaylistImporter: React.FC = () => {
             }}
           >
             Press [ENTER] or click [IMPORT PLAYLIST →]
+          </span>
+        </div>
+      )}
+
+      {/* Reactive Search Query Status Indicator Strip */}
+      {!isUrl && hasText && inputVal.trim().length >= 2 && !showVoila && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '7px',
+            padding: '0 4px',
+            animation: 'modalCardFadeIn 0.18s ease-out forwards',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'var(--accent-color)',
+                boxShadow: '0 0 8px var(--accent-color)',
+                display: 'inline-block',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9.5px',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {isUniversalSearching
+                ? 'SEARCHING YOUTUBE ARCHIVES...'
+                : `RESULTS DOCKED // QUERY: "${inputVal.trim().toUpperCase()}"`}
+            </span>
+          </div>
+
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '9px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            Press [ENTER] to search &bull; Click [X] to restore archive
           </span>
         </div>
       )}

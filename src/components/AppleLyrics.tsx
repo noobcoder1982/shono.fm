@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { fetchLyrics, saveCustomLyrics, type ParsedLyrics } from '../services/lyricsService';
-import { Loader2, Music2, Sparkles, Search, RefreshCw, X, Check } from 'lucide-react';
+import { Loader2, Music2, Sparkles, Search, RefreshCw, X, Check, Image } from 'lucide-react';
+import { LyricCardModal } from './LyricCardModal';
 
 const AppleLogoIcon: React.FC<{ size?: number; className?: string }> = ({ size = 15, className }) => (
   <svg
@@ -30,7 +31,27 @@ export interface TimedWord {
   intensity: number;
 }
 
-export function computeWordTimings(lineText: string, lineStart: number, lineEnd: number): TimedWord[] {
+export function computeWordTimings(
+  lineText: string,
+  lineStart: number,
+  lineEnd: number,
+  presetWords?: { text: string; startTime: number; endTime: number }[]
+): TimedWord[] {
+  if (presetWords && presetWords.length > 0) {
+    return presetWords.map((pw) => {
+      const dur = Math.max(0.08, pw.endTime - pw.startTime);
+      const isHeld = dur >= 0.5 || pw.text.includes('...') || pw.text.includes('~');
+      return {
+        text: pw.text,
+        startTime: pw.startTime,
+        endTime: pw.endTime,
+        duration: dur,
+        isHeld,
+        intensity: isHeld ? Math.min(1, Math.max(0.2, (dur - 0.4) / 0.8)) : 0,
+      };
+    });
+  }
+
   const rawWords = lineText.trim().split(/\s+/);
   if (rawWords.length === 0) return [];
 
@@ -145,14 +166,14 @@ export function useSmoothTime(reportedTime: number, isPlaying: boolean): number 
 }
 
 const ActiveLyricLine: React.FC<{
-  line: { time: number; endTime?: number; text: string };
+  line: { time: number; endTime?: number; text: string; words?: any[] };
   effectiveTime: number;
   karaokeMode: boolean;
 }> = ({ line, effectiveTime, karaokeMode }) => {
   const lineEnd = line.endTime || line.time + 3.5;
   const words = useMemo(() => {
-    return computeWordTimings(line.text, line.time, lineEnd);
-  }, [line.text, line.time, lineEnd]);
+    return computeWordTimings(line.text, line.time, lineEnd, line.words);
+  }, [line.text, line.time, lineEnd, line.words]);
 
   // Keep track of maximum progress so words NEVER flash or revert to grey
   const progressMapRef = useRef<number[]>([]);
@@ -255,6 +276,8 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
   const [karaokeMode] = useState<boolean>(true);
   const [appleLyricsMode, setAppleLyricsMode] = useState<boolean>(true);
   const [userScrolled, setUserScrolled] = useState<boolean>(false);
+  const [isLyricCardOpen, setIsLyricCardOpen] = useState(false);
+  const [selectedLinesForCard, setSelectedLinesForCard] = useState<any[]>([]);
 
   // Manual search / paste modal state
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -622,6 +645,35 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
           zIndex: 20,
         }}
       >
+        {/* Lyric Card Poster Generator Button */}
+        <button
+          onClick={() => {
+            if (lyricsData?.lines && lyricsData.lines.length > 0) {
+              const cur = lyricsData.lines[currentLineIndex] || lyricsData.lines[0];
+              setSelectedLinesForCard([cur]);
+            }
+            setIsLyricCardOpen(true);
+          }}
+          style={{
+            background: 'rgba(255, 255, 255, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '999px',
+            padding: '6px 12px',
+            color: '#ffffff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            fontWeight: 600,
+            backdropFilter: 'blur(12px)',
+          }}
+          title="Create Aesthetic Lyric Card Poster"
+        >
+          <Image size={12} color="#eab308" />
+          <span>Card</span>
+        </button>
+
         {/* Apple-style Lyrics Mode Button */}
         <button
           onClick={() => setAppleLyricsMode((prev) => !prev)}
@@ -672,6 +724,14 @@ export const AppleLyrics: React.FC<AppleLyricsProps> = ({ onSeek, compact: _comp
           onClose={() => setIsSearchOpen(false)}
         />
       )}
+
+      {/* Aesthetic Lyric Card / Poster Generator Modal */}
+      <LyricCardModal
+        isOpen={isLyricCardOpen}
+        onClose={() => setIsLyricCardOpen(false)}
+        availableLines={lyricsData?.lines || []}
+        initialSelectedLines={selectedLinesForCard}
+      />
     </div>
   );
 };

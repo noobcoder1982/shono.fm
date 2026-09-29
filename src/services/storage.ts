@@ -10,11 +10,27 @@ const STORAGE_KEYS = {
   VINYL_CRACKLE: 'bma_vinyl_crackle_v1',
   TURNTABLE_SPEED: 'bma_turntable_speed_v1',
   LAST_SEEN_CHANGELOG: 'bma_last_seen_changelog_v1',
+  YT_ALTERNATIVE_CACHE: 'bma_yt_alternative_cache_v1',
 };
 
-export const CURRENT_APP_VERSION = '1.9.0';
+export const CURRENT_APP_VERSION = '1.3.0';
 
-export type BrutalistTheme = 'noir' | 'concrete' | 'braun' | 'tapedeck' | 'phosphor' | 'swiss' | 'stealth';
+export type BrutalistTheme =
+  | 'noir'
+  | 'concrete'
+  | 'braun'
+  | 'tapedeck'
+  | 'phosphor'
+  | 'swiss'
+  | 'stealth'
+  | 'dark'
+  | 'dark_plus'
+  | 'blue'
+  | 'beige'
+  | 'green';
+export type DynamicColorSource = 'album' | 'fixed';
+export type LyricsFontSize = 'small' | 'medium' | 'large';
+export type CustomCursorStyle = 'none' | 'dot' | 'ring' | 'crosshair';
 
 export interface AppSettings {
   youtubeApiKey: string;
@@ -25,6 +41,25 @@ export interface AppSettings {
   playerMode: PlayerMode;
   vinylCrackle: boolean;
   turntableSpeed: TurntableSpeed;
+  githubRepo: string;
+  dynamicColorsEnabled: boolean;
+  colorSource: DynamicColorSource;
+  dynamicColorIntensity: number;
+  lyricsEnabled: boolean;
+  lyricsFontSize: LyricsFontSize;
+  autoScrollLyrics: boolean;
+  equalizerEnabled: boolean;
+  discordRpcEnabled: boolean;
+  discordClientId: string;
+  // v1.2.0 New Settings
+  minimizeToTrayOnClose: boolean;
+  crossfadeDuration: number; // 0 to 8 seconds
+  betaInfiniteArchive: boolean; // Radio mode
+  betaWordKaraoke: boolean; // Word-by-word karaoke text glow
+  showBpmKeyBadges: boolean; // Track row hardware tags
+  // v1.3.0 UI & Experience Settings
+  roundedCorners: boolean;
+  customCursor: CustomCursorStyle;
 }
 
 // Securely loaded from environment variables (Vite / Vercel: VITE_YOUTUBE_API_KEY)
@@ -34,15 +69,100 @@ export const DEFAULT_YOUTUBE_API_KEY =
 const DEFAULT_SETTINGS: AppSettings = {
   youtubeApiKey: DEFAULT_YOUTUBE_API_KEY,
   autoPlayNext: true,
-  synthFallbackEnabled: true,
+  synthFallbackEnabled: false,
   reducedMotion: false,
   theme: 'noir',
   playerMode: 'ARCHIVE',
-  vinylCrackle: true,
+  vinylCrackle: false,
   turntableSpeed: 33,
+  githubRepo: 'noobcoder1982/shono.fm',
+  dynamicColorsEnabled: true,
+  colorSource: 'album',
+  dynamicColorIntensity: 0.65,
+  lyricsEnabled: true,
+  lyricsFontSize: 'medium',
+  autoScrollLyrics: true,
+  equalizerEnabled: true,
+  discordRpcEnabled: true,
+  discordClientId: '1348057284918284348',
+  minimizeToTrayOnClose: true,
+  crossfadeDuration: 3,
+  betaInfiniteArchive: true,
+  betaWordKaraoke: true,
+  showBpmKeyBadges: true,
+  roundedCorners: false,
+  customCursor: 'none',
 };
 
+// Helper to mirror updates to Electron persistent filesystem vault
+function syncToVault() {
+  if (typeof window !== 'undefined' && (window as any).electronAPI?.saveVault) {
+    try {
+      const archives = storage.getArchives() || [];
+      const activeArchiveId = storage.getActiveArchiveId();
+      const queue = storage.getQueue();
+      const likedTracks = storage.getLikedTracks();
+      const settings = storage.getSettings();
+
+      (window as any).electronAPI.saveVault({
+        archives,
+        activeArchiveId,
+        queue,
+        likedTracks,
+        settings,
+        lastSaved: Date.now(),
+      });
+    } catch (e) {
+      console.warn('[storage] Failed to sync to vault:', e);
+    }
+  }
+}
+
 export const storage = {
+  async syncFromVault(): Promise<Archive[] | null> {
+    if (typeof window === 'undefined' || !(window as any).electronAPI?.loadVault) {
+      return null;
+    }
+    try {
+      const res = await (window as any).electronAPI.loadVault();
+      if (res?.success && res.data) {
+        const vaultArchives: Archive[] = res.data.archives || [];
+        const localArchives = this.getArchives() || [];
+
+        // If local is empty and vault has archives, restore everything from vault!
+        if (localArchives.length === 0 && vaultArchives.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.ARCHIVES, JSON.stringify(vaultArchives));
+          if (res.data.activeArchiveId) {
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_ARCHIVE_ID, res.data.activeArchiveId);
+          }
+          if (res.data.likedTracks) {
+            localStorage.setItem(STORAGE_KEYS.LIKED_TRACKS, JSON.stringify(res.data.likedTracks));
+          }
+          if (res.data.queue) {
+            localStorage.setItem(STORAGE_KEYS.QUEUE, JSON.stringify(res.data.queue));
+          }
+          return vaultArchives;
+        }
+
+        // Merge any vault archives that are missing locally
+        const existingIds = new Set(localArchives.map((a) => a.id));
+        const missing = vaultArchives.filter((a) => !existingIds.has(a.id));
+        if (missing.length > 0) {
+          const merged = [...localArchives, ...missing];
+          localStorage.setItem(STORAGE_KEYS.ARCHIVES, JSON.stringify(merged));
+          syncToVault();
+          return merged;
+        }
+
+        // Keep vault synchronized with local
+        syncToVault();
+      }
+    } catch (e) {
+      console.warn('[storage] Error syncing from vault:', e);
+    }
+    return null;
+  },
+
   getArchives(): Archive[] | null {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.ARCHIVES);
@@ -70,9 +190,16 @@ export const storage = {
   saveArchives(archives: Archive[]) {
     try {
       localStorage.setItem(STORAGE_KEYS.ARCHIVES, JSON.stringify(archives));
+      syncToVault();
     } catch (e) {
       console.error('Failed to save archives to storage', e);
     }
+  },
+
+  addArchive(archive: Archive) {
+    const existing = this.getArchives() || [];
+    const updated = [archive, ...existing.filter((a) => a.id !== archive.id)];
+    this.saveArchives(updated);
   },
 
   getActiveArchiveId(): string | null {
@@ -98,6 +225,7 @@ export const storage = {
   setActiveArchiveId(id: string) {
     try {
       localStorage.setItem(STORAGE_KEYS.ACTIVE_ARCHIVE_ID, id);
+      syncToVault();
     } catch (e) {
       console.error(e);
     }
@@ -128,6 +256,7 @@ export const storage = {
   saveQueue(queue: Track[]) {
     try {
       localStorage.setItem(STORAGE_KEYS.QUEUE, JSON.stringify(queue));
+      syncToVault();
     } catch (e) {
       console.error(e);
     }
@@ -161,6 +290,7 @@ export const storage = {
       const exists = current.includes(trackId);
       const updated = exists ? current.filter((id) => id !== trackId) : [...current, trackId];
       localStorage.setItem(STORAGE_KEYS.LIKED_TRACKS, JSON.stringify(updated));
+      syncToVault();
       return !exists;
     } catch {
       return false;
@@ -173,7 +303,20 @@ export const storage = {
       const parsed = data ? JSON.parse(data) : {};
 
       // Sanitize legacy or deprecated themes
-      const validThemes: BrutalistTheme[] = ['noir', 'concrete', 'braun', 'tapedeck', 'phosphor', 'swiss', 'stealth'];
+      const validThemes: BrutalistTheme[] = [
+        'noir',
+        'concrete',
+        'braun',
+        'tapedeck',
+        'phosphor',
+        'swiss',
+        'stealth',
+        'dark',
+        'dark_plus',
+        'blue',
+        'beige',
+        'green',
+      ];
       let theme: BrutalistTheme = parsed.theme;
       if (!validThemes.includes(theme)) {
         if (theme === ('amber' as any)) theme = 'braun';
@@ -202,6 +345,12 @@ export const storage = {
         youtubeApiKey: DEFAULT_YOUTUBE_API_KEY, // Changes to API key not permitted
       };
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+      syncToVault();
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shono-settings-updated', { detail: updated }));
+      }
+
       return updated;
     } catch (e) {
       console.error(e);
@@ -210,17 +359,12 @@ export const storage = {
   },
 
   getPlayerMode(): PlayerMode {
-    try {
-      const mode = localStorage.getItem(STORAGE_KEYS.PLAYER_MODE);
-      return mode === 'MI6' ? 'MI6' : 'ARCHIVE';
-    } catch {
-      return 'ARCHIVE';
-    }
+    return 'ARCHIVE';
   },
 
-  savePlayerMode(mode: PlayerMode) {
+  savePlayerMode(_mode: PlayerMode) {
     try {
-      localStorage.setItem(STORAGE_KEYS.PLAYER_MODE, mode);
+      localStorage.setItem(STORAGE_KEYS.PLAYER_MODE, 'ARCHIVE');
     } catch (e) {
       console.error(e);
     }
@@ -284,6 +428,49 @@ export const storage = {
       return seen !== CURRENT_APP_VERSION;
     } catch {
       return true;
+    }
+  },
+
+  getCachedAlternativeId(originalId: string): string | null {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.YT_ALTERNATIVE_CACHE);
+      if (!data) return null;
+      const map = JSON.parse(data);
+      return map[originalId] || null;
+    } catch {
+      return null;
+    }
+  },
+
+  setCachedAlternativeId(originalId: string, altId: string) {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.YT_ALTERNATIVE_CACHE);
+      const map = data ? JSON.parse(data) : {};
+      map[originalId] = altId;
+      localStorage.setItem(STORAGE_KEYS.YT_ALTERNATIVE_CACHE, JSON.stringify(map));
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  updateTrackYoutubeId(trackId: string, newYtId: string) {
+    try {
+      const archives = this.getArchives();
+      if (!archives) return;
+      let changed = false;
+      archives.forEach((arch) => {
+        arch.tracks?.forEach((tr) => {
+          if (tr.id === trackId || tr.youtubeId === trackId) {
+            tr.youtubeId = newYtId;
+            changed = true;
+          }
+        });
+      });
+      if (changed) {
+        this.saveArchives(archives);
+      }
+    } catch (e) {
+      console.error(e);
     }
   },
 };

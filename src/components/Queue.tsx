@@ -1,28 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, GripVertical } from 'lucide-react';
 
 export const Queue: React.FC = () => {
   const { queue, clearQueue, removeFromQueue, playTrack, reorderQueue } = usePlayer();
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
-  const handleMoveUp = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (idx === 0) return;
+  const handleDrop = (targetIdx: number) => {
+    if (draggedIdx === null || draggedIdx === targetIdx) {
+      setDraggedIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
     const copy = [...queue];
-    const temp = copy[idx - 1];
-    copy[idx - 1] = copy[idx];
-    copy[idx] = temp;
+    const [draggedItem] = copy.splice(draggedIdx, 1);
+    copy.splice(targetIdx, 0, draggedItem);
     reorderQueue(copy);
-  };
-
-  const handleMoveDown = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (idx === queue.length - 1) return;
-    const copy = [...queue];
-    const temp = copy[idx + 1];
-    copy[idx + 1] = copy[idx];
-    copy[idx] = temp;
-    reorderQueue(copy);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
   };
 
   return (
@@ -101,11 +97,36 @@ export const Queue: React.FC = () => {
         ) : (
           queue.map((track, idx) => {
             const formattedIdx = (idx + 1).toString().padStart(3, '0');
+            const isDragged = draggedIdx === idx;
+            const isOver = dragOverIdx === idx;
+            const isDropAbove = isOver && draggedIdx !== null && draggedIdx > idx;
+            const isDropBelow = isOver && draggedIdx !== null && draggedIdx < idx;
+
             return (
               <div
                 key={`${track.id}_queue_${idx}`}
+                draggable={true}
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = 'move';
+                  setDraggedIdx(idx);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (dragOverIdx !== idx) setDragOverIdx(idx);
+                }}
+                onDragLeave={() => {
+                  setDragOverIdx((prev) => (prev === idx ? null : prev));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(idx);
+                }}
+                onDragEnd={() => {
+                  setDraggedIdx(null);
+                  setDragOverIdx(null);
+                }}
                 onClick={() => {
-                  // Play track and pop earlier tracks
                   const nextQueue = queue.slice(idx + 1);
                   reorderQueue(nextQueue);
                   playTrack(track);
@@ -114,14 +135,34 @@ export const Queue: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   padding: '10px 24px',
-                  borderBottom: '1px solid var(--border-subtle)',
+                  borderBottom: isDropBelow ? '2px solid var(--accent-color)' : '1px solid var(--border-subtle)',
+                  borderTop: isDropAbove ? '2px solid var(--accent-color)' : 'none',
                   cursor: 'pointer',
                   transition: 'background-color 0.12s ease',
-                  gap: '12px',
+                  gap: '10px',
+                  opacity: isDragged ? 0.35 : 1,
+                  background: isOver ? 'var(--bg-hover)' : 'transparent',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = isOver ? 'var(--bg-hover)' : 'transparent')}
               >
+                {/* Grip Handle */}
+                <div
+                  style={{
+                    cursor: 'grab',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: isDragged ? 'var(--accent-color)' : 'var(--text-muted)',
+                    opacity: 0.6,
+                    padding: '2px 0',
+                    flexShrink: 0,
+                  }}
+                  title="Drag up or down to reorder"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <GripVertical size={13} />
+                </div>
+
                 {/* Index */}
                 <span
                   style={{
@@ -200,34 +241,16 @@ export const Queue: React.FC = () => {
                   {track.durationFormatted}
                 </div>
 
-                {/* Reorder controls & delete */}
+                {/* Delete */}
                 <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '2px' }}
+                  style={{ display: 'flex', alignItems: 'center' }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
                     className="bma-btn-icon"
-                    onClick={(e) => handleMoveUp(idx, e)}
-                    disabled={idx === 0}
-                    style={{ opacity: idx === 0 ? 0.3 : 1, padding: '2px' }}
-                    title="Move up"
-                  >
-                    <ChevronUp size={12} />
-                  </button>
-                  <button
-                    className="bma-btn-icon"
-                    onClick={(e) => handleMoveDown(idx, e)}
-                    disabled={idx === queue.length - 1}
-                    style={{ opacity: idx === queue.length - 1 ? 0.3 : 1, padding: '2px' }}
-                    title="Move down"
-                  >
-                    <ChevronDown size={12} />
-                  </button>
-                  <button
-                    className="bma-btn-icon"
                     onClick={() => removeFromQueue(track.id)}
                     title="Remove from queue"
-                    style={{ padding: '2px', marginLeft: '4px' }}
+                    style={{ padding: '4px' }}
                   >
                     <Trash2 size={12} />
                   </button>

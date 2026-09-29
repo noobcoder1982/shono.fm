@@ -5,11 +5,18 @@
  * and robust track metadata normalization for YouTube titles.
  */
 
+export interface LyricWord {
+  text: string;
+  startTime: number;
+  endTime: number;
+}
+
 export interface LyricLine {
   id: number;
   time: number; // in seconds
   endTime?: number; // in seconds
   text: string;
+  words?: LyricWord[];
 }
 
 export interface ParsedLyrics {
@@ -172,12 +179,13 @@ export function extractCleanMetadata(rawArtist: string, rawTitle: string): { art
 }
 
 /**
- * Parses standard LRC formatted lyrics string into structured LyricLine array
+ * Parses standard or enhanced LRC formatted lyrics string into structured LyricLine array
  */
 export function parseLRC(lrcText: string): LyricLine[] {
   const lines: LyricLine[] = [];
   const rawLines = lrcText.split('\n');
   const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g;
+  const wordTimeRegex = /<(\d{2}):(\d{2})(?:\.(\d{2,3}))?>/g;
 
   let idCounter = 0;
 
@@ -189,7 +197,7 @@ export function parseLRC(lrcText: string): LyricLine[] {
     const matches = Array.from(trimmed.matchAll(timeRegex));
     if (matches.length === 0) continue;
 
-    const text = trimmed.replace(timeRegex, '').trim();
+    const rawText = trimmed.replace(timeRegex, '').trim();
 
     for (const match of matches) {
       const minutes = parseInt(match[1], 10);
@@ -197,10 +205,55 @@ export function parseLRC(lrcText: string): LyricLine[] {
       const fractional = match[3] ? parseFloat('0.' + match[3]) : 0;
       const totalSeconds = minutes * 60 + seconds + fractional;
 
+      // Check if text has enhanced word timestamps <mm:ss.xx>
+      wordTimeRegex.lastIndex = 0;
+      let lineWords: LyricWord[] | undefined = undefined;
+      let cleanText = rawText;
+
+      if (wordTimeRegex.test(rawText)) {
+        const tokens = rawText.split(/(<\d{2}:\d{2}(?:\.\d{2,3})?>)/g);
+        const words: LyricWord[] = [];
+        let currentStart = totalSeconds;
+        const textParts: string[] = [];
+
+        for (const token of tokens) {
+          const wMatch = token.match(/<(\d{2}):(\d{2})(?:\.(\d{2,3}))?>/);
+          if (wMatch) {
+            const wMin = parseInt(wMatch[1], 10);
+            const wSec = parseInt(wMatch[2], 10);
+            const wFrac = wMatch[3] ? parseFloat('0.' + wMatch[3]) : 0;
+            currentStart = wMin * 60 + wSec + wFrac;
+          } else if (token.trim()) {
+            const wordStr = token.trim();
+            textParts.push(wordStr);
+            words.push({
+              text: wordStr,
+              startTime: currentStart,
+              endTime: currentStart + 0.35,
+            });
+          }
+        }
+
+        // Adjust word end times
+        for (let w = 0; w < words.length; w++) {
+          if (w < words.length - 1) {
+            words[w].endTime = Math.max(words[w].startTime + 0.1, words[w + 1].startTime);
+          } else {
+            words[w].endTime = words[w].startTime + 0.5;
+          }
+        }
+
+        if (words.length > 0) {
+          lineWords = words;
+          cleanText = textParts.join(' ');
+        }
+      }
+
       lines.push({
         id: idCounter++,
         time: totalSeconds,
-        text: text || '♪',
+        text: cleanText || '♪',
+        words: lineWords,
       });
     }
   }

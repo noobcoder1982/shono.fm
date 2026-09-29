@@ -1,3 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Anonymous+Pro:ital,wght@0,400;0,700;1,400;1,700&family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
+/* SHOLAR / SCHOLAR EDITORIAL FONT */
+@font-face {
+  font-family: 'Scholar';
+  src: url('/fonts/scholar.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* BRUTALIST MUSIC ARCHIVE — DESIGN SYSTEM & TOKENS */
 
 :root, [data-theme="noir"] {
@@ -19,11 +30,15 @@
 
   --accent-color: #d4af37;
   --accent-subtle: rgba(212, 175, 55, 0.12);
+  --accent-glow: rgba(212, 175, 55, 0.25);
+  --dynamic-bg-tint: transparent;
+  --player-dynamic-glow: rgba(0, 0, 0, 0.5);
 
   --font-display: 'Bebas Neue', -apple-system, sans-serif;
   --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-hero: 'Syne', sans-serif;
+  --font-scholar: 'Scholar', -apple-system, serif;
 
   --status-active: #4ade80;
   --status-warn: #f59e0b;
@@ -165,6 +180,116 @@
   --status-live: #f43f5e;
 }
 
+[data-theme="dark"] {
+  /* Dark — Pure Pitch Black & Crisp Silver Monochrome */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: #242424;
+  --bg-active: #2e2e2e;
+  --border-color: #262626;
+  --border-subtle: #171717;
+  --border-bright: #404040;
+  --border-active: #e5e5e5;
+  --text-primary: #fafafa;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-inverse: #0a0a0a;
+  --accent-color: #f5f5f5;
+  --accent-subtle: rgba(255, 255, 255, 0.12);
+  --status-active: #f5f5f5;
+  --status-warn: #fbbf24;
+  --status-live: #ef4444;
+}
+
+[data-theme="dark_plus"] {
+  /* Dark+ — Ultra Deep OLED Midnight & Electric Cyan Glow */
+  --bg-primary: #020408;
+  --bg-secondary: #070c14;
+  --bg-tertiary: #0d1522;
+  --bg-hover: #142033;
+  --bg-active: #1b2c47;
+  --border-color: #172438;
+  --border-subtle: #0b121e;
+  --border-bright: #263b5c;
+  --border-active: #38bdf8;
+  --text-primary: #f0f9ff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #020408;
+  --accent-color: #38bdf8;
+  --accent-subtle: rgba(56, 189, 248, 0.15);
+  --status-active: #38bdf8;
+  --status-warn: #f59e0b;
+  --status-live: #f43f5e;
+}
+
+[data-theme="blue"] {
+  /* Blue — Deep Marine Cobalt & Electric Sky */
+  --bg-primary: #060e1a;
+  --bg-secondary: #0c182c;
+  --bg-tertiary: #13243f;
+  --bg-hover: #1c3256;
+  --bg-active: #254270;
+  --border-color: #1f365c;
+  --border-subtle: #101d33;
+  --border-bright: #325894;
+  --border-active: #2563eb;
+  --text-primary: #eff6ff;
+  --text-secondary: #93c5fd;
+  --text-muted: #60a5fa;
+  --text-inverse: #060e1a;
+  --accent-color: #3b82f6;
+  --accent-subtle: rgba(59, 130, 246, 0.16);
+  --status-active: #3b82f6;
+  --status-warn: #f59e0b;
+  --status-live: #ef4444;
+}
+
+[data-theme="beige"] {
+  /* Beige — Vintage Hi-Fi Cream Paper & Warm Roasted Walnut */
+  --bg-primary: #151310;
+  --bg-secondary: #1f1b16;
+  --bg-tertiary: #2a251f;
+  --bg-hover: #373029;
+  --bg-active: #463e34;
+  --border-color: #362e26;
+  --border-subtle: #241f19;
+  --border-bright: #5c4e40;
+  --border-active: #d4a373;
+  --text-primary: #fefae0;
+  --text-secondary: #ddb892;
+  --text-muted: #b08968;
+  --text-inverse: #151310;
+  --accent-color: #d4a373;
+  --accent-subtle: rgba(212, 163, 115, 0.15);
+  --status-active: #d4a373;
+  --status-warn: #e09f3e;
+  --status-live: #9e2a2b;
+}
+
+[data-theme="green"] {
+  /* Green — Deep Forest Obsidian & Emerald Sage */
+  --bg-primary: #050d08;
+  --bg-secondary: #0b170f;
+  --bg-tertiary: #122419;
+  --bg-hover: #193122;
+  --bg-active: #23432f;
+  --border-color: #1e3a29;
+  --border-subtle: #0f1f15;
+  --border-bright: #2d5a3f;
+  --border-active: #10b981;
+  --text-primary: #ecfdf5;
+  --text-secondary: #a7f3d0;
+  --text-muted: #6ee7b7;
+  --text-inverse: #050d08;
+  --accent-color: #10b981;
+  --accent-subtle: rgba(16, 185, 129, 0.15);
+  --status-active: #10b981;
+  --status-warn: #fbbf24;
+  --status-live: #f43f5e;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -184,18 +309,21 @@ html, body, #root {
   user-select: none;
 }
 
-/* Subtle Film Grain Noise Overlay */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
+/* Clean Modern Theme Background & Dynamic Transitions */
+.app-container {
+  width: 100%;
   height: 100vh;
-  pointer-events: none;
-  z-index: 999;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  max-height: 100vh;
+  position: relative;
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(circle at 50% 100%, var(--dynamic-bg-tint, transparent) 0%, transparent 75%);
+  transition: background-color 0.8s ease;
+  overflow: hidden;
+}
+
+/* Smooth Accent Transitions */
+a, button, input, .archive-tab, .track-row, .settings-tab, .settings-toggle, .progress-bar-fill {
+  transition: color 0.4s ease, border-color 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 /* Brutalist Typography */
@@ -325,6 +453,78 @@ h1, h2, h3, .font-display {
 .bma-btn-primary:hover {
   background: #cccccc;
   color: #000000;
+}
+
+/* Collections Vault Add Button & Animation */
+.col-vault-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border: 1px solid var(--border-bright);
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 0;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.col-vault-add-btn:hover:not(:disabled) {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.col-vault-add-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.col-vault-add-btn.is-added {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--status-active);
+  border-color: var(--status-active);
+  animation: btnAddSuccessPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.col-vault-add-btn.is-added:hover {
+  background: rgba(34, 197, 94, 0.22);
+  color: var(--status-active);
+  border-color: var(--status-active);
+}
+
+.track-add-standalone-btn.is-added {
+  color: var(--status-active) !important;
+  border-color: var(--status-active) !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+  animation: btnAddSuccessPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.track-add-standalone-btn.is-added:hover {
+  background: rgba(34, 197, 94, 0.22) !important;
+  color: var(--status-active) !important;
+  border-color: var(--status-active) !important;
+}
+
+@keyframes btnAddSuccessPop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .bma-btn-icon {
@@ -897,10 +1097,11 @@ h1, h2, h3, .font-display {
 .apple-search-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  background: rgba(4, 5, 8, 0.78);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
   cursor: pointer;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .apple-search-modal {
@@ -911,30 +1112,49 @@ h1, h2, h3, .font-display {
   max-height: 86vh;
   display: flex;
   flex-direction: column;
-  /* Deep obsidian frosted glass: sufficiently opaque so text never bleeds through, with rich Apple frosted blur */
-  background: rgba(16, 16, 22, 0.92);
-  backdrop-filter: blur(48px) saturate(220%);
-  -webkit-backdrop-filter: blur(48px) saturate(220%);
+  /* Deep obsidian mica surface with near-opaque backdrop to eliminate underlying text bleed */
+  background: rgba(13, 15, 21, 0.985);
+  backdrop-filter: blur(48px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 22px;
   box-shadow:
-    0 40px 100px -15px rgba(0, 0, 0, 0.92),
-    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 40px 100px -15px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
     0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
-    0 0 60px rgba(0, 0, 0, 0.8);
+    0 0 80px rgba(0, 0, 0, 0.85);
   overflow: hidden;
-  /* Emerges smoothly from bottom up */
-  transform: translateY(30px) scale(0.96);
+  /* Apple spring entrance */
+  transform: translateY(28px) scale(0.96);
   opacity: 0;
   transition:
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.22s ease,
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.3s ease;
 }
 
 .apple-search-overlay.is-open .apple-search-modal {
   transform: translateY(0) scale(1);
   opacity: 1;
+}
+
+@keyframes fullscreenSlideUpSnap {
+  0% {
+    transform: translateY(100%) scale(0.95);
+    opacity: 0.1;
+  }
+  65% {
+    transform: translateY(-8px) scale(1.003);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(2px) scale(0.999);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 /* Glassy Top Ambient Rim */
@@ -2038,3 +2258,272 @@ h1, h2, h3, .font-display {
     padding: 0 16px;
   }
 }
+
+/* ==================================================
+   DESKTOP IMMERSIVE BORDERLESS DRAG REGIONS
+   ================================================== */
+.titlebar-drag-region,
+.mini-deck-drag-region {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.titlebar-no-drag,
+.mini-deck-no-drag,
+button,
+input,
+select,
+textarea,
+a,
+.bma-btn,
+.bma-btn-icon,
+.bma-btn-primary,
+.sidebar-nav-item,
+.track-row,
+.track-actions,
+.playback-controls {
+  -webkit-app-region: no-drag;
+}
+
+/* ==================================================
+   DISCORD-STYLE IN-APP UPDATE PILL & BADGE
+   ================================================== */
+.discord-update-pill {
+  -webkit-app-region: no-drag;
+}
+
+@keyframes pillPulse {
+  0% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px var(--accent-subtle);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-color);
+  }
+  100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px var(--accent-subtle);
+  }
+}
+
+/* ==================================================
+   INTEGRATED SEARCH BAR (RELOCATED UNDER LINK AREA)
+   ================================================== */
+.integrated-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-app-region: no-drag;
+}
+
+.integrated-search-bar:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 16px var(--accent-subtle);
+  transform: translateY(-1px);
+}
+
+.integrated-search-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.integrated-search-bar:hover .integrated-search-left {
+  color: var(--text-primary);
+}
+
+.integrated-search-icon {
+  color: var(--accent-color);
+  transition: transform 0.2s ease;
+}
+
+.integrated-search-bar:hover .integrated-search-icon {
+  transform: scale(1.1);
+}
+
+.integrated-search-text {
+  font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+
+.integrated-search-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.integrated-search-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.integrated-search-glow {
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  animation: searchGlowRun 3.5s ease-in-out infinite;
+}
+
+@keyframes searchGlowRun {
+  0% {
+    left: -50%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
+/* ==========================================================================
+   APPLE-GRADE FLUID ANIMATION ENGINE & ACRYLIC / MICA GLASS SYSTEM
+   ========================================================================== */
+
+/* Universal Apple Micro-Interaction Physics */
+button,
+.bma-btn-icon,
+.apple-search-item,
+.archive-card-interactive,
+.sidebar-nav-item {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+button:active:not(:disabled),
+.bma-btn-icon:active {
+  transform: scale(0.96) !important;
+}
+
+/* Acrylic VisionOS Frosted Glass Utility */
+.acrylic-card {
+  background: rgba(16, 18, 26, 0.82) !important;
+  backdrop-filter: blur(36px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Mica Surface Utility */
+.mica-card {
+  background: rgba(14, 16, 22, 0.94) !important;
+  backdrop-filter: blur(48px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Smooth Apple-style fade-in-up */
+@keyframes appleFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.apple-fade-in {
+  animation: appleFadeInUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Animated curved arrow stroke draw */
+@keyframes drawArrowPath {
+  0% {
+    stroke-dashoffset: 400;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseGlowDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.4;
+  }
+}
+
+/* ==========================================================================
+   CUSTOM HARDWARE CURSOR ENGINE
+   ========================================================================== */
+body.custom-cursor-active,
+body.custom-cursor-active a,
+body.custom-cursor-active button,
+body.custom-cursor-active input,
+body.custom-cursor-active select,
+body.custom-cursor-active textarea,
+body.custom-cursor-active [role="button"],
+body.custom-cursor-active .bma-btn,
+body.custom-cursor-active .track-row,
+body.custom-cursor-active .archive-card {
+  cursor: none !important;
+}
+
+/* ==========================================================================
+   ROUNDED CORNER UI EXTENSION
+   ========================================================================== */
+.rounded-ui .bma-btn,
+.rounded-ui .bma-btn-icon,
+.rounded-ui .bma-btn-primary,
+.rounded-ui .col-vault-add-btn,
+.rounded-ui .track-add-standalone-btn,
+.rounded-ui button {
+  border-radius: 6px !important;
+}
+
+.rounded-ui input,
+.rounded-ui select,
+.rounded-ui textarea {
+  border-radius: 6px !important;
+}
+
+.rounded-ui .archive-card,
+.rounded-ui .modal-card,
+.rounded-ui .sideplayer-container,
+.rounded-ui .my-archives-wrap,
+.rounded-ui .stat-box,
+.rounded-ui .shono-card,
+.rounded-ui .settings-modal-card {
+  border-radius: 10px !important;
+}
+
+.rounded-ui .track-row {
+  border-radius: 4px !important;
+}
+
+.rounded-ui .active-playing-indicator,
+.rounded-ui img {
+  border-radius: 4px;
+}
+
+
+

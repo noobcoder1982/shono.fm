@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import type { Track } from '../types';
 import { usePlayer } from '../context/PlayerContext';
 import { useArtwork } from '../services/artworkService';
+import { getTrackBpmAndKey } from '../services/audioAnalysisService';
 import { MoreHorizontal, Play, Plus, ListPlus, Heart, Info, Copy } from 'lucide-react';
 
 interface TrackRowProps {
@@ -33,6 +34,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
   const isCurrent = currentTrack?.id === track.id;
   const isPlaying = isCurrent && playbackStatus === 'PLAYING';
   const isLiked = likedTrackIds.includes(track.id);
+  const audioTag = getTrackBpmAndKey(track);
 
   const formattedIndex = (index + 1).toString().padStart(3, '0');
 
@@ -139,6 +141,25 @@ export const TrackRow: React.FC<TrackRowProps> = ({ track, index }) => {
             }}
           >
             {track.title}
+          </span>
+          <span
+            className="bpm-key-badge hide-mobile"
+            style={{
+              fontSize: '8.5px',
+              fontFamily: 'var(--font-mono)',
+              padding: '1px 5px',
+              borderRadius: isAppleGlass ? '4px' : '2px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-color)',
+              color: isCurrent ? 'var(--accent-color)' : 'var(--text-muted)',
+              letterSpacing: '0.03em',
+              marginLeft: '6px',
+              whiteSpace: 'nowrap',
+              fontWeight: 500,
+              flexShrink: 0,
+            }}
+          >
+            {audioTag.bpm} BPM • {audioTag.key}
           </span>
         </div>
       </td>

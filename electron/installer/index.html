@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHONO.FM Installer</title>
+  <!-- Google Fonts: Inter, JetBrains Mono, and Caveat (for hand-drawn notes) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-main: #0B0B0D;
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --amber: #F5A623;
+      --amber-hover: #E0961B;
+      --amber-glow: rgba(245, 166, 35, 0.28);
+      --text-white: #FFFFFF;
+      --text-gray: #8A8A93;
+      --text-muted: #55555E;
+      --text-code: #A1A1AA;
+      --border-dark: rgba(255, 255, 255, 0.1);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-hand: 'Caveat', cursive;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: var(--font-sans);
+      color: var(--text-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Outer Frameless Card Container (680px x 430px) */
+    .installer-window {
+      width: 680px;
+      height: 430px;
+      background: var(--bg-main);
+      border-radius: 16px;
+      border: 1px solid var(--bg-card-border);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 
+        0 28px 70px rgba(0, 0, 0, 0.9),
+        0 4px 18px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    /* Ambient Warm Glow in Lower-Right Corner */
+    .ambient-glow {
+      position: absolute;
+      bottom: -60px;
+      right: -40px;
+      width: 320px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(245, 166, 35, 0.16) 0%, rgba(245, 166, 35, 0.04) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Top Title Bar */
+    .top-bar {
+      height: 38px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      -webkit-app-region: drag;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .top-brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .top-brand-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: #18181C;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 6px rgba(245, 166, 35, 0.3);
+    }
+
+    .top-brand-icon img {
+      width: 100%;
+      height: 100%;
+      border-radius: 3px;
+      object-fit: contain;
+    }
+
+    .top-brand-text {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-white);
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      -webkit-app-region: no-drag;
+    }
+
+    .ctrl-btn {
+      width: 22px;
+      height: 22px;
+      background: transparent;
+      border: none;
+      color: var(--text-gray);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-white);
+    }
+
+    .ctrl-btn.close:hover {
+      background: #E81123;
+      color: #FFFFFF;
+    }
+
+    /* Center Content Area */
+    .content-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+      padding: 10px 38px 12px 38px;
+    }
+
+    /* Screen View Container */
+    .screen {
+      position: absolute;
+      top: 10px;
+      bottom: 12px;
+      left: 38px;
+      right: 38px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+    }
+
+    .screen.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-bar {
+      height: 48px;
+      padding: 0 38px 16px 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .step-indicator-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-number {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .dots-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 5.5px;
+      height: 5.5px;
+      border-radius: 50%;
+      background: #24242A;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .dot.active {
+      width: 18px;
+      border-radius: 3px;
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber-glow);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 7px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s ease;
+      outline: none;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: #17171B;
+      color: #C0C0C8;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-secondary:hover {
+      background: #202026;
+      color: var(--text-white);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: #0C0C0E;
+      font-weight: 700;
+      box-shadow: 0 2px 10px var(--amber-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--amber-hover);
+      box-shadow: 0 4px 16px rgba(245, 166, 35, 0.45);
+      transform: translateY(-0.5px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* ==================================================
+       SCREEN SPECIFIC STYLES
+       ================================================== */
+
+    /* SCREEN 01: WELCOME */
+    .screen-welcome {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .welcome-logo-col {
+      width: 44%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .welcome-logo-img {
+      width: 175px;
+      height: 175px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 24px rgba(245, 166, 35, 0.35));
+    }
+
+    .welcome-text-col {
+      width: 52%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .welcome-lead {
+      font-size: 21px;
+      font-weight: 500;
+      color: #ECECED;
+      line-height: 1.15;
+    }
+
+    .welcome-brand-title {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: var(--text-white);
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+
+    .welcome-subtitle {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-gray);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .welcome-motto-tag {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      margin-top: 26px;
+    }
+
+    /* SCREEN 02: LICENSE */
+    .heading-primary {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-white);
+      line-height: 1.2;
+    }
+
+    .subtitle-primary {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-gray);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+
+    .license-box {
+      background: #111114;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.55;
+      color: var(--text-code);
+      height: 165px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: #26262C transparent;
+    }
+
+    .license-box::-webkit-scrollbar {
+      width: 4px;
+    }
+    .license-box::-webkit-scrollbar-thumb {
+      background: #2B2B32;
+      border-radius: 4px;
+    }
+
+    /* Checkbox Rows */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #D2D2D8;
+      user-select: none;
+    }
+
+    .custom-checkbox {
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #16161A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .custom-checkbox svg {
+      display: none;
+      width: 9px;
+      height: 9px;
+      stroke: #0C0C0E;
+      stroke-width: 3;
+    }
+
+    input[type="checkbox"] {
+      display: none;
+    }
+
+    input[type="checkbox"]:checked + .custom-checkbox {
+      background: var(--amber);
+      border-color: var(--amber);
+      box-shadow: 0 0 8px var(--amber-glow);
+    }
+
+    input[type="checkbox"]:checked + .custom-checkbox svg {
+      display: block;
+    }
+
+    /* SCREEN 03: LOCATION */
+    .install-path-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .install-path-box {
+      flex: 1;
+      background: #111114;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-white);
+      outline: none;
+    }
+
+    .install-path-box:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
+    }
+
+    .space-req-note {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .checkboxes-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* SCREEN 04: MAKE IT YOURS (THEMES) */
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .theme-card {
+      height: 160px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12px 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theme-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .theme-card.selected {
+      border-color: var(--amber);
+      box-shadow: 0 0 16px var(--amber-glow);
+    }
+
+    .theme-preview-art {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+    }
+
+    .theme-dot-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+      z-index: 3;
+      display: none;
+    }
+
+    .theme-card.selected .theme-dot-badge {
+      display: block;
+    }
+
+    .theme-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFFFFF;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Theme 1: Dark (Liquid Charcoal Waves) */
+    .art-dark {
+      background: 
+        radial-gradient(ellipse at bottom left, #1A1A1E 0%, transparent 60%),
+        radial-gradient(ellipse at top right, #24242A 0%, transparent 70%),
+        #0C0C0E;
+    }
+
+    .art-dark svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+    }
+
+    /* Theme 2: Light (Silky Silver Fluid) */
+    .art-light {
+      background: 
+        radial-gradient(ellipse at top left, #FFFFFF 0%, #D4D4D8 45%, #9CA3AF 100%);
+    }
+
+    .art-light .theme-title {
+      color: #111113;
+      text-shadow: none;
+    }
+
+    .art-light svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.45;
+    }
+
+    /* Theme 3: System (Dual Carbon / Sand) */
+    .art-system {
+      background: 
+        linear-gradient(135deg, #18181B 0%, #27272A 50%, #C29B7F 100%);
+    }
+
+    .art-system svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.4;
+    }
+
+    /* SCREEN 05 & 06: INSTALLING & ALMOST THERE */
+    .install-two-col {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .install-left {
+      width: 58%;
+    }
+
+    .install-right {
+      width: 38%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-logo-img {
+      width: 155px;
+      height: 155px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 20px rgba(245, 166, 35, 0.32));
+    }
+
+    .progress-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 16px 0;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--amber);
+      box-shadow: 0 0 10px var(--amber);
+      transition: width 0.25s ease-out;
+    }
+
+    .progress-pct-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--amber);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-gray);
+      transition: color 0.18s ease;
+    }
+
+    .check-row.done {
+      color: #ECECED;
+    }
+
+    .check-row.current {
+      color: var(--amber);
+    }
+
+    .check-icon {
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .check-icon.done svg {
+      width: 13px;
+      height: 13px;
+      fill: var(--amber);
+    }
+
+    .check-icon.spin {
+      width: 10px;
+      height: 10px;
+      border: 1.8px solid rgba(245, 166, 35, 0.3);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .check-icon.pending {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* SCREEN 07: YOU'RE ALL SET */
+    .set-two-col {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .set-left {
+      width: 58%;
+    }
+
+    .set-right {
+      width: 38%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding-right: 18px;
+    }
+
+    .handwritten-lead {
+      font-family: var(--font-hand);
+      font-size: 26px;
+      line-height: 1.15;
+      color: #E2E2E8;
+      text-align: right;
+      transform: rotate(-3deg);
+    }
+
+    .set-checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      margin: 14px 0 20px 0;
+    }
+
+    .set-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #D6D6DD;
+      font-weight: 500;
+    }
+
+    .set-item-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .set-item-icon svg {
+      width: 10px;
+      height: 10px;
+      stroke: #0C0C0E;
+      stroke-width: 3;
+    }
+
+    .set-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* SCREEN 08: STAY IN THE LOOP */
+    .loop-stack {
+      max-width: 480px;
+    }
+
+    .loop-stack .checkboxes-stack {
+      margin-top: 18px;
+      gap: 14px;
+    }
+
+    /* SCREEN 09: FINAL SPLASH */
+    .final-splash-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .splash-logo-col {
+      width: 48%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .splash-logo-img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 30px rgba(245, 166, 35, 0.4));
+    }
+
+    .splash-manifesto-col {
+      width: 48%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-left: 20px;
+    }
+
+    .manifesto-words {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: #8C8C96;
+      line-height: 1.8;
+      text-transform: uppercase;
+    }
+
+    .manifesto-words div:nth-child(4) {
+      color: var(--text-white);
+    }
+
+    .splash-handwritten {
+      font-family: var(--font-hand);
+      font-size: 28px;
+      line-height: 1.1;
+      color: #ECECED;
+      margin-top: 14px;
+      transform: rotate(-4deg);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Card Window Frame -->
+  <div class="installer-window">
+    
+    <!-- Ambient Radial Light -->
+    <div class="ambient-glow"></div>
+
+    <!-- Top Drag Bar -->
+    <header class="top-bar">
+      <div class="top-brand">
+        <div class="top-brand-icon">
+          <img src="sh_squircle.png" alt="SH" />
+        </div>
+        <span class="top-brand-text">SHONO.FM</span>
+      </div>
+
+      <div class="top-controls">
+        <button class="ctrl-btn" id="btnMinimize" title="Minimize">
+          <svg width="9" height="2" viewBox="0 0 9 2" fill="currentColor">
+            <rect width="9" height="2" rx="1"/>
+          </svg>
+        </button>
+        <button class="ctrl-btn close" id="btnClose" title="Close">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M1 1L8 8M8 1L1 8"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Flow Area -->
+    <main class="content-area">
+
+      <!-- ==============================================
+           SCREEN 01: WELCOME
+           ============================================== -->
+      <section class="screen screen-welcome active" id="screen01">
+        <div class="welcome-logo-col">
+          <img src="sh_transparent.png" alt="Shono Logo" class="welcome-logo-img" />
+        </div>
+
+        <div class="welcome-text-col">
+          <div class="welcome-lead">Welcome to</div>
+          <div class="welcome-brand-title">SHONO.FM</div>
+          <div class="welcome-subtitle">MUSIC FOR A MORE HUMAN YOU.</div>
+
+          <button class="btn btn-primary" id="btnGo01" style="margin-top: 22px; padding: 9px 24px;">
+            <span>Let's go</span>
+            <span>&rarr;</span>
+          </button>
+
+          <div class="welcome-motto-tag">LISTEN / DISCOVER / BELONG</div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 02: LICENSE AGREEMENT
+           ============================================== -->
+      <section class="screen" id="screen02">
+        <h2 class="heading-primary">License Agreement</h2>
+        <div class="subtitle-primary">A QUICK READ. GOOD VIBES ONLY.</div>
+
+        <div class="license-box">
+          <strong>SHONO.FM</strong><br/>
+          End User License Agreement<br/><br/>
+          By installing SHONO.FM, you agree to our terms and conditions. We just want to keep music open, kind and accessible to everyone.<br/><br/>
+          1. You can use SHONO.FM for personal use without cost or artificial playback gates.<br/>
+          2. Don't be a jerk. Respect the artists and curators whose craft powers this sound archive.<br/>
+          3. We prioritize your privacy: local playlists stay on your machine unless you explicitly export them.<br/>
+          4. Share high-fidelity music with the people around you.
+        </div>
+
+        <label class="checkbox-label" for="chkAgreeLicense">
+          <input type="checkbox" id="chkAgreeLicense" checked />
+          <div class="custom-checkbox">
+            <svg viewBox="0 0 10 10" fill="none">
+              <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span>I agree to the terms and conditions</span>
+        </label>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 03: CHOOSE INSTALL LOCATION
+           ============================================== -->
+      <section class="screen" id="screen03">
+        <h2 class="heading-primary">Choose Install Location</h2>
+        <div class="subtitle-primary">PICK A SPOT FOR YOUR MUSIC HOME.</div>
+
+        <div class="install-path-row">
+          <input type="text" id="inputInstallLocation" class="install-path-box" value="C:\Program Files\SHONO.FM" readonly />
+          <button type="button" id="btnBrowseLocation" class="btn btn-secondary" style="border-radius: 8px;">Browse</button>
+        </div>
+
+        <div class="space-req-note">Need only ~300 MB of space.</div>
+
+        <div class="checkboxes-stack">
+          <label class="checkbox-label" for="chkDesktopShortcut">
+            <input type="checkbox" id="chkDesktopShortcut" checked />
+            <div class="custom-checkbox">
+              <svg viewBox="0 0 10 10" fill="none">
+                <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Create a desktop shortcut</span>
+          </label>
+
+          <label class="checkbox-label" for="chkPinTaskbar">
+            <input type="checkbox" id="chkPinTaskbar" checked />
+            <div class="custom-checkbox">
+              <svg viewBox="0 0 10 10" fill="none">
+                <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Pin to taskbar</span>
+          </label>
+
+          <label class="checkbox-label" for="chkDefaultPlayer">
+            <input type="checkbox" id="chkDefaultPlayer" />
+            <div class="custom-checkbox">
+              <svg viewBox="0 0 10 10" fill="none">
+                <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span style="color: var(--text-gray);">Set as default music player (optional)</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 04: MAKE IT YOURS (THEMES)
+           ============================================== -->
+      <section class="screen" id="screen04">
+        <h2 class="heading-primary">Make it yours</h2>
+        <div class="subtitle-primary">PICK A THEME. CHANGE IT LATER ANYTIME.</div>
+
+        <div class="themes-grid">
+          <!-- Dark Theme -->
+          <div class="theme-card selected" id="cardThemeDark" onclick="selectTheme('dark')">
+            <div class="theme-preview-art art-dark">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 60 Q 30 20 60 70 T 100 40 L 100 100 L 0 100 Z" fill="#202026"/>
+                <path d="M0 75 Q 40 40 80 85 T 100 65 L 100 100 L 0 100 Z" fill="#2A2A32"/>
+              </svg>
+            </div>
+            <span class="theme-dot-badge"></span>
+            <div class="theme-title">Dark</div>
+          </div>
+
+          <!-- Light Theme -->
+          <div class="theme-card" id="cardThemeLight" onclick="selectTheme('light')">
+            <div class="theme-preview-art art-light">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 50 Q 30 15 65 65 T 100 35 L 100 100 L 0 100 Z" fill="#E4E4E7"/>
+                <path d="M0 70 Q 45 45 80 75 T 100 55 L 100 100 L 0 100 Z" fill="#D1D5DB"/>
+              </svg>
+            </div>
+            <span class="theme-dot-badge"></span>
+            <div class="theme-title">Light</div>
+          </div>
+
+          <!-- System Theme -->
+          <div class="theme-card" id="cardThemeSystem" onclick="selectTheme('system')">
+            <div class="theme-preview-art art-system">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 55 Q 35 25 70 70 T 100 45 L 100 100 L 0 100 Z" fill="#4B4036"/>
+                <path d="M0 75 Q 40 50 80 80 T 100 60 L 100 100 L 0 100 Z" fill="#A87B5B"/>
+              </svg>
+            </div>
+            <span class="theme-dot-badge"></span>
+            <div class="theme-title">System</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 05: INSTALLING SHONO.FM
+           ============================================== -->
+      <section class="screen" id="screen05">
+        <div class="install-two-col">
+          <div class="install-left">
+            <h2 class="heading-primary">Installing SHONO.FM</h2>
+            <div class="subtitle-primary" style="margin-bottom: 8px;">Good music takes a moment...</div>
+
+            <!-- Linear Progress Bar -->
+            <div class="progress-bar-row">
+              <div class="progress-track">
+                <div class="progress-fill" id="progressFill05" style="width: 0%;"></div>
+              </div>
+              <span class="progress-pct-num" id="progressPct05">0%</span>
+            </div>
+
+            <!-- Dynamic Checklist -->
+            <div class="checklist" id="checklist05">
+              <div class="check-row current">
+                <div class="check-icon spin"></div>
+                <span>Preparing files...</span>
+              </div>
+              <div class="check-row">
+                <div class="check-icon pending"></div>
+                <span>Copying files...</span>
+              </div>
+              <div class="check-row">
+                <div class="check-icon pending"></div>
+                <span>Installing components...</span>
+              </div>
+              <div class="check-row">
+                <div class="check-icon pending"></div>
+                <span>Setting things up...</span>
+              </div>
+              <div class="check-row">
+                <div class="check-icon pending"></div>
+                <span>Almost there...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="install-right">
+            <img src="sh_transparent.png" alt="Shono Logo" class="install-logo-img" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 06: ALMOST THERE!
+           ============================================== -->
+      <section class="screen" id="screen06">
+        <div class="install-two-col">
+          <div class="install-left">
+            <h2 class="heading-primary">Almost there!</h2>
+            <div class="subtitle-primary" style="margin-bottom: 16px;">Just a few more things to set up.</div>
+
+            <div class="checklist">
+              <div class="check-row done">
+                <div class="check-icon done">
+                  <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <span>Registering application</span>
+              </div>
+              <div class="check-row done">
+                <div class="check-icon done">
+                  <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <span>Creating shortcuts</span>
+              </div>
+              <div class="check-row done">
+                <div class="check-icon done">
+                  <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <span>Finalizing installation</span>
+              </div>
+              <div class="check-row current">
+                <div class="check-icon spin"></div>
+                <span>Adjusting the vibe...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="install-right">
+            <img src="sh_transparent.png" alt="Shono Logo" class="install-logo-img" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 07: YOU'RE ALL SET!
+           ============================================== -->
+      <section class="screen" id="screen07">
+        <div class="set-two-col">
+          <div class="set-left">
+            <h2 class="heading-primary">You're all set!</h2>
+            <div class="subtitle-primary" style="margin-bottom: 14px;">SHONO.FM has been installed successfully.</div>
+
+            <div class="set-checklist">
+              <div class="set-item">
+                <div class="set-item-icon">
+                  <svg viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <span>Play your music</span>
+              </div>
+              <div class="set-item">
+                <div class="set-item-icon">
+                  <svg viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <span>Discover new sounds</span>
+              </div>
+              <div class="set-item">
+                <div class="set-item-icon">
+                  <svg viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <span>Feel more you</span>
+              </div>
+            </div>
+
+            <div class="set-actions">
+              <button class="btn btn-primary" id="btnOpenApp07">
+                <span>Open SHONO.FM</span>
+                <span>&rarr;</span>
+              </button>
+              <button class="btn btn-secondary" id="btnViewWhatNew">
+                View what's new
+              </button>
+            </div>
+          </div>
+
+          <div class="set-right">
+            <div class="handwritten-lead">
+              same<br/>music.<br/>a more<br/>human you.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 08: STAY IN THE LOOP?
+           ============================================== -->
+      <section class="screen" id="screen08">
+        <div class="loop-stack">
+          <h2 class="heading-primary">Stay in the loop?</h2>
+          <div class="subtitle-primary" style="margin-bottom: 8px;">
+            Get notified about new features, playlists and updates. You can change this anytime.
+          </div>
+
+          <div class="checkboxes-stack" style="margin-top: 24px;">
+            <label class="checkbox-label" for="chkEnableUpdates">
+              <input type="checkbox" id="chkEnableUpdates" checked />
+              <div class="custom-checkbox">
+                <svg viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span>Enable updates (recommended)</span>
+            </label>
+
+            <label class="checkbox-label" for="chkSendNews">
+              <input type="checkbox" id="chkSendNews" />
+              <div class="custom-checkbox">
+                <svg viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5L4.5 7.5L8.5 2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span style="color: var(--text-gray);">Send me occasional news</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           SCREEN 09: FINAL SPLASH
+           ============================================== -->
+      <section class="screen" id="screen09">
+        <div class="final-splash-row">
+          <div class="splash-logo-col">
+            <img src="sh_transparent.png" alt="Shono Logo" class="splash-logo-img" />
+          </div>
+
+          <div class="splash-manifesto-col">
+            <div class="manifesto-words">
+              <div>MUSIC</div>
+              <div>PEOPLE</div>
+              <div>PLACES</div>
+              <div>YOU</div>
+              <div style="color: var(--amber); margin-top: 4px;">—</div>
+            </div>
+
+            <div class="splash-handwritten">
+              see you<br/>inside!
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar across All Screens -->
+    <footer class="bottom-bar">
+      <div class="step-indicator-wrapper">
+        <div class="step-number" id="stepCounterLabel">01 / 09</div>
+        <div class="dots-container" id="dotsContainer">
+          <div class="dot active" data-step="1"></div>
+          <div class="dot" data-step="2"></div>
+          <div class="dot" data-step="3"></div>
+          <div class="dot" data-step="4"></div>
+          <div class="dot" data-step="5"></div>
+          <div class="dot" data-step="6"></div>
+          <div class="dot" data-step="7"></div>
+          <div class="dot" data-step="8"></div>
+          <div class="dot" data-step="9"></div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary" id="btnNavBack" style="display: none;">Back</button>
+        <button class="btn btn-primary" id="btnNavNext" style="display: none;">
+          <span>Next</span>
+          <span>&rarr;</span>
+        </button>
+        <button class="btn btn-primary" id="btnNavFinish" style="display: none;">
+          Finish
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 9;
+    const isElectron = Boolean(window.installerAPI && window.installerAPI.isElectron);
+
+    // Selected theme state
+    let chosenTheme = 'dark';
+
+    // DOM References
+    const stepCounterLabel = document.getElementById('stepCounterLabel');
+    const dots = document.querySelectorAll('.dot');
+    const btnNavBack = document.getElementById('btnNavBack');
+    const btnNavNext = document.getElementById('btnNavNext');
+    const btnNavFinish = document.getElementById('btnNavFinish');
+    const btnGo01 = document.getElementById('btnGo01');
+    const btnOpenApp07 = document.getElementById('btnOpenApp07');
+    const btnViewWhatNew = document.getElementById('btnViewWhatNew');
+    const btnMinimize = document.getElementById('btnMinimize');
+    const btnClose = document.getElementById('btnClose');
+    const btnBrowseLocation = document.getElementById('btnBrowseLocation');
+    const inputInstallLocation = document.getElementById('inputInstallLocation');
+    const chkAgreeLicense = document.getElementById('chkAgreeLicense');
+
+    // Progress Elements for Screen 05
+    const progressFill05 = document.getElementById('progressFill05');
+    const progressPct05 = document.getElementById('progressPct05');
+    const checklist05 = document.getElementById('checklist05');
+
+    // Initialize Default Installation Path
+    async function initDefaults() {
+      if (isElectron) {
+        try {
+          const defaults = await window.installerAPI.getDefaultsPath();
+          if (defaults && defaults.path) {
+            inputInstallLocation.value = defaults.path;
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    // Step Switcher
+    function goToStep(step) {
+      if (step < 1 || step > totalSteps) return;
+      currentStep = step;
+
+      // Update Screen Visibility
+      for (let i = 1; i <= totalSteps; i++) {
+        const scr = document.getElementById(`screen0${i}`);
+        if (scr) {
+          if (i === currentStep) {
+            scr.classList.add('active');
+          } else {
+            scr.classList.remove('active');
+          }
+        }
+      }
+
+      // Update Step Counter String (01 / 09)
+      stepCounterLabel.textContent = `0${currentStep} / 0${totalSteps}`;
+
+      // Update Dots
+      dots.forEach((dot, idx) => {
+        if (idx + 1 === currentStep) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+
+      // Update Navigation Buttons visibility
+      btnNavBack.style.display = 'none';
+      btnNavNext.style.display = 'none';
+      btnNavFinish.style.display = 'none';
+
+      if (currentStep === 1) {
+        // Screen 1 uses its own "Let's go ->" button
+      } else if (currentStep === 2) {
+        btnNavBack.style.display = 'inline-flex';
+        btnNavNext.style.display = 'inline-flex';
+        btnNavNext.disabled = !chkAgreeLicense.checked;
+      } else if (currentStep === 3) {
+        btnNavBack.style.display = 'inline-flex';
+        btnNavNext.style.display = 'inline-flex';
+        btnNavNext.disabled = false;
+      } else if (currentStep === 4) {
+        btnNavBack.style.display = 'inline-flex';
+        btnNavNext.style.display = 'inline-flex';
+        btnNavNext.disabled = false;
+      } else if (currentStep === 5) {
+        // Installing in progress
+        runInstallationFlow();
+      } else if (currentStep === 6) {
+        // Almost there screen
+        runAlmostThereFlow();
+      } else if (currentStep === 7) {
+        // You're all set screen has its own launch and what's new buttons
+      } else if (currentStep === 8) {
+        btnNavBack.style.display = 'inline-flex';
+        btnNavNext.style.display = 'inline-flex';
+        btnNavNext.disabled = false;
+      } else if (currentStep === 9) {
+        btnNavFinish.style.display = 'inline-flex';
+      }
+    }
+
+    // License Checkbox binding
+    chkAgreeLicense.addEventListener('change', () => {
+      if (currentStep === 2) {
+        btnNavNext.disabled = !chkAgreeLicense.checked;
+      }
+    });
+
+    // Theme Selection
+    window.selectTheme = function(theme) {
+      chosenTheme = theme;
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+      const target = document.getElementById(`cardTheme${theme.charAt(0).toUpperCase() + theme.slice(1)}`);
+      if (target) target.classList.add('selected');
+    };
+
+    // Navigation Button Handlers
+    btnGo01.addEventListener('click', () => goToStep(2));
+    btnNavBack.addEventListener('click', () => goToStep(currentStep - 1));
+    btnNavNext.addEventListener('click', () => goToStep(currentStep + 1));
+
+    btnOpenApp07.addEventListener('click', () => {
+      launchApplication();
+    });
+
+    btnViewWhatNew.addEventListener('click', () => {
+      goToStep(8);
+    });
+
+    btnNavFinish.addEventListener('click', () => {
+      launchApplication();
+    });
+
+    // Window controls
+    btnMinimize.addEventListener('click', () => {
+      if (isElectron) window.installerAPI.minimize();
+    });
+
+    btnClose.addEventListener('click', () => {
+      if (isElectron) window.installerAPI.close();
+    });
+
+    // Folder Browse
+    btnBrowseLocation.addEventListener('click', async () => {
+      if (isElectron) {
+        const folder = await window.installerAPI.browseFolder(inputInstallLocation.value);
+        if (folder) {
+          inputInstallLocation.value = folder;
+        }
+      }
+    });
+
+    // Launch Application
+    function launchApplication() {
+      if (isElectron) {
+        window.installerAPI.launchApp();
+      } else {
+        alert('SHONO.FM has launched!');
+      }
+    }
+
+    // Installation Flow on Screen 05
+    let hasRunInstall = false;
+    let installFinished = false;
+    async function runInstallationFlow() {
+      if (hasRunInstall) return;
+      hasRunInstall = true;
+
+      const options = {
+        installPath: inputInstallLocation.value,
+        createDesktopShortcut: document.getElementById('chkDesktopShortcut').checked,
+        launchOnStartup: document.getElementById('chkPinTaskbar').checked,
+        theme: chosenTheme
+      };
+
+      let realProgress = 0;
+      if (isElectron && window.installerAPI.onProgress) {
+        window.installerAPI.onProgress((data) => {
+          if (data && typeof data.progress === 'number') {
+            realProgress = Math.max(realProgress, data.progress);
+          }
+        });
+      }
+
+      const rows = checklist05.querySelectorAll('.check-row');
+      let displayProgress = 0;
+      progressFill05.style.width = '0%';
+      progressPct05.textContent = '0%';
+
+      let installPromise = null;
+      if (isElectron) {
+        installPromise = window.installerAPI.startInstall(options);
+      } else {
+        installPromise = new Promise(r => setTimeout(r, 2000));
+      }
+
+      const interval = setInterval(() => {
+        const target = installFinished ? 100 : Math.min(Math.max(realProgress, displayProgress + 1.5), 75);
+        if (displayProgress < target) {
+          displayProgress += Math.min(target - displayProgress, Math.random() * 3 + 1.5);
+        }
+
+        progressFill05.style.width = Math.round(displayProgress) + '%';
+        progressPct05.textContent = Math.round(displayProgress) + '%';
+
+        if (displayProgress >= 15 && rows[0]) {
+          rows[0].className = 'check-row done';
+          rows[0].querySelector('.check-icon').className = 'check-icon done';
+          rows[0].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          if (rows[1] && !rows[1].classList.contains('done')) {
+            rows[1].className = 'check-row current';
+            rows[1].querySelector('.check-icon').className = 'check-icon spin';
+            rows[1].querySelector('.check-icon').innerHTML = '';
+          }
+        }
+        if (displayProgress >= 40 && rows[1]) {
+          rows[1].className = 'check-row done';
+          rows[1].querySelector('.check-icon').className = 'check-icon done';
+          rows[1].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          if (rows[2] && !rows[2].classList.contains('done')) {
+            rows[2].className = 'check-row current';
+            rows[2].querySelector('.check-icon').className = 'check-icon spin';
+            rows[2].querySelector('.check-icon').innerHTML = '';
+          }
+        }
+        if (displayProgress >= 65 && rows[2]) {
+          rows[2].className = 'check-row done';
+          rows[2].querySelector('.check-icon').className = 'check-icon done';
+          rows[2].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          if (rows[3] && !rows[3].classList.contains('done')) {
+            rows[3].className = 'check-row current';
+            rows[3].querySelector('.check-icon').className = 'check-icon spin';
+            rows[3].querySelector('.check-icon').innerHTML = '';
+          }
+        }
+        if (displayProgress >= 75 && rows[3]) {
+          rows[3].className = 'check-row done';
+          rows[3].querySelector('.check-icon').className = 'check-icon done';
+          rows[3].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          if (rows[4] && !rows[4].classList.contains('done')) {
+            rows[4].className = 'check-row current';
+            rows[4].querySelector('.check-icon').className = 'check-icon spin';
+            rows[4].querySelector('.check-icon').innerHTML = '';
+          }
+        }
+
+        if (installFinished && displayProgress >= 99) {
+          clearInterval(interval);
+          progressFill05.style.width = '100%';
+          progressPct05.textContent = '100%';
+          if (rows[4]) {
+            rows[4].className = 'check-row done';
+            rows[4].querySelector('.check-icon').className = 'check-icon done';
+            rows[4].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+          }
+          setTimeout(() => {
+            goToStep(6);
+          }, 450);
+        }
+      }, 120);
+
+      try {
+        await installPromise;
+      } catch (err) {
+        console.error('Install execution error:', err);
+      } finally {
+        installFinished = true;
+      }
+    }
+
+    // Almost There Flow on Screen 06
+    let hasRunAlmost = false;
+    function runAlmostThereFlow() {
+      if (hasRunAlmost) return;
+      hasRunAlmost = true;
+
+      setTimeout(() => {
+        const rows = document.querySelectorAll('#screen06 .check-row');
+        if (rows[3]) {
+          rows[3].className = 'check-row done';
+          rows[3].querySelector('.check-icon').innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+        }
+
+        setTimeout(() => {
+          goToStep(7);
+        }, 900);
+      }, 1800);
+    }
+
+    // Dots Clickable Navigation
+    dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const targetStep = parseInt(dot.getAttribute('data-step'), 10);
+        goToStep(targetStep);
+      });
+    });
+
+    // Keyboard Navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (isElectron) window.installerAPI.close();
+      } else if (e.key === 'Enter') {
+        if (currentStep === 1) {
+          goToStep(2);
+        } else if (currentStep === 7) {
+          launchApplication();
+        } else if (currentStep === 9) {
+          launchApplication();
+        } else if (btnNavNext.style.display !== 'none' && !btnNavNext.disabled) {
+          goToStep(currentStep + 1);
+        }
+      }
+    });
+
+    // Initialize defaults on startup
+    initDefaults();
+  </script>
+</body>
+</html>

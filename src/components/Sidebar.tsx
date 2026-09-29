@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Heart, Shuffle, Command, Disc, Radio, Sparkles } from 'lucide-react';
+import { Heart, Shuffle, Command, Radio, Download, RefreshCw } from 'lucide-react';
 import { SidebarEqualizer } from './SidebarEqualizer';
+import { updateService, type UpdateState } from '../services/updateService';
 
 const DEFAULT_SIDEBAR_WIDTH = 300;
 const MIN_SIDEBAR_WIDTH = 240;
@@ -21,11 +22,14 @@ export const Sidebar: React.FC = () => {
     setShowFavouritesOnly,
     isSearchOpen,
     setIsSearchOpen,
-    playerMode,
-    setPlayerMode,
     theme,
-    setIsChangelogOpen,
   } = usePlayer();
+
+  const [updateState, setUpdateState] = useState<UpdateState>(() => updateService.getState());
+
+  useEffect(() => {
+    return updateService.subscribe(setUpdateState);
+  }, []);
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
@@ -93,16 +97,14 @@ export const Sidebar: React.FC = () => {
 
   const navItems = isAppleGlass
     ? [
-        { id: 'ARCHIVE', label: 'Library', index: '' },
-        { id: 'SEARCH', label: 'Search', index: '' },
-        { id: 'COLLECTIONS', label: 'Collections', index: '' },
+        { id: 'ARCHIVE', label: 'Home', index: '' },
+        { id: 'COLLECTIONS', label: 'Added / Playlists', index: '' },
         { id: 'SETTINGS', label: 'Settings', index: '' },
       ]
     : [
-        { id: 'ARCHIVE', label: '01 / ARCHIVE', index: '01' },
-        { id: 'SEARCH', label: '02 / SEARCH', index: '02' },
-        { id: 'COLLECTIONS', label: '03 / COLLECTIONS', index: '03' },
-        { id: 'SETTINGS', label: '04 / SETTINGS', index: '04' },
+        { id: 'ARCHIVE', label: '01 / HOME', index: '01' },
+        { id: 'COLLECTIONS', label: '02 / ADDED', index: '02' },
+        { id: 'SETTINGS', label: '03 / SETTINGS', index: '03' },
       ];
 
   const handleNavClick = (id: string) => {
@@ -168,6 +170,7 @@ export const Sidebar: React.FC = () => {
       {/* Brand & Logo Header */}
       {isAppleGlass ? (
         <div
+          className="titlebar-drag-region"
           style={{
             padding: '16px 18px 12px 18px',
             flexShrink: 0,
@@ -176,23 +179,17 @@ export const Sidebar: React.FC = () => {
             gap: '12px',
           }}
         >
-          <div
+          <img
+            src="./logo.png"
+            alt="Shono FM"
             style={{
               width: '34px',
               height: '34px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--accent-color), #ff6b8b)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '15px',
-              boxShadow: '0 4px 14px rgba(250, 45, 72, 0.35)',
+              borderRadius: '9px',
+              objectFit: 'contain',
+              boxShadow: '0 4px 14px rgba(255, 149, 0, 0.3)',
             }}
-          >
-            S
-          </div>
+          />
           <div>
             <div
               style={{
@@ -219,51 +216,86 @@ export const Sidebar: React.FC = () => {
         </div>
       ) : (
         <div
+          className="titlebar-drag-region"
           style={{
             padding: '16px 18px',
             borderBottom: '1px solid var(--border-color)',
             flexShrink: 0,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
           }}
         >
-          <div>
-            <div
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img
+              src="./logo.png"
+              alt="Shono FM"
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '32px',
-                lineHeight: 0.95,
-                letterSpacing: '0.04em',
-                color: 'var(--text-primary)',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                objectFit: 'contain',
+                boxShadow: '0 0 14px rgba(255, 160, 0, 0.25)',
               }}
-            >
-              SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span>
+            />
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '26px',
+                  lineHeight: 0.95,
+                  letterSpacing: '0.04em',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>SHONO<span style={{ color: 'var(--text-muted)' }}>.FM</span></span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '8px',
+                    fontWeight: 800,
+                    color: 'var(--accent-color)',
+                    background: 'var(--accent-subtle)',
+                    padding: '2px 5px',
+                    borderRadius: '2px',
+                    border: '1px solid var(--accent-color)',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  BETA
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Live Broadcast Engine Tag */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '3px 6px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '7.5px',
-              color: 'var(--status-active)',
-            }}
-          >
-            <Radio size={9} />
-            <span>48kHz</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                padding: '3px 6px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '7.5px',
+                color: 'var(--status-active)',
+              }}
+            >
+              <Radio size={9} />
+              <span>48kHz</span>
+            </div>
           </div>
         </div>
       )}
 
       {/* Main Navigation */}
       <nav
+        data-tutorial="archives"
         style={{
           padding: isAppleGlass ? '6px 8px' : '6px 0',
           borderBottom: isAppleGlass ? 'none' : '1px solid var(--border-color)',
@@ -381,40 +413,6 @@ export const Sidebar: React.FC = () => {
             </button>
           );
         })}
-
-        {/* 007 / MI6 Player Mode Selector (Only in Brutalist themes) */}
-        {!isAppleGlass && (
-          <div style={{ padding: '8px 18px 4px 18px', borderTop: '1px solid var(--border-subtle)', marginTop: '6px' }}>
-            <button
-              onClick={() => setPlayerMode(playerMode === 'MI6' ? 'ARCHIVE' : 'MI6')}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                background: playerMode === 'MI6' ? 'rgba(212,175,55,0.15)' : 'var(--bg-secondary)',
-                border: playerMode === 'MI6' ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
-                color: playerMode === 'MI6' ? 'var(--accent-color)' : 'var(--text-secondary)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '9.5px',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              title="Toggle 007 / MI6 Vinyl Turntable Mode"
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                <Disc size={13} color={playerMode === 'MI6' ? 'var(--accent-color)' : 'currentColor'} />
-                <span>{playerMode === 'MI6' ? 'MI6 MODE ENGAGED' : '007 / MI6 MODE'}</span>
-              </span>
-              <span style={{ fontSize: '8px', opacity: 0.9 }}>
-                {playerMode === 'MI6' ? '●' : '○'}
-              </span>
-            </button>
-          </div>
-        )}
       </nav>
 
       {/* Main Interactive Middle Surface Area (Spacious & Nicely Spaced) */}
@@ -483,58 +481,194 @@ export const Sidebar: React.FC = () => {
         </button>
 
         {/* Dual-Mode Brutalist Equalizer (Takes full advantage of width & surface area) */}
-        <SidebarEqualizer />
+        <div data-tutorial="equalizer" id="tutorial-step-eq">
+          <SidebarEqualizer />
+        </div>
 
-        {/* Quick Action Commands */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Quick Action Commands: Redesigned Tactile Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Shuffle Button */}
           <button
             className="bma-btn"
             onClick={() => activeArchive && playEntireArchive(activeArchive, true)}
             style={{
-              flex: 1,
-              padding: isAppleGlass ? '8px 12px' : '7px 10px',
-              fontSize: isAppleGlass ? '11px' : '9px',
-              borderRadius: isAppleGlass ? '999px' : '0',
+              width: '100%',
+              padding: isAppleGlass ? '10px 14px' : '9px 12px',
+              fontSize: isAppleGlass ? '12px' : '10px',
+              fontWeight: 700,
+              borderRadius: isAppleGlass ? '12px' : '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
+              gap: '8px',
+              letterSpacing: '0.08em',
+              background: 'var(--bg-tertiary)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              transition: 'all 0.16s ease',
             }}
             title="Shuffle play active archive"
           >
-            <Shuffle size={12} /> {isAppleGlass ? 'Shuffle All' : 'SHUFFLE ARCHIVE'}
+            <Shuffle size={13} color="var(--accent-color)" />
+            <span>{isAppleGlass ? 'Shuffle All' : 'SHUFFLE ARCHIVE'}</span>
           </button>
+
+          {/* Dedicated Wide Keyboard Shortcuts Button */}
           <button
             className="bma-btn"
             onClick={() => setIsShortcutsOpen(true)}
             style={{
-              padding: isAppleGlass ? '8px 14px' : '7px 12px',
-              fontSize: isAppleGlass ? '11px' : '9px',
-              borderRadius: isAppleGlass ? '999px' : '0',
-            }}
-            title="Keyboard shortcuts (⌘ / ?)"
-          >
-            <Command size={12} />
-          </button>
-          <button
-            className="bma-btn"
-            onClick={() => setIsChangelogOpen(true)}
-            style={{
-              padding: isAppleGlass ? '8px 12px' : '7px 10px',
-              fontSize: isAppleGlass ? '11px' : '9px',
-              borderRadius: isAppleGlass ? '999px' : '0',
+              width: '100%',
+              padding: isAppleGlass ? '9px 14px' : '8px 12px',
+              fontSize: isAppleGlass ? '11px' : '9.5px',
+              fontWeight: 600,
+              borderRadius: isAppleGlass ? '12px' : '4px',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
-              color: 'var(--accent-color)',
-              borderColor: 'var(--accent-color)',
+              justifyContent: 'space-between',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              transition: 'all 0.16s ease',
             }}
-            title="System Changelog (v1.9.0 — Update 09)"
+            title="Open keyboard shortcuts cheat sheet"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-bright)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+            }}
           >
-            <Sparkles size={12} />
-            <span>v1.9 // LOG</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Command size={13} />
+              <span>KEYBOARD SHORTCUTS</span>
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                fontWeight: 700,
+                background: 'rgba(255, 255, 255, 0.08)',
+                padding: '2px 6px',
+                borderRadius: '3px',
+                color: 'var(--text-primary)',
+              }}
+            >
+              ⌘ / ?
+            </span>
           </button>
         </div>
+
+        {/* Sidebar In-App Update Widget */}
+        {updateState.hasUpdate && (
+          <div
+            style={{
+              marginTop: '12px',
+              padding: isAppleGlass ? '12px 14px' : '10px 12px',
+              background: isAppleGlass ? 'rgba(255, 199, 44, 0.08)' : 'var(--bg-secondary)',
+              border: '1px solid var(--accent-color)',
+              borderRadius: isAppleGlass ? '12px' : '0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-color)', display: 'inline-block', boxShadow: '0 0 8px var(--accent-color)' }} />
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    color: 'var(--accent-color)',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  UPDATE AVAILABLE
+                </span>
+              </div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '9px',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                v{updateState.latestVersion}
+              </span>
+            </div>
+
+            {updateState.isDownloading && (
+              <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '4px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${updateState.downloadPercent}%`,
+                    height: '100%',
+                    background: 'var(--accent-color)',
+                    transition: 'width 0.2s ease',
+                  }}
+                />
+              </div>
+            )}
+
+            <button
+              onClick={() => updateService.downloadAndRestart()}
+              className="bma-btn"
+              style={{
+                width: '100%',
+                padding: '7px 10px',
+                fontSize: '9.5px',
+                fontWeight: 700,
+                background: 'var(--accent-color)',
+                color: 'var(--bg-primary)',
+                borderColor: 'var(--accent-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              {updateState.isReadyToRestart ? (
+                <>
+                  <RefreshCw size={11} />
+                  <span>RESTART TO APPLY</span>
+                </>
+              ) : updateState.isDownloading ? (
+                <span>DOWNLOADING ({updateState.downloadPercent}%)</span>
+              ) : (
+                <>
+                  <Download size={11} />
+                  <span>INSTALL UPDATE v{updateState.latestVersion}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => updateService.dismissUpdate()}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '9px',
+                cursor: 'pointer',
+                textAlign: 'center',
+                padding: '2px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+            >
+              Dismiss for now
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

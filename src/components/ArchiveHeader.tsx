@@ -1,9 +1,9 @@
 import React from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { Play, Shuffle, Download } from 'lucide-react';
+import { Play, Shuffle, Disc } from 'lucide-react';
 
 export const ArchiveHeader: React.FC = () => {
-  const { activeArchive, playEntireArchive, theme, openZipModal } = usePlayer();
+  const { activeArchive, playEntireArchive, theme, setIsMixtapeModalOpen } = usePlayer();
 
   if (!activeArchive) return null;
 
@@ -106,7 +106,7 @@ export const ArchiveHeader: React.FC = () => {
             <Shuffle size={isAppleGlass ? 13 : 10} style={{ marginRight: '6px' }} /> SHUFFLE
           </button>
           <button
-            onClick={() => openZipModal(activeArchive)}
+            onClick={() => setIsMixtapeModalOpen(true)}
             className="bma-btn"
             style={{
               padding: isAppleGlass ? '8px 20px' : '6px 16px',
@@ -116,15 +116,104 @@ export const ArchiveHeader: React.FC = () => {
               letterSpacing: '0.08em',
               display: 'inline-flex',
               alignItems: 'center',
-              background: 'transparent',
-              borderColor: 'var(--accent-color)',
-              color: 'var(--accent-color)',
             }}
-            title="Download complete playlist package as .ZIP"
+            title="Create Virtual Cassette Mixtape (A-Side & B-Side)"
           >
-            <Download size={isAppleGlass ? 13 : 10} style={{ marginRight: '6px' }} /> DOWNLOAD ZIP
+            <Disc size={isAppleGlass ? 13 : 10} style={{ marginRight: '6px' }} /> MIXTAPE
           </button>
         </div>
+      </div>
+
+      {/* Right Column: Audio Repository Metrics & Artwork Monolith */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}
+      >
+        {/* Repository Hardware Tags */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '4px',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '9px',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <span
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                padding: '2px 7px',
+                color: 'var(--accent-color)',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+              }}
+            >
+              {activeArchive.tracks.length} TRACKS
+            </span>
+
+            <span
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                padding: '2px 7px',
+                color: 'var(--text-secondary)',
+                letterSpacing: '0.06em',
+              }}
+            >
+              {activeArchive.totalDurationFormatted || '00:00:00'}
+            </span>
+          </div>
+
+          <div
+            style={{
+              color: 'var(--text-muted)',
+              fontSize: '8px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              maxWidth: '220px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            CURATOR: {activeArchive.curator || 'USER CURATED'}
+          </div>
+        </div>
+
+        {/* Thumbnail Preview Monolith */}
+        {activeArchive.coverImage && (
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-secondary)',
+              overflow: 'hidden',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            }}
+          >
+            <img
+              src={activeArchive.coverImage}
+              alt={activeArchive.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                filter: 'contrast(1.05)',
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

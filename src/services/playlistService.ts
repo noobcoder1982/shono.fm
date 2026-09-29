@@ -195,13 +195,68 @@ export const playlistService = {
     onProgress('BUILDING SHONO ARCHIVE INDEX', 85);
     await new Promise((r) => setTimeout(r, 350));
 
+    const currentArchives = storage.getArchives() || [];
+
+    // --- NEW LOGIC FOR SINGLE TRACKS ---
+    if (importedTracks.length === 1) {
+      let singlesArchive = currentArchives.find(a => a.id === 'archive_singles_001');
+      
+      if (singlesArchive) {
+        // Append track
+        const newTrack = { ...importedTracks[0], index: singlesArchive.tracks.length + 1 };
+        singlesArchive.tracks.push(newTrack);
+        
+        // Update duration
+        const totalSeconds = singlesArchive.tracks.reduce((acc, t) => acc + t.duration, 0);
+        const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const mins = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const secs = (totalSeconds % 60).toString().padStart(2, '0');
+        singlesArchive.totalDurationFormatted = `${hrs}:${mins}:${secs}`;
+        
+        onProgress('READY', 100);
+        await new Promise((r) => setTimeout(r, 200));
+
+        storage.saveArchives(currentArchives);
+        storage.setActiveArchiveId(singlesArchive.id);
+        
+        return singlesArchive;
+      } else {
+        // Create Singles Archive
+        const nextIndex = (currentArchives.length + 1).toString().padStart(3, '0');
+        const newArchive: Archive = {
+          id: 'archive_singles_001',
+          indexNumber: nextIndex,
+          title: 'SINGLES / STANDALONE',
+          curator: 'USER CURATED',
+          importedDate: new Date().toISOString().split('T')[0],
+          totalDurationFormatted: '',
+          sourceUrl: url,
+          coverImage: importedTracks[0]?.thumbnail || '/assets/sidebar_arch.jpg',
+          tracks: importedTracks,
+        };
+        const totalSeconds = importedTracks.reduce((acc, t) => acc + t.duration, 0);
+        const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const mins = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const secs = (totalSeconds % 60).toString().padStart(2, '0');
+        newArchive.totalDurationFormatted = `${hrs}:${mins}:${secs}`;
+
+        onProgress('READY', 100);
+        await new Promise((r) => setTimeout(r, 200));
+
+        const updated = [newArchive, ...currentArchives];
+        storage.saveArchives(updated);
+        storage.setActiveArchiveId(newArchive.id);
+        return newArchive;
+      }
+    }
+    // --- END NEW LOGIC ---
+
     const totalSeconds = importedTracks.reduce((acc, t) => acc + t.duration, 0);
     const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
     const mins = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
     const secs = (totalSeconds % 60).toString().padStart(2, '0');
     const totalDurationFormatted = `${hrs}:${mins}:${secs}`;
 
-    const currentArchives = storage.getArchives() || [];
     const nextIndex = (currentArchives.length + 1).toString().padStart(3, '0');
 
     const newArchive: Archive = {

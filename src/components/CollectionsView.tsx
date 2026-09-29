@@ -12,7 +12,7 @@ import {
   Search,
   ArrowRight,
   ListMusic,
-  Download,
+  Disc,
 } from 'lucide-react';
 import { PlaylistImporter } from './PlaylistImporter';
 import type { Archive } from '../types';
@@ -25,7 +25,7 @@ export const CollectionsView: React.FC = () => {
     playEntireArchive,
     deleteArchive,
     setActiveTab,
-    openZipModal,
+    setIsMixtapeModalOpen,
   } = usePlayer();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -207,23 +207,45 @@ export const CollectionsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick jump to tracklist */}
-        <button
-          onClick={() => setActiveTab('ARCHIVE')}
-          className="bma-btn"
-          style={{
-            padding: '7px 12px',
-            fontSize: '9.5px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'var(--bg-tertiary)',
-          }}
-          title="Open Tracklist for currently active archive"
-        >
-          <span>01 / ARCHIVE TRACKLIST</span>
-          <ArrowRight size={11} />
-        </button>
+        {/* Header Action Buttons */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setIsMixtapeModalOpen(true)}
+            className="bma-btn"
+            style={{
+              padding: '7px 12px',
+              fontSize: '9.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'var(--accent-subtle)',
+              borderColor: 'var(--accent-color)',
+              color: 'var(--accent-color)',
+              fontWeight: 700,
+            }}
+            title="Create Custom Virtual Cassette Mixtape (C-60 / C-90)"
+          >
+            <Disc size={11} />
+            <span>VIRTUAL MIXTAPE</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ARCHIVE')}
+            className="bma-btn"
+            style={{
+              padding: '7px 12px',
+              fontSize: '9.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'var(--bg-tertiary)',
+            }}
+            title="Open Tracklist for currently active archive"
+          >
+            <span>01 / ARCHIVE TRACKLIST</span>
+            <ArrowRight size={11} />
+          </button>
+        </div>
       </header>
 
       {/* METRICS STATS MONOLITH BAR */}
@@ -642,7 +664,7 @@ export const CollectionsView: React.FC = () => {
                         }}
                       >
                         <span style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-muted)', fontWeight: 700 }}>
-                          ARCH // {archive.id.slice(-3).toUpperCase() || (idx + 1).toString().padStart(3, '0')}
+                          ARCH // {archive.indexNumber || archive.id.slice(-3).toUpperCase() || (idx + 1).toString().padStart(3, '0')}
                         </span>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -739,40 +761,59 @@ export const CollectionsView: React.FC = () => {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'space-between',
+                            gap: '10px',
                             marginBottom: '6px',
                           }}
                         >
-                          <h2
-                            style={{
-                              fontFamily: 'var(--font-display)',
-                              fontSize: '22px',
-                              letterSpacing: '0.04em',
-                              margin: 0,
-                              color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                              lineHeight: 1.1,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {archive.title}
-                          </h2>
-                          <button
-                            onClick={(e) => handleStartRename(archive.id, archive.title, e)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: 'var(--text-muted)',
-                              cursor: 'pointer',
-                              padding: '2px 4px',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-                            title="Rename Collection"
-                          >
-                            <Edit2 size={10} />
-                          </button>
+                          {archive.coverImage && (
+                            <img
+                              src={archive.coverImage}
+                              alt=""
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                objectFit: 'cover',
+                                border: '1px solid var(--border-subtle)',
+                                flexShrink: 0,
+                              }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <h2
+                              style={{
+                                fontFamily: 'var(--font-display)',
+                                fontSize: '20px',
+                                letterSpacing: '0.04em',
+                                margin: 0,
+                                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                lineHeight: 1.1,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {archive.title}
+                            </h2>
+                            <button
+                              onClick={(e) => handleStartRename(archive.id, archive.title, e)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'var(--text-muted)',
+                                cursor: 'pointer',
+                                padding: '2px 4px',
+                                flexShrink: 0,
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+                              title="Rename Collection"
+                            >
+                              <Edit2 size={10} />
+                            </button>
+                          </div>
                         </div>
                       )}
 
@@ -886,26 +927,9 @@ export const CollectionsView: React.FC = () => {
                         onClick={(e) => handleOpenInArchive(archive, e)}
                         className="bma-btn"
                         style={{ padding: '5px 8px', fontSize: '8.5px' }}
-                        title="Open tracklist in 01 / ARCHIVE"
+                        title="Open tracklist in 01 / HOME"
                       >
                         <ListMusic size={10} />
-                      </button>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openZipModal(archive);
-                        }}
-                        className="bma-btn"
-                        style={{
-                          padding: '5px 8px',
-                          fontSize: '8.5px',
-                          color: 'var(--accent-color)',
-                          borderColor: 'var(--accent-color)',
-                        }}
-                        title="Download complete playlist package as .ZIP"
-                      >
-                        <Download size={10} />
                       </button>
                     </div>
                   </div>

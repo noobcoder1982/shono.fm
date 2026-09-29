@@ -1,36 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Sliders, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sliders, RotateCcw, ChevronDown, ChevronUp, Power } from 'lucide-react';
 import { audioEngine } from '../services/audioEngine';
 import {
-  EQ_FREQUENCIES,
-  EQ_FREQ_LABELS,
   EQ_PRESETS,
   loadEqualizerState,
   saveEqualizerState,
-  calculate10BandsFromMacro,
   type EqualizerState,
 } from '../services/equalizerService';
-
-// Short friendly names for preset chips (strictly no long sentences or paragraphs)
-const PRESET_SHORT_NAMES: Record<string, string> = {
-  flat: 'FLAT',
-  bass_boost: 'BASS+',
-  club: 'CLUB',
-  vocal: 'VOCAL',
-  rock: 'ROCK',
-  lofi: 'LO-FI',
-  acoustic: 'ACOUSTIC',
-  jazz: 'JAZZ',
-  electronic: 'ELECTRO',
-};
 
 export const SidebarEqualizer: React.FC = () => {
   const [eqState, setEqState] = useState<EqualizerState>(() => loadEqualizerState());
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('muszix_eq_expanded_v1') === 'true';
+      return localStorage.getItem('muszix_eq_expanded_v2') !== 'false';
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -38,44 +22,34 @@ export const SidebarEqualizer: React.FC = () => {
     setIsExpanded((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem('muszix_eq_expanded_v1', String(next));
-      } catch {
-        // ignore
-      }
+        localStorage.setItem('muszix_eq_expanded_v2', String(next));
+      } catch {}
       return next;
     });
   };
 
-  // Apply state to audio engine and save to local storage
+  // Sync state to audio engine and storage
   const applyAndSave = useCallback((newState: EqualizerState) => {
     setEqState(newState);
     saveEqualizerState(newState);
     audioEngine.setEqEnabled(newState.enabled);
     audioEngine.setEqualizerBands(newState.bands);
-    audioEngine.setPreamp(newState.preamp);
   }, []);
 
-  // Sync state to audio engine
   useEffect(() => {
     audioEngine.setEqEnabled(eqState.enabled);
     audioEngine.setEqualizerBands(eqState.bands);
-    audioEngine.setPreamp(eqState.preamp);
-  }, [eqState.enabled, eqState.bands, eqState.preamp]);
+  }, [eqState.enabled, eqState.bands]);
 
-  // Toggle EQ bypass / enabled
-  const toggleEnabled = () => {
+  // Toggle EQ power
+  const toggleEnabled = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const next = !eqState.enabled;
     const updated = { ...eqState, enabled: next };
     applyAndSave(updated);
   };
 
-  // Switch between Easy and Advanced modes
-  const setMode = (mode: 'easy' | 'advanced') => {
-    const updated: EqualizerState = { ...eqState, mode };
-    applyAndSave(updated);
-  };
-
-  // Preset Selection
+  // Select Preset
   const selectPreset = (presetId: string) => {
     const found = EQ_PRESETS.find((p) => p.id === presetId);
     if (!found) return;
@@ -84,60 +58,23 @@ export const SidebarEqualizer: React.FC = () => {
       ...eqState,
       selectedPreset: found.id,
       bands: [...found.bands],
-      bass: found.bass,
-      mid: found.mid,
-      treble: found.treble,
+      enabled: true, // Auto-enable when selecting a preset
     };
     applyAndSave(updated);
   };
 
-  // Macro fader adjustment (Easy mode)
-  const handleMacroChange = (param: 'bass' | 'mid' | 'treble', value: number) => {
-    const nextBass = param === 'bass' ? value : eqState.bass;
-    const nextMid = param === 'mid' ? value : eqState.mid;
-    const nextTreb = param === 'treble' ? value : eqState.treble;
-    const calculatedBands = calculate10BandsFromMacro(nextBass, nextMid, nextTreb);
-
-    const updated: EqualizerState = {
-      ...eqState,
-      [param]: value,
-      bands: calculatedBands,
-      selectedPreset: 'custom',
-    };
-    applyAndSave(updated);
-  };
-
-  // Single ISO band adjustment (Advanced mode)
-  const handleBandChange = (index: number, value: number) => {
-    const newBands = [...eqState.bands];
-    newBands[index] = value;
-
-    const approxBass = Math.round(((newBands[0] + newBands[1]) / 2) * 10) / 10;
-    const approxMid = Math.round(newBands[5] * 10) / 10;
-    const approxTreb = Math.round(((newBands[8] + newBands[9]) / 2) * 10) / 10;
-
-    const updated: EqualizerState = {
-      ...eqState,
-      bands: newBands,
-      bass: approxBass,
-      mid: approxMid,
-      treble: approxTreb,
-      selectedPreset: 'custom',
-    };
-    applyAndSave(updated);
-  };
-
-  // Reset to neutral flat response
-  const handleResetFlat = () => {
+  // Reset to flat
+  const handleResetFlat = (e: React.MouseEvent) => {
+    e.stopPropagation();
     selectPreset('flat');
   };
 
-  // SVG Frequency Response Curve path & gradient area generation
+  // Smooth SVG Frequency Curve
   const { curvePath, areaPath } = useMemo(() => {
-    const width = 280;
-    const height = 50;
+    const width = 230;
+    const height = 44;
     const midY = height / 2;
-    const maxDb = 12;
+    const maxDb = 10;
 
     const points = eqState.bands.map((db, idx) => {
       const x = (idx / (eqState.bands.length - 1)) * width;
@@ -148,573 +85,120 @@ export const SidebarEqualizer: React.FC = () => {
 
     if (points.length < 2) return { curvePath: '', areaPath: '' };
 
-    let d = `M ${points[0].x} ${points[0].y}`;
+    let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
     for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const cx = (p0.x + p1.x) / 2;
-      d += ` C ${cx} ${p0.y}, ${cx} ${p1.y}, ${p1.x} ${p1.y}`;
+      const p0 = points[i === 0 ? 0 : i - 1];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2 >= points.length ? points.length - 1 : i + 2];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
     }
 
-    const a = `${d} L ${width} ${height} L 0 ${height} Z`;
-    return { curvePath: d, areaPath: a };
+    const fill = `${path} L ${width} ${height} L 0 ${height} Z`;
+    return { curvePath: path, areaPath: fill };
   }, [eqState.bands, eqState.enabled]);
 
-  // Interactive mouse drag handler for custom vertical faders in Advanced mode
-  const handleFaderMouseDown = (idx: number, e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const trackEl = e.currentTarget;
-    const rect = trackEl.getBoundingClientRect();
-
-    const updateValue = (clientY: number) => {
-      const frac = Math.max(0, Math.min(1, (rect.bottom - clientY) / rect.height));
-      const db = Math.round((frac * 24 - 12) * 2) / 2; // -12dB to +12dB, step 0.5
-      handleBandChange(idx, db);
-    };
-
-    updateValue(e.clientY);
-
-    const onMouseMove = (me: MouseEvent) => {
-      updateValue(me.clientY);
-    };
-
-    const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  };
+  const activePreset = EQ_PRESETS.find((p) => p.id === eqState.selectedPreset) || EQ_PRESETS[0];
 
   return (
     <div
       style={{
-        border: '1px solid var(--border-color)',
         background: 'var(--bg-secondary)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '9.5px',
-        userSelect: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        maxWidth: '100%',
+        border: '1px solid var(--border-color)',
+        borderRadius: '6px',
         overflow: 'hidden',
-        boxSizing: 'border-box',
+        transition: 'border-color 0.2s ease',
       }}
     >
       {/* Header Bar */}
       <div
         onClick={toggleExpand}
         style={{
+          padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '8px 12px',
-          borderBottom: isExpanded ? '1px solid var(--border-color)' : 'none',
-          background: 'var(--bg-tertiary)',
-          overflow: 'hidden',
           cursor: 'pointer',
+          background: 'rgba(255, 255, 255, 0.02)',
+          userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-          <Sliders size={12} color={eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)'} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sliders size={13} color={eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)'} />
           <span
             style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '11px',
               fontWeight: 700,
-              letterSpacing: '0.12em',
+              letterSpacing: '0.08em',
               color: 'var(--text-primary)',
-              fontSize: '10px',
-              whiteSpace: 'nowrap',
             }}
           >
             EQUALIZER
           </span>
           <span
             style={{
-              fontSize: '8px',
-              padding: '1px 5px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--accent-color)',
-              fontWeight: 600,
+              fontFamily: 'var(--font-mono)',
+              fontSize: '9px',
+              fontWeight: 700,
+              color: eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)',
+              background: eqState.enabled ? 'var(--accent-subtle)' : 'rgba(255, 255, 255, 0.05)',
+              padding: '1px 6px',
+              borderRadius: '2px',
+              border: `1px solid ${eqState.enabled ? 'var(--accent-color)' : 'transparent'}`,
             }}
           >
-            {PRESET_SHORT_NAMES[eqState.selectedPreset] || eqState.selectedPreset.toUpperCase()}
+            {activePreset.name}
           </span>
         </div>
 
-        {/* Mode Selector & Power */}
-        <div
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Easy / Advanced Toggle */}
-          {isExpanded && (
-            <button
-              onClick={() => setMode(eqState.mode === 'easy' ? 'advanced' : 'easy')}
-              style={{
-                background: eqState.mode === 'advanced' ? 'var(--accent-color)' : 'var(--bg-primary)',
-                color: eqState.mode === 'advanced' ? 'var(--text-inverse)' : 'var(--text-secondary)',
-                border: eqState.mode === 'advanced' ? '1px solid var(--accent-color)' : '1px solid var(--border-bright)',
-                padding: '3px 7px',
-                fontSize: '8px',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                cursor: 'pointer',
-                transition: 'all 0.12s ease',
-              }}
-              title={eqState.mode === 'easy' ? 'Switch to 10-Band Advanced Mode' : 'Switch to Easy Mode'}
-            >
-              {eqState.mode === 'easy' ? 'ADV' : 'EASY'}
-            </button>
-          )}
-
-          {/* Active / Bypass Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Power toggle */}
           <button
+            type="button"
             onClick={toggleEnabled}
             style={{
-              background: eqState.enabled ? 'rgba(74, 222, 128, 0.15)' : 'transparent',
-              color: eqState.enabled ? 'var(--status-active)' : 'var(--text-muted)',
-              border: eqState.enabled ? '1px solid var(--status-active)' : '1px solid var(--border-subtle)',
-              padding: '3px 7px',
-              fontSize: '8px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.12s ease',
-            }}
-            title={eqState.enabled ? 'Bypass Equalizer' : 'Engage Equalizer'}
-          >
-            <span
-              style={{
-                width: '5px',
-                height: '5px',
-                borderRadius: '50%',
-                background: eqState.enabled ? 'var(--status-active)' : 'var(--text-muted)',
-                boxShadow: eqState.enabled ? '0 0 5px var(--status-active)' : 'none',
-              }}
-            />
-            {eqState.enabled ? 'ON' : 'OFF'}
-          </button>
-
-          {/* Collapse/Expand Toggle Chevron */}
-          <button
-            onClick={toggleExpand}
-            className="bma-btn-icon"
-            style={{ padding: '2px 4px' }}
-            title={isExpanded ? 'Collapse Equalizer' : 'Expand Equalizer'}
-          >
-            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-          </button>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <>
-      {/* Dynamic Visual Frequency Response Curve Screen */}
-      <div
-        style={{
-          padding: '6px 12px 4px 12px',
-          background: '#070709',
-          borderBottom: '1px solid var(--border-color)',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '7.5px',
-            color: 'var(--text-muted)',
-            marginBottom: '3px',
-            letterSpacing: '0.08em',
-          }}
-        >
-          <span>32 Hz</span>
-          <span style={{ color: eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)', fontWeight: 600 }}>
-            {eqState.selectedPreset.toUpperCase()} CURVE
-          </span>
-          <span>16 kHz</span>
-        </div>
-
-        <svg
-          viewBox="0 0 280 50"
-          preserveAspectRatio="none"
-          style={{ width: '100%', height: '42px', display: 'block' }}
-        >
-          <defs>
-            <linearGradient id="eqCurveGradientV2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={eqState.enabled ? 'var(--accent-color)' : '#666'} stopOpacity="0.22" />
-              <stop offset="100%" stopColor={eqState.enabled ? 'var(--accent-color)' : '#666'} stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-
-          {/* Reference dB Horizontal Grid Lines */}
-          <line x1="0" y1="9" x2="280" y2="9" stroke="var(--border-subtle)" strokeWidth="0.75" strokeDasharray="2 4" />
-          <line x1="0" y1="25" x2="280" y2="25" stroke="var(--border-bright)" strokeWidth="1" strokeDasharray="3 3" />
-          <line x1="0" y1="41" x2="280" y2="41" stroke="var(--border-subtle)" strokeWidth="0.75" strokeDasharray="2 4" />
-
-          {/* Shaded Area Under Curve */}
-          <path d={areaPath} fill="url(#eqCurveGradientV2)" />
-
-          {/* Dynamic Frequency Line */}
-          <path
-            d={curvePath}
-            fill="none"
-            stroke={eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)'}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-              filter: eqState.enabled ? 'drop-shadow(0 0 4px var(--accent-subtle))' : 'none',
-              transition: 'd 0.12s ease',
-            }}
-          />
-
-          {/* Control point markers */}
-          {eqState.bands.map((db, idx) => {
-            const x = (idx / (eqState.bands.length - 1)) * 280;
-            const effectiveDb = eqState.enabled ? db : 0;
-            const y = 25 - (effectiveDb / 12) * 19;
-            return (
-              <circle
-                key={idx}
-                cx={x}
-                cy={y}
-                r="2.5"
-                fill={eqState.enabled ? 'var(--text-primary)' : 'var(--text-muted)'}
-                stroke={eqState.enabled ? 'var(--accent-color)' : '#444'}
-                strokeWidth="1"
-              />
-            );
-          })}
-        </svg>
-      </div>
-
-      {/* Preset Chips Row (Shared across Easy & Advanced) */}
-      <div
-        style={{
-          padding: '8px 12px',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-secondary)',
-          boxSizing: 'border-box',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '8px',
-            color: 'var(--text-muted)',
-            marginBottom: '6px',
-            letterSpacing: '0.1em',
-          }}
-        >
-          <span>SOUND PROFILES</span>
-          <button
-            onClick={handleResetFlat}
-            style={{
-              background: 'none',
+              background: 'transparent',
               border: 'none',
-              color: 'var(--text-muted)',
               cursor: 'pointer',
-              fontSize: '8px',
+              padding: '4px',
               display: 'flex',
               alignItems: 'center',
-              gap: '3px',
-              padding: '2px 4px',
-              transition: 'color 0.12s ease',
+              justifyContent: 'center',
+              color: eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)',
+              transition: 'transform 0.1s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-            title="Reset to Flat Reference Curve (0 dB)"
+            title={eqState.enabled ? 'Bypass Equalizer' : 'Enable Equalizer'}
           >
-            <RotateCcw size={8} /> RESET FLAT
+            <Power size={13} />
           </button>
-        </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
-            gap: '4px',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          {EQ_PRESETS.map((p) => {
-            const isSelected = eqState.selectedPreset === p.id;
-            const shortName = PRESET_SHORT_NAMES[p.id] || p.name;
-            return (
-              <button
-                key={p.id}
-                onClick={() => selectPreset(p.id)}
-                style={{
-                  background: isSelected ? 'var(--text-primary)' : 'var(--bg-tertiary)',
-                  color: isSelected ? 'var(--text-inverse)' : 'var(--text-secondary)',
-                  border: isSelected ? '1px solid var(--text-primary)' : '1px solid var(--border-subtle)',
-                  padding: '5px 4px',
-                  fontSize: '8px',
-                  fontWeight: isSelected ? 700 : 500,
-                  letterSpacing: '0.04em',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.12s ease',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = 'var(--border-bright)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                  }
-                }}
-                title={p.description}
-              >
-                {shortName}
-              </button>
-            );
-          })}
+          {isExpanded ? <ChevronUp size={14} color="var(--text-muted)" /> : <ChevronDown size={14} color="var(--text-muted)" />}
         </div>
       </div>
 
-      {/* ============================================================ */}
-      {/* EASY MODE: 3 MACRO FADERS (BASS, MID, TREBLE)                */}
-      {/* ============================================================ */}
-      {eqState.mode === 'easy' ? (
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', boxSizing: 'border-box' }}>
-          {/* Bass Fader Card */}
+      {/* Expanded Controls Surface */}
+      {isExpanded && (
+        <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border-color)' }}>
+          {/* Acoustic Response Spectrum Visual */}
           <div
             style={{
-              background: 'var(--bg-tertiary)',
+              height: '44px',
+              background: 'rgba(0, 0, 0, 0.35)',
+              borderRadius: '4px',
               border: '1px solid var(--border-subtle)',
-              padding: '8px 10px',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <div>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '0.08em', fontSize: '9.5px' }}>
-                  BASS
-                </span>
-                <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-                  100 Hz • LOW END
-                </span>
-              </div>
-              <span
-                style={{
-                  color: eqState.bass !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                  fontWeight: 700,
-                  fontSize: '10px',
-                }}
-              >
-                {eqState.bass > 0 ? `+${eqState.bass.toFixed(1)}` : eqState.bass.toFixed(1)} dB
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqState.bass}
-              onChange={(e) => handleMacroChange('bass', parseFloat(e.target.value))}
-              onDoubleClick={() => handleMacroChange('bass', 0)}
-              style={{
-                width: '100%',
-                height: '5px',
-                accentColor: 'var(--accent-color)',
-                cursor: 'pointer',
-                display: 'block',
-              }}
-              title="Drag to adjust bass. Double-click to reset to 0dB."
-            />
-          </div>
-
-          {/* Mid Fader Card */}
-          <div
-            style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '8px 10px',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <div>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '0.08em', fontSize: '9.5px' }}>
-                  MID
-                </span>
-                <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-                  1 kHz • VOCALS
-                </span>
-              </div>
-              <span
-                style={{
-                  color: eqState.mid !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                  fontWeight: 700,
-                  fontSize: '10px',
-                }}
-              >
-                {eqState.mid > 0 ? `+${eqState.mid.toFixed(1)}` : eqState.mid.toFixed(1)} dB
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqState.mid}
-              onChange={(e) => handleMacroChange('mid', parseFloat(e.target.value))}
-              onDoubleClick={() => handleMacroChange('mid', 0)}
-              style={{
-                width: '100%',
-                height: '5px',
-                accentColor: 'var(--accent-color)',
-                cursor: 'pointer',
-                display: 'block',
-              }}
-              title="Drag to adjust mid. Double-click to reset to 0dB."
-            />
-          </div>
-
-          {/* Treble Fader Card */}
-          <div
-            style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '8px 10px',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <div>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '0.08em', fontSize: '9.5px' }}>
-                  TREBLE
-                </span>
-                <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-                  8 kHz • AIR
-                </span>
-              </div>
-              <span
-                style={{
-                  color: eqState.treble !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                  fontWeight: 700,
-                  fontSize: '10px',
-                }}
-              >
-                {eqState.treble > 0 ? `+${eqState.treble.toFixed(1)}` : eqState.treble.toFixed(1)} dB
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-12"
-              max="12"
-              step="0.5"
-              value={eqState.treble}
-              onChange={(e) => handleMacroChange('treble', parseFloat(e.target.value))}
-              onDoubleClick={() => handleMacroChange('treble', 0)}
-              style={{
-                width: '100%',
-                height: '5px',
-                accentColor: 'var(--accent-color)',
-                cursor: 'pointer',
-                display: 'block',
-              }}
-              title="Drag to adjust treble. Double-click to reset to 0dB."
-            />
-          </div>
-
-          {/* Preamp Output Trim */}
-          <div
-            style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '8px 10px',
-              boxSizing: 'border-box',
-              width: '100%',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <div>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '0.08em', fontSize: '9.5px' }}>
-                  PREAMP TRIM
-                </span>
-                <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-                  OUTPUT GAIN
-                </span>
-              </div>
-              <span
-                style={{
-                  color: eqState.preamp !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                  fontWeight: 700,
-                  fontSize: '10px',
-                }}
-              >
-                {eqState.preamp > 0 ? `+${eqState.preamp.toFixed(1)}` : eqState.preamp.toFixed(1)} dB
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-6"
-              max="6"
-              step="0.5"
-              value={eqState.preamp}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                const updated = { ...eqState, preamp: val };
-                applyAndSave(updated);
-              }}
-              onDoubleClick={() => {
-                const updated = { ...eqState, preamp: 0 };
-                applyAndSave(updated);
-              }}
-              style={{
-                width: '100%',
-                height: '5px',
-                accentColor: 'var(--accent-color)',
-                cursor: 'pointer',
-                display: 'block',
-                boxSizing: 'border-box',
-              }}
-              title="Preamp Output Trim (-6dB to +6dB). Double click to reset to 0dB."
-            />
-          </div>
-        </div>
-      ) : (
-        /* ============================================================ */
-        /* ADVANCED MODE: 10-BAND ISO GRAPHIC EQUALIZER RACK            */
-        /* ============================================================ */
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
-          {/* 10 Precision Interactive Vertical Faders Rack */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(10, 1fr)',
-              gap: '2px',
-              background: '#070709',
-              padding: '10px 4px',
-              border: '1px solid var(--border-color)',
+              marginBottom: '12px',
               position: 'relative',
-              boxSizing: 'border-box',
-              width: '100%',
+              overflow: 'hidden',
             }}
           >
-            {/* Horizontal 0dB Reference Guideline */}
+            {/* Center zero-dB guide line */}
             <div
               style={{
                 position: 'absolute',
@@ -722,180 +206,115 @@ export const SidebarEqualizer: React.FC = () => {
                 left: 0,
                 right: 0,
                 height: '1px',
-                background: 'var(--border-bright)',
-                pointerEvents: 'none',
-                zIndex: 1,
+                background: 'rgba(255, 255, 255, 0.07)',
               }}
             />
 
-            {eqState.bands.map((db, idx) => {
-              // Percentage height of slider handle: 0dB is 50%, +12dB is 100%, -12dB is 0%
-              const frac = (db + 12) / 24;
-              const handleBottomPct = Math.round(frac * 100);
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 230 44"
+              preserveAspectRatio="none"
+              style={{ display: 'block', position: 'relative', zIndex: 1 }}
+            >
+              <defs>
+                <linearGradient id="eqAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--accent-color)" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="var(--accent-color)" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+              {areaPath && <path d={areaPath} fill="url(#eqAreaGrad)" />}
+              {curvePath && (
+                <path
+                  d={curvePath}
+                  fill="none"
+                  stroke={eqState.enabled ? 'var(--accent-color)' : 'var(--text-muted)'}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              )}
+            </svg>
+          </div>
 
+          {/* 6 Curated Preset Buttons in 2x3 Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '6px',
+            }}
+          >
+            {EQ_PRESETS.map((preset) => {
+              const isSelected = eqState.selectedPreset === preset.id && eqState.enabled;
               return (
-                <div
-                  key={idx}
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => selectPreset(preset.id)}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden',
+                    padding: '8px 4px',
+                    borderRadius: '4px',
+                    background: isSelected ? 'var(--accent-color)' : 'rgba(255, 255, 255, 0.04)',
+                    border: isSelected ? '1px solid var(--accent-color)' : '1px solid var(--border-subtle)',
+                    color: isSelected ? 'var(--text-inverse, #000000)' : 'var(--text-secondary)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    cursor: 'pointer',
+                    transition: 'all 0.14s ease',
+                    textAlign: 'center',
+                    boxShadow: isSelected ? '0 0 10px var(--accent-glow)' : 'none',
+                  }}
+                  title={preset.description}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--border-bright)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                    }
                   }}
                 >
-                  {/* dB readout */}
-                  <span
-                    style={{
-                      fontSize: '7px',
-                      color: db !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                      fontWeight: 700,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {db > 0 ? `+${Math.round(db)}` : Math.round(db)}
-                  </span>
-
-                  {/* Tactile Vertical Fader Slot (Click or Drag anywhere to set) */}
-                  <div
-                    onMouseDown={(e) => handleFaderMouseDown(idx, e)}
-                    onDoubleClick={() => handleBandChange(idx, 0)}
-                    style={{
-                      position: 'relative',
-                      width: '100%',
-                      height: '84px',
-                      cursor: 'ns-resize',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      background: 'rgba(255,255,255,0.02)',
-                    }}
-                    title={`${EQ_FREQUENCIES[idx]} Hz: ${db} dB (Click & drag, double-click to zero)`}
-                  >
-                    {/* Vertical Slot Groove */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '4px',
-                        bottom: '4px',
-                        width: '2px',
-                        background: 'var(--border-subtle)',
-                        borderRadius: '1px',
-                      }}
-                    />
-
-                    {/* Active Accent Bar from center 0dB to handle */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        width: '3px',
-                        left: 'calc(50% - 1.5px)',
-                        top: db >= 0 ? `${100 - handleBottomPct}%` : '50%',
-                        height: db >= 0 ? `${handleBottomPct - 50}%` : `${50 - handleBottomPct}%`,
-                        background: 'var(--accent-color)',
-                        opacity: db !== 0 ? 0.8 : 0,
-                        transition: 'height 0.05s ease',
-                      }}
-                    />
-
-                    {/* Draggable Fader Knob */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: `calc(${handleBottomPct}% - 6px)`,
-                        left: 'calc(50% - 7px)',
-                        width: '14px',
-                        height: '12px',
-                        background: 'var(--text-primary)',
-                        border: '1px solid var(--accent-color)',
-                        borderRadius: '1px',
-                        boxShadow: db !== 0 ? '0 0 6px var(--accent-subtle)' : 'none',
-                        zIndex: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {/* Center Grip Line on Knob */}
-                      <div style={{ width: '8px', height: '1.5px', background: 'var(--text-inverse)' }} />
-                    </div>
-                  </div>
-
-                  {/* Frequency Label */}
-                  <span
-                    style={{
-                      fontSize: '7px',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1,
-                      letterSpacing: '-0.02em',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {EQ_FREQ_LABELS[idx]}
-                  </span>
-                </div>
+                  {preset.name}
+                </button>
               );
             })}
           </div>
 
-          {/* Preamp Trim & Station Telemetry */}
-          <div
-            style={{
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-subtle)',
-              padding: '8px 10px',
-              boxSizing: 'border-box',
-              width: '100%',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-              <div>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '0.08em', fontSize: '9.5px' }}>
-                  PREAMP TRIM
-                </span>
-                <span style={{ fontSize: '7.5px', color: 'var(--text-muted)', marginLeft: '6px' }}>
-                  MASTER GAIN
-                </span>
-              </div>
-              <span
-                style={{
-                  color: eqState.preamp !== 0 ? 'var(--accent-color)' : 'var(--text-muted)',
-                  fontWeight: 700,
-                  fontSize: '10px',
-                }}
-              >
-                {eqState.preamp > 0 ? `+${eqState.preamp.toFixed(1)}` : eqState.preamp.toFixed(1)} dB
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-6"
-              max="6"
-              step="0.5"
-              value={eqState.preamp}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                const updated = { ...eqState, preamp: val };
-                applyAndSave(updated);
-              }}
-              onDoubleClick={() => {
-                const updated = { ...eqState, preamp: 0 };
-                applyAndSave(updated);
-              }}
+          {/* Quick Flat Reset */}
+          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={handleResetFlat}
               style={{
-                width: '100%',
-                height: '5px',
-                accentColor: 'var(--accent-color)',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '9px',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
                 cursor: 'pointer',
-                display: 'block',
-                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 4px',
               }}
-              title="Preamp Output Trim (-6dB to +6dB). Double click to reset to 0dB."
-            />
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+            >
+              <RotateCcw size={10} />
+              <span>RESET FLAT</span>
+            </button>
           </div>
         </div>
-      )}
-      </>
       )}
     </div>
   );
