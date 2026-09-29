@@ -80,13 +80,14 @@
       ],
       "icon": "electron/icon.png",
       "category": "public.app-category.music",
-      "identity": "-",
+      "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
     "dmg": {
       "sign": false,
       "writeUpdateInfo": false
-    }
+    },
+    "publish": null
   }
 }

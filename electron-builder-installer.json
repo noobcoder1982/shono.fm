@@ -28,5 +28,6 @@
     "target": "portable",
     "artifactName": "shono.fm.Setup.1.3.0.exe",
     "signAndEditExecutable": false
-  }
+  },
+  "publish": null
 }

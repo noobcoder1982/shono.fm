@@ -32,12 +32,14 @@ jobs:
         run: npm run electron:build
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
           path: release/*.exe
+          if-no-files-found: warn
 
   # ----------------------------------------------------
   # 2. BUILD MACOS DISK IMAGE (.dmg & .zip)
@@ -61,9 +63,10 @@ jobs:
         run: npm run build
 
       - name: Package Mac DMG & ZIP
-        run: npx electron-builder --mac || npx electron-builder --mac -c.mac.target=zip
+        run: npx electron-builder --mac --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Mac Artifacts
         uses: actions/upload-artifact@v4
@@ -72,6 +75,7 @@ jobs:
           path: |
             dist-electron/app/*.dmg
             dist-electron/app/*.zip
+          if-no-files-found: warn
 
   # ----------------------------------------------------
   # 3. PUBLISH ALL TO GITHUB RELEASES
