@@ -13,7 +13,7 @@ const STORAGE_KEYS = {
   YT_ALTERNATIVE_CACHE: 'bma_yt_alternative_cache_v1',
 };
 
-export const CURRENT_APP_VERSION = '1.4.0';
+export const CURRENT_APP_VERSION = '1.4.1';
 
 export type BrutalistTheme =
   | 'noir'
