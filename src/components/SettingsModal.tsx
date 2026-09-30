@@ -142,8 +142,7 @@ export const SettingsModal: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState<BrutalistTheme>(theme);
   const [autoPlay, setAutoPlay] = useState(() => storage.getSettings().autoPlayNext);
   const [synthFallback, setSynthFallback] = useState(() => storage.getSettings().synthFallbackEnabled);
-  const [roundedCorners, setRoundedCorners] = useState(() => storage.getSettings().roundedCorners ?? false);
-  const [customCursor, setCustomCursor] = useState(() => storage.getSettings().customCursor || 'none');
+  const [roundedCorners, setRoundedCorners] = useState(() => storage.getSettings().roundedCorners ?? true);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   if (!isSettingsOpen) return null;
@@ -160,7 +159,6 @@ export const SettingsModal: React.FC = () => {
       autoPlayNext: autoPlay,
       synthFallbackEnabled: synthFallback,
       roundedCorners,
-      customCursor,
     });
     window.dispatchEvent(new CustomEvent('shono:settings-updated'));
     setSavedSuccess(true);
@@ -466,47 +464,6 @@ export const SettingsModal: React.FC = () => {
               onChange={(e) => setRoundedCorners(e.target.checked)}
               style={{ width: '18px', height: '18px', accentColor: 'var(--accent-color)', cursor: 'pointer' }}
             />
-          </div>
-
-          {/* Custom Cursor Selector */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 0',
-              borderTop: '1px solid var(--border-subtle)',
-              borderBottom: '1px solid var(--border-subtle)',
-              marginBottom: '24px',
-            }}
-          >
-            <div>
-              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                HARDWARE CUSTOM CURSOR
-              </div>
-              <div style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                Choose dynamic in-app interactive cursor feel and reticle
-              </div>
-            </div>
-            <select
-              value={customCursor}
-              onChange={(e) => setCustomCursor(e.target.value as any)}
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                padding: '6px 10px',
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              <option value="none">DEFAULT OS ARROW</option>
-              <option value="dot">NEON CYBER DOT</option>
-              <option value="ring">PRECISION RING</option>
-              <option value="crosshair">TACTICAL CROSSHAIR</option>
-            </select>
           </div>
 
           {/* Action Buttons */}

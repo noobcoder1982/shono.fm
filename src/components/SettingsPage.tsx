@@ -6,7 +6,6 @@ import {
   type BrutalistTheme,
   type DynamicColorSource,
   type LyricsFontSize,
-  type CustomCursorStyle,
 } from '../services/storage';
 import { dynamicColorService } from '../services/dynamicColorService';
 import {
@@ -18,6 +17,7 @@ import {
 import { updateService, type UpdateState } from '../services/updateService';
 import { discordRpcService } from '../services/discordRpcService';
 import { startTutorial } from './TutorialOverlay';
+import { CHANGELOG_RELEASES, LATEST_RELEASE } from '../config/changelogData';
 import {
   Palette,
   Disc,
@@ -33,10 +33,9 @@ import {
   Sparkles,
   RotateCcw,
   Radio,
-  MousePointer,
 } from 'lucide-react';
 
-export type SettingsSection = 'APPEARANCE' | 'PLAYER' | 'LYRICS' | 'PLAYBACK' | 'CURSOR' | 'DISCORD' | 'STORAGE' | 'ABOUT' | 'BETA';
+export type SettingsSection = 'APPEARANCE' | 'PLAYER' | 'LYRICS' | 'PLAYBACK' | 'DISCORD' | 'STORAGE' | 'ABOUT' | 'BETA';
 
 interface ThemeOption {
   id: BrutalistTheme;
@@ -253,12 +252,9 @@ export const SettingsPage: React.FC = () => {
     showNotification(next ? 'BPM & Key badges enabled' : 'BPM & Key badges hidden');
   };
 
-  // Rounded UI and Custom Cursor states
+  // Rounded UI state
   const [roundedCorners, setRoundedCorners] = useState<boolean>(
-    () => storage.getSettings().roundedCorners ?? false
-  );
-  const [customCursor, setCustomCursor] = useState<CustomCursorStyle>(
-    () => storage.getSettings().customCursor || 'none'
+    () => storage.getSettings().roundedCorners ?? true
   );
 
   const handleToggleRoundedCorners = () => {
@@ -267,13 +263,6 @@ export const SettingsPage: React.FC = () => {
     storage.saveSettings({ roundedCorners: next });
     window.dispatchEvent(new CustomEvent('shono:settings-updated'));
     showNotification(next ? 'Rounded Corner UI enabled' : 'Sharp industrial UI restored');
-  };
-
-  const handleSelectCustomCursor = (val: CustomCursorStyle) => {
-    setCustomCursor(val);
-    storage.saveSettings({ customCursor: val });
-    window.dispatchEvent(new CustomEvent('shono:settings-updated'));
-    showNotification(`Hardware cursor set to ${val === 'none' ? 'Default OS' : val.toUpperCase()}`);
   };
 
   // Storage and update state
@@ -512,7 +501,6 @@ export const SettingsPage: React.FC = () => {
     { id: 'PLAYER', label: 'Player', icon: <Disc size={16} /> },
     { id: 'LYRICS', label: 'Lyrics', icon: <AlignLeft size={16} /> },
     { id: 'PLAYBACK', label: 'Playback', icon: <Sliders size={16} /> },
-    { id: 'CURSOR', label: 'Cursor', icon: <MousePointer size={16} /> },
     { id: 'DISCORD', label: 'Discord RPC', icon: <Radio size={16} /> },
     { id: 'STORAGE', label: 'Storage', icon: <Database size={16} /> },
     { id: 'ABOUT', label: 'About', icon: <Info size={16} /> },
@@ -1566,182 +1554,7 @@ export const SettingsPage: React.FC = () => {
             </>
           )}
 
-          {/* =========================================================================
-              SECTION: CUSTOM HARDWARE CURSOR
-             ========================================================================= */}
-          {activeSection === 'CURSOR' && (
-            <>
-              {/* Header Card */}
-              <section className="settings-card">
-                <div className="settings-card-header">
-                  <div>
-                    <h2 style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 4px 0', textTransform: 'none', fontFamily: 'var(--font-sans)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>Hardware Custom Cursor Engine</span>
-                      <span style={{ fontSize: '10px', background: 'var(--accent-subtle)', color: 'var(--accent-color)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>v1.3</span>
-                    </h2>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                      Low-latency custom pointer physics with dynamic tactile feedback and reactive magnetic target hover.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Cursor Style Options Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '12px' }}>
-                  {[
-                    {
-                      id: 'none',
-                      name: 'System Default',
-                      desc: 'Standard operating system mouse pointer',
-                      preview: (
-                        <div style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <MousePointer size={20} color="var(--text-secondary)" />
-                        </div>
-                      ),
-                    },
-                    {
-                      id: 'dot',
-                      name: 'Neon Cyber Dot',
-                      desc: 'Precision laser point with glowing ambient particle halo',
-                      preview: (
-                        <div style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                          <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)' }} />
-                          <div style={{ position: 'absolute', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-color)', boxShadow: '0 0 8px var(--accent-color)' }} />
-                        </div>
-                      ),
-                    },
-                    {
-                      id: 'ring',
-                      name: 'Precision Ring',
-                      desc: 'High-tech reticle that smoothly expands around buttons',
-                      preview: (
-                        <div style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1.5px solid var(--accent-color)', background: 'var(--accent-subtle)' }} />
-                          <div style={{ position: 'absolute', width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-color)' }} />
-                        </div>
-                      ),
-                    },
-                    {
-                      id: 'crosshair',
-                      name: 'Tactical Reticle',
-                      desc: 'Audio studio crosshair with alignment tick marks',
-                      preview: (
-                        <div style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.3)' }} />
-                          <div style={{ position: 'absolute', top: 2, width: '2px', height: '6px', background: 'var(--accent-color)' }} />
-                          <div style={{ position: 'absolute', bottom: 2, width: '2px', height: '6px', background: 'var(--accent-color)' }} />
-                          <div style={{ position: 'absolute', left: 2, width: '6px', height: '2px', background: 'var(--accent-color)' }} />
-                          <div style={{ position: 'absolute', right: 2, width: '6px', height: '2px', background: 'var(--accent-color)' }} />
-                          <div style={{ position: 'absolute', width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-color)' }} />
-                        </div>
-                      ),
-                    },
-                  ].map((item) => {
-                    const isSelected = customCursor === item.id;
-                    return (
-                      <div
-                        key={item.id}
-                        onClick={() => handleSelectCustomCursor(item.id as CustomCursorStyle)}
-                        style={{
-                          background: isSelected ? 'var(--bg-secondary)' : 'var(--bg-primary)',
-                          border: `1px solid ${isSelected ? 'var(--accent-color)' : 'var(--border-color)'}`,
-                          borderRadius: '8px',
-                          padding: '14px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '10px',
-                          transition: 'all 0.15s ease',
-                          boxShadow: isSelected ? '0 0 12px var(--accent-subtle)' : 'none',
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          {item.preview}
-                          {isSelected && <Check size={14} color="var(--accent-color)" />}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {item.name}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.3 }}>
-                            {item.desc}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* Interactive Test Playground */}
-              <section className="settings-card">
-                <div className="settings-card-header">
-                  <div>
-                    <h3 style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 2px 0', textTransform: 'none', fontFamily: 'var(--font-sans)' }}>
-                      Interactive Cursor Playground
-                    </h3>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-                      Move around, hover over buttons and trigger click interactions below to test pointer responsiveness.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    background: 'var(--bg-primary)',
-                    border: '1px dashed var(--border-color)',
-                    borderRadius: '8px',
-                    padding: '24px',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '16px',
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="bma-btn"
-                    style={{ padding: '8px 18px', fontSize: '11px' }}
-                    onClick={() => showNotification('Hover interaction confirmed!')}
-                  >
-                    HOVER ME
-                  </button>
-
-                  <button
-                    type="button"
-                    className="col-vault-add-btn"
-                    style={{ padding: '8px 18px', fontSize: '11px' }}
-                    onClick={() => showNotification('Vault button target confirmed!')}
-                  >
-                    VAULT TARGET
-                  </button>
-
-                  <button
-                    type="button"
-                    className="bma-btn bma-btn-primary"
-                    style={{ padding: '8px 18px', fontSize: '11px' }}
-                    onClick={() => showNotification('Primary button response confirmed!')}
-                  >
-                    CLICK TEST
-                  </button>
-
-                  <input
-                    type="text"
-                    placeholder="Input focus test..."
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border-color)',
-                      color: 'var(--text-primary)',
-                      padding: '8px 12px',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '11px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              </section>
-            </>
-          )}
 
           {/* =========================================================================
               SECTION: DISCORD RICH PRESENCE (BENTO BOX UI)
@@ -2235,92 +2048,66 @@ export const SettingsPage: React.FC = () => {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <h2 style={{ fontSize: '15px', fontWeight: 600, margin: 0, textTransform: 'none', fontFamily: 'var(--font-sans)' }}>
-                        What's New in v1.2.0
+                        What's New in v{LATEST_RELEASE.version}
                       </h2>
                       <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--accent-color)', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
-                        BETA
+                        LATEST
                       </span>
                     </div>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                      Latest features and improvements in this release.
+                      {LATEST_RELEASE.tagline}
                     </p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      🖥️ Compact Floating Mini-Deck & Windows Desktop Integration
+                  {LATEST_RELEASE.features.map((feat, i) => (
+                    <div key={i}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{feat.title}</span>
+                        {feat.badge && (
+                          <span style={{ fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '3px', background: 'var(--accent-subtle)', color: 'var(--accent-color)' }}>
+                            {feat.badge}
+                          </span>
+                        )}
+                      </div>
+                      <div>{feat.description}</div>
                     </div>
-                    <div>
-                      Always-on-top frosted-glass floating widget styled like a vintage cassette tape with spinning hubs, playback scrubber, and quick controls. Native Windows Media Transport Controls (SMTC), global keyboard media keys, and system tray controller with minimize-to-tray.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      📝 Aesthetic Lyric Card / Poster Generator
-                    </div>
-                    <div>
-                      Select 2–4 lines of lyrics in the Fullscreen player to generate high-res, beautifully typeset graphic cards featuring album artwork, track title, and typography ready to copy or download.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      🎤 Word-by-Word Karaoke Glow & Enhanced LRC Support
-                    </div>
-                    <div>
-                      Smooth word-level highlight animation synced to vocals for tracks with enhanced timestamp data.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      📼 Virtual Mixtape / Cassette Deck (A-Side & B-Side)
-                    </div>
-                    <div>
-                      Create custom virtual cassettes with fixed run times (C-60, C-90), customizable J-card spine labels, and animated spinning cassette reels.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      🏷️ BPM & Musical Key Badges
-                    </div>
-                    <div>
-                      Minimalist hardware tags displayed on track rows and player info (e.g., 124 BPM • D Minor), perfect for cohesive playlist curation.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      🎚️ DJ Crossfade & Gapless Playback
-                    </div>
-                    <div>
-                      Smooth, configurable 1s to 8s crossfade transition between queue tracks so playback never cuts abruptly.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      📻 "Infinite Archive" (Radio Mode) & Dual-Needle Vintage VU Meters
-                    </div>
-                    <div>
-                      Auto-resolves and queues 5 matching tracks when queue ends. Switchable dual-needle analog stereo VU meters with realistic ballistic inertia and CRT oscilloscope.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                      🎨 5 New Clean Themes
-                    </div>
-                    <div>
-                      Added Blue, Dark, Dark+, Beige, and Green themes with curated color palettes.
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </section>
+
+              {/* Previous Versions Archive */}
+              {CHANGELOG_RELEASES.filter((r) => !r.isLatest).map((rel) => (
+                <section key={rel.version} className="settings-card" style={{ opacity: 0.85 }}>
+                  <div className="settings-card-header">
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h2 style={{ fontSize: '14px', fontWeight: 600, margin: 0, textTransform: 'none', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>
+                          Version v{rel.version}
+                        </h2>
+                        <span style={{ fontSize: '9px', padding: '1px 5px', borderRadius: '3px', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                          {rel.date}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                        {rel.tagline}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {rel.features.slice(0, 3).map((feat, j) => (
+                      <div key={j}>
+                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
+                          {feat.title}
+                        </div>
+                        <div>{feat.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
 
               {/* 3. External Links */}
               <section className="settings-card">

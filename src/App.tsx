@@ -24,7 +24,9 @@ import { MixtapeModal } from './components/MixtapeModal';
 import { ShonoLoader } from './components/ShonoLoader';
 import { ShonoLoaderPrototypeModal } from './components/ShonoLoaderPrototypeModal';
 import { UniversalSearchResultsView } from './components/UniversalSearchResultsView';
-import { CustomCursor } from './components/CustomCursor';
+import { MovieModeModal } from './components/MovieModeModal';
+import { CheatNotification } from './components/CheatNotification';
+import { useMovieModeCheat } from './hooks/useMovieModeCheat';
 import { storage } from './services/storage';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Check, X } from 'lucide-react';
@@ -43,10 +45,18 @@ const MainLayout: React.FC = () => {
     dismissSessionToast,
   } = usePlayer();
   const [isPrototypeOpen, setIsPrototypeOpen] = useState(false);
+  const [isMovieModeOpen, setIsMovieModeOpen] = useState(false);
+
+  // Secret cheat code listener (CINEMA, SHOWTIME, MOVIE)
+  const cheatNotification = useMovieModeCheat(
+    (act) => setIsMovieModeOpen((prev) => (act !== undefined ? act : !prev)),
+    isMovieModeOpen
+  );
 
   useEffect(() => {
     const applyRoundedCorners = () => {
-      const isRounded = Boolean(storage.getSettings().roundedCorners);
+      // Default to rounded corners for sleek desktop aesthetic
+      const isRounded = storage.getSettings().roundedCorners ?? true;
       if (isRounded) {
         document.documentElement.classList.add('rounded-ui');
       } else {
@@ -316,7 +326,8 @@ const MainLayout: React.FC = () => {
       <TutorialOverlay />
       <MixtapeModal isOpen={isMixtapeModalOpen} onClose={() => setIsMixtapeModalOpen(false)} />
       <ShonoLoaderPrototypeModal isOpen={isPrototypeOpen} onClose={() => setIsPrototypeOpen(false)} />
-      <CustomCursor />
+      <MovieModeModal isOpen={isMovieModeOpen} onClose={() => setIsMovieModeOpen(false)} />
+      <CheatNotification notification={cheatNotification} />
     </div>
   );
 };

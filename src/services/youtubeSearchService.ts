@@ -88,6 +88,209 @@ export function isYouTubeUrl(input: string): boolean {
   return domainPattern.test(clean) || queryPattern.test(clean) || shortlinkPattern.test(clean);
 }
 
+/**
+ * Resilient Zero-Quota YouTube search fallback using internal YouTube search.
+ * Triggers automatically when Google Data API v3 quota is exhausted (HTTP 403)
+ * or if no API key is configured.
+ */
+async function fallbackYoutubeSearch(
+  query: string,
+  filter: SearchFilter = 'ALL',
+  signal?: AbortSignal
+): Promise<UniversalSearchResults> {
+  const trimmed = query.trim();
+  try {
+    const res = await fetch('https://www.youtube.com/youtubei/v1/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: 'WEB',
+            clientVersion: '2.20240101.00.00',
+            hl: 'en',
+            gl: 'US',
+          },
+        },
+        query: trimmed,
+      }),
+      signal,
+    });
+
+    if (!res.ok) throw new Error(`Fallback HTTP ${res.status}`);
+    const data = await res.json();
+    const contents =
+      data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+
+    const rawItems: any[] = [];
+    for (const section of contents) {
+      if (section.itemSectionRenderer?.contents) {
+        rawItems.push(...section.itemSectionRenderer.contents);
+      }
+    }
+
+    const collections: YoutubeSearchResultCollection[] = [];
+    const tracks: YoutubeSearchResultTrack[] = [];
+    const channels: YoutubeSearchResultChannel[] = [];
+
+    let trackIdx = 0;
+    for (const it of rawItems) {
+      if (it.videoRenderer && (filter === 'ALL' || filter === 'TRACKS')) {
+        const vr = it.videoRenderer;
+        const videoId = vr.videoId;
+        if (!videoId) continue;
+        const title = decodeHtmlEntities(vr.title?.runs?.[0]?.text || 'Untitled Track');
+        const channelTitle = decodeHtmlEntities(vr.ownerText?.runs?.[0]?.text || 'YouTube Creator');
+        const channelId = vr.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId;
+        const thumbArr = vr.thumbnail?.thumbnails || [];
+        const thumbnail = thumbArr[thumbArr.length - 1]?.url || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        const durFormatted = vr.lengthText?.simpleText || '03:30';
+        const durParts = durFormatted.split(':').map(Number);
+        const durSec =
+          durParts.length === 2
+            ? durParts[0] * 60 + durParts[1]
+            : (durParts[0] * 3600 + durParts[1] * 60 + durParts[2]) || 210;
+
+        tracks.push({
+          type: 'TRACK',
+          id: videoId,
+          title,
+          channelTitle,
+          channelId,
+          thumbnail,
+          duration: durSec,
+          durationFormatted: durFormatted,
+          publishedAt: vr.publishedTimeText?.simpleText,
+          track: {
+            id: `track_yt_${videoId}_${trackIdx}_${Date.now()}`,
+            youtubeId: videoId,
+            index: trackIdx + 1,
+            title,
+            artist: channelTitle,
+            album: 'YouTube Archive',
+            year: 2026,
+            duration: durSec,
+            durationFormatted: durFormatted,
+            thumbnail,
+            genre: 'Archive Stream',
+            source: 'YOUTUBE_API',
+          },
+        });
+        trackIdx++;
+      } else if (it.playlistRenderer && (filter === 'ALL' || filter === 'COLLECTIONS')) {
+        const pr = it.playlistRenderer;
+        const playlistId = pr.playlistId;
+        if (!playlistId) continue;
+        const title = decodeHtmlEntities(pr.title?.simpleText || pr.title?.runs?.[0]?.text || 'Collection');
+        const channelTitle = decodeHtmlEntities(pr.shortBylineText?.runs?.[0]?.text || 'Curator');
+        const thumbArr = pr.thumbnails?.[0]?.thumbnails || [];
+        const thumbnail = thumbArr[thumbArr.length - 1]?.url || '';
+        const count = parseInt(pr.videoCount || '0', 10);
+
+        collections.push({
+          type: 'COLLECTION',
+          id: playlistId,
+          title,
+          channelTitle,
+          thumbnail,
+          trackCount: count,
+        });
+      } else if (it.channelRenderer && (filter === 'ALL' || filter === 'CHANNELS')) {
+        const cr = it.channelRenderer;
+        const channelId = cr.channelId;
+        if (!channelId) continue;
+        const title = decodeHtmlEntities(cr.title?.simpleText || 'Channel');
+        const thumbArr = cr.thumbnail?.thumbnails || [];
+        const thumbnail = thumbArr[thumbArr.length - 1]?.url || '';
+
+        channels.push({
+          type: 'CHANNEL',
+          id: channelId,
+          title,
+          description: cr.descriptionSnippet?.runs?.[0]?.text || '',
+          thumbnail,
+        });
+      }
+    }
+
+    return { collections, tracks, channels, query: trimmed };
+  } catch (err) {
+    console.warn('[youtubeSearchService] Fallback youtubei search failed:', err);
+    throw new Error('Unable to search YouTube at this time.');
+  }
+}
+
+/**
+ * Resilient Zero-Quota YouTube playlist track extractor fallback.
+ * Uses YouTube internal browse API when Google Data API quota is exhausted (HTTP 403)
+ * or if no API key is provided.
+ */
+async function fallbackFetchCollectionTracks(
+  playlistId: string,
+  collectionTitle: string,
+  signal?: AbortSignal
+): Promise<Track[]> {
+  try {
+    const browseId = playlistId.startsWith('VL') ? playlistId : `VL${playlistId}`;
+    const res = await fetch('https://www.youtube.com/youtubei/v1/browse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: 'WEB',
+            clientVersion: '2.20240101.00.00',
+            hl: 'en',
+            gl: 'US',
+          },
+        },
+        browseId,
+      }),
+      signal,
+    });
+    if (!res.ok) throw new Error(`Fallback browse HTTP ${res.status}`);
+    const data = await res.json();
+    const findObjects = (obj: any, key: string, resList: any[] = []): any[] => {
+      if (!obj || typeof obj !== 'object') return resList;
+      if (obj[key]) resList.push(obj[key]);
+      for (const k of Object.keys(obj)) findObjects(obj[k], key, resList);
+      return resList;
+    };
+
+    const lockups = findObjects(data, 'lockupViewModel');
+    if (!lockups.length) return [];
+
+    return lockups
+      .filter((it: any) => it.contentId && typeof it.contentId === 'string' && it.contentId.length === 11)
+      .map((it: any, idx: number) => {
+        const videoId = it.contentId;
+        const label = it.rendererContext?.accessibilityContext?.label || '';
+        const cleanTitle = label.replace(/\s+\d+\s+(?:minutes?|hours?|seconds?).*$/i, '').trim();
+        const displayTitle = decodeHtmlEntities(cleanTitle || `Track ${idx + 1}`);
+
+        return {
+          id: `track_yt_${videoId}_${idx}_${Date.now()}`,
+          youtubeId: videoId,
+          index: idx + 1,
+          title: displayTitle,
+          artist: decodeHtmlEntities(collectionTitle || 'YouTube Artist'),
+          album: decodeHtmlEntities(collectionTitle || 'Collection'),
+          year: 2026,
+          duration: 215,
+          durationFormatted: '03:35',
+          thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+          genre: 'Collection Stream',
+          source: 'YOUTUBE_API' as const,
+        };
+      });
+  } catch (err) {
+    console.warn('[youtubeSearchService] Fallback fetchCollectionTracks notice:', err);
+    return [];
+  }
+}
+
 export const youtubeSearchService = {
   isYouTubeUrl,
 
@@ -110,8 +313,11 @@ export const youtubeSearchService = {
     const settings = storage.getSettings();
     const apiKey = settings.youtubeApiKey;
 
+    // Zero-Quota Fallback if API Key not set
     if (!apiKey) {
-      throw new Error('API_KEY_MISSING: Configure your YouTube API key in Settings.');
+      const results = await fallbackYoutubeSearch(trimmed, filter, signal);
+      searchCache.set(cacheKey, { data: results, timestamp: Date.now() });
+      return results;
     }
 
     try {
@@ -225,6 +431,10 @@ export const youtubeSearchService = {
             { signal }
           ),
         ]);
+
+        if (plRes.status === 403 || vidRes.status === 403 || (!plRes.ok && !vidRes.ok)) {
+          throw new Error('QUOTA_OR_NETWORK_ERROR');
+        }
 
         if (plRes.ok) {
           const plData = await plRes.json();
@@ -386,13 +596,16 @@ export const youtubeSearchService = {
       if (err.name === 'AbortError') {
         throw err;
       }
-      // Check if YouTube quota error response
-      if (err instanceof Response) {
-        if (err.status === 403) {
-          throw new Error('QUOTA_EXCEEDED: YouTube search limit reached. Try again later or update your API key.');
-        }
+      console.warn('[youtubeSearchService] Google API search failed or quota reached. Seamlessly activating zero-quota fallback...', err);
+      try {
+        const results = await fallbackYoutubeSearch(trimmed, filter, signal);
+        searchCache.set(cacheKey, { data: results, timestamp: Date.now() });
+        return results;
+      } catch (fallbackErr: any) {
+        if (fallbackErr.name === 'AbortError') throw fallbackErr;
+        console.error('[youtubeSearchService] Fallback search also failed:', fallbackErr);
+        throw new Error("Couldn't search YouTube. Try again.");
       }
-      throw new Error("Couldn't search YouTube. Try again.");
     }
   },
 
@@ -405,82 +618,86 @@ export const youtubeSearchService = {
     const settings = storage.getSettings();
     const apiKey = settings.youtubeApiKey;
     if (!apiKey) {
-      throw new Error('API_KEY_MISSING: Configure your YouTube API key in Settings.');
+      return fallbackFetchCollectionTracks(playlistId, collectionTitle, signal);
     }
 
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${playlistId}&key=${apiKey}`,
-      { signal }
-    );
-
-    if (!res.ok) {
-      if (res.status === 403) {
-        throw new Error('QUOTA_EXCEEDED: YouTube API quota limit reached. Try again later.');
-      }
-      throw new Error("Couldn't fetch playlist tracks. Verify the playlist is public.");
-    }
-
-    const data = await res.json();
-    if (!data.items || data.items.length === 0) {
-      return [];
-    }
-
-    const validItems = data.items.filter(
-      (item: any) =>
-        item.snippet &&
-        item.snippet.resourceId?.videoId &&
-        item.snippet.title !== 'Private video' &&
-        item.snippet.title !== 'Deleted video'
-    );
-
-    const videoIds = validItems.map((it: any) => it.snippet.resourceId.videoId).join(',');
-    const durationMap = new Map<string, { seconds: number; formatted: string }>();
-
-    if (videoIds) {
-      try {
-        const vidRes = await fetch(
-          `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`,
-          { signal }
-        );
-        if (vidRes.ok) {
-          const vidData = await vidRes.json();
-          (vidData.items || []).forEach((item: any) => {
-            if (item.id && item.contentDetails?.duration) {
-              durationMap.set(item.id, parseIsoDuration(item.contentDetails.duration));
-            }
-          });
-        }
-      } catch {
-        // Durations fallback to default
-      }
-    }
-
-    return validItems.map((item: any, idx: number) => {
-      const videoId = item.snippet.resourceId.videoId;
-      const dur = durationMap.get(videoId) || { seconds: 215, formatted: '03:35' };
-      const title = decodeHtmlEntities(item.snippet.title || `Track ${idx + 1}`);
-      const artist = decodeHtmlEntities(
-        item.snippet.videoOwnerChannelTitle?.replace(/ - Topic$/i, '') || 'YouTube Creator'
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${playlistId}&key=${apiKey}`,
+        { signal }
       );
 
-      return {
-        id: `track_yt_${videoId}_${idx}_${Date.now()}`,
-        youtubeId: videoId,
-        index: idx + 1,
-        title,
-        artist,
-        album: decodeHtmlEntities(collectionTitle),
-        year: item.snippet.publishedAt ? new Date(item.snippet.publishedAt).getFullYear() : 2026,
-        duration: dur.seconds,
-        durationFormatted: dur.formatted,
-        thumbnail:
-          item.snippet.thumbnails?.high?.url ||
-          item.snippet.thumbnails?.medium?.url ||
-          item.snippet.thumbnails?.default?.url ||
-          `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-        genre: 'Session Collection',
-        source: 'YOUTUBE_API',
-      };
-    });
+      if (!res.ok) {
+        console.warn(`[youtubeSearchService] Google API playlistItems status ${res.status}. Falling back to zero-quota extractor...`);
+        return fallbackFetchCollectionTracks(playlistId, collectionTitle, signal);
+      }
+
+      const data = await res.json();
+      if (!data.items || data.items.length === 0) {
+        return fallbackFetchCollectionTracks(playlistId, collectionTitle, signal);
+      }
+
+      const validItems = data.items.filter(
+        (item: any) =>
+          item.snippet &&
+          item.snippet.resourceId?.videoId &&
+          item.snippet.title !== 'Private video' &&
+          item.snippet.title !== 'Deleted video'
+      );
+
+      const videoIds = validItems.map((it: any) => it.snippet.resourceId.videoId).join(',');
+      const durationMap = new Map<string, { seconds: number; formatted: string }>();
+
+      if (videoIds) {
+        try {
+          const vidRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`,
+            { signal }
+          );
+          if (vidRes.ok) {
+            const vidData = await vidRes.json();
+            (vidData.items || []).forEach((item: any) => {
+              if (item.id && item.contentDetails?.duration) {
+                durationMap.set(item.id, parseIsoDuration(item.contentDetails.duration));
+              }
+            });
+          }
+        } catch {
+          // Durations fallback to default
+        }
+      }
+
+      return validItems.map((item: any, idx: number) => {
+        const videoId = item.snippet.resourceId.videoId;
+        const dur = durationMap.get(videoId) || { seconds: 215, formatted: '03:35' };
+        const title = decodeHtmlEntities(item.snippet.title || `Track ${idx + 1}`);
+        const artist = decodeHtmlEntities(
+          item.snippet.videoOwnerChannelTitle?.replace(/ - Topic$/i, '') || 'YouTube Creator'
+        );
+
+        return {
+          id: `track_yt_${videoId}_${idx}_${Date.now()}`,
+          youtubeId: videoId,
+          index: idx + 1,
+          title,
+          artist,
+          album: decodeHtmlEntities(collectionTitle),
+          year: item.snippet.publishedAt ? new Date(item.snippet.publishedAt).getFullYear() : 2026,
+          duration: dur.seconds,
+          durationFormatted: dur.formatted,
+          thumbnail:
+            item.snippet.thumbnails?.high?.url ||
+            item.snippet.thumbnails?.medium?.url ||
+            item.snippet.thumbnails?.default?.url ||
+            `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+          genre: 'Session Collection',
+          source: 'YOUTUBE_API',
+        };
+      });
+    } catch (err: any) {
+      if (err.name === 'AbortError') throw err;
+      console.warn('[youtubeSearchService] FetchCollectionTracks error, calling fallback...', err);
+      return fallbackFetchCollectionTracks(playlistId, collectionTitle, signal);
+    }
   },
 };

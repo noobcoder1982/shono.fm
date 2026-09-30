@@ -34,13 +34,16 @@ export interface UpdateState {
 type UpdateListener = (state: UpdateState) => void;
 
 function cleanVersion(v: string): number[] {
-  const cleaned = v.replace(/^v/i, '').trim();
-  const parts = cleaned.split('.').map((p) => parseInt(p, 10) || 0);
+  if (!v) return [0, 0, 0];
+  const cleaned = v.replace(/^[^\d]*/i, '').trim();
+  const main = cleaned.split(/[-+]/)[0];
+  const parts = main.split('.').map((p) => parseInt(p, 10) || 0);
   while (parts.length < 3) parts.push(0);
   return parts;
 }
 
 export function isNewerVersion(latest: string, current: string): boolean {
+  if (!latest || !current) return false;
   const [latMaj, latMin, latPatch] = cleanVersion(latest);
   const [curMaj, curMin, curPatch] = cleanVersion(current);
 
@@ -85,6 +88,14 @@ class UpdateService {
           this.state.currentVersion = electronVer;
         }
       } catch {}
+    }
+
+    // Sync with previously installed tag if newer than current binary
+    if (typeof window !== 'undefined') {
+      const installedTag = localStorage.getItem('shono_installed_update_tag');
+      if (installedTag && isNewerVersion(installedTag, this.state.currentVersion)) {
+        this.state.currentVersion = installedTag.replace(/^v/i, '');
+      }
     }
 
     // Listen to download progress from Electron IPC
@@ -155,7 +166,20 @@ class UpdateService {
 
       const release: GitHubRelease = await res.json();
       const latestTag = release.tag_name || '';
-      const hasNew = isNewerVersion(latestTag, this.state.currentVersion);
+      let hasNew = isNewerVersion(latestTag, this.state.currentVersion);
+
+      // Verify against installed or dismissed version tags
+      if (typeof window !== 'undefined') {
+        const installedTag = localStorage.getItem('shono_installed_update_tag');
+        if (installedTag && !isNewerVersion(latestTag, installedTag)) {
+          hasNew = false;
+        }
+
+        const dismissedTag = localStorage.getItem('shono_dismissed_version');
+        if (dismissedTag && !isNewerVersion(latestTag, dismissedTag)) {
+          hasNew = false;
+        }
+      }
 
       // Look for a Windows installer (.exe) in release assets
       const exeAsset = release.assets?.find(
@@ -207,6 +231,11 @@ class UpdateService {
       (window as any).electronAPI?.downloadAndInstallUpdate &&
       this.state.downloadUrl.toLowerCase().endsWith('.exe')
     ) {
+      if (this.state.latestVersion) {
+        try {
+          localStorage.setItem('shono_installed_update_tag', this.state.latestVersion);
+        } catch {}
+      }
       this.updateState({ isDownloading: true, downloadPercent: 0, error: null });
       try {
         const res = await (window as any).electronAPI.downloadAndInstallUpdate({
@@ -219,12 +248,22 @@ class UpdateService {
         this.updateState({ isDownloading: false, error: err.message });
       }
     } else {
+      if (this.state.latestVersion) {
+        try {
+          localStorage.setItem('shono_installed_update_tag', this.state.latestVersion);
+        } catch {}
+      }
       // Fallback: Open GitHub release download in default browser
       window.open(this.state.downloadUrl || this.state.releaseUrl, '_blank');
     }
   }
 
   public dismissUpdate() {
+    if (this.state.latestVersion) {
+      try {
+        localStorage.setItem('shono_dismissed_version', this.state.latestVersion);
+      } catch {}
+    }
     this.updateState({ hasUpdate: false });
   }
 

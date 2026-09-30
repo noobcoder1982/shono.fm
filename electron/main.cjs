@@ -184,6 +184,8 @@ if (!gotTheLock) {
       frame: false, // Pure custom window controls to eliminate native overlapping
       titleBarStyle: 'hidden',
       autoHideMenuBar: true,
+      hasShadow: true,
+      roundedCorners: true,
       show: true, // Visible immediately to prevent hidden zombie state
       webPreferences: {
         preload: path.join(__dirname, 'preload.cjs'),
@@ -356,6 +358,74 @@ if (!gotTheLock) {
   ipcMain.on('restart-app', () => {
     app.relaunch();
     app.quit();
+  });
+
+  ipcMain.handle('download-and-install-update', async (_event, { downloadUrl }) => {
+    try {
+      if (!downloadUrl) throw new Error('No download URL provided');
+      const tempPath = path.join(app.getPath('temp'), 'SHONO-Update-Setup.exe');
+      const https = require('https');
+      const { spawn } = require('child_process');
+
+      function downloadFile(url, dest) {
+        return new Promise((resolve, reject) => {
+          const req = https.get(url, (response) => {
+            if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+              return downloadFile(response.headers.location, dest).then(resolve).catch(reject);
+            }
+            if (response.statusCode !== 200) {
+              return reject(new Error(`Failed to download installer: HTTP ${response.statusCode}`));
+            }
+
+            const totalBytes = parseInt(response.headers['content-length'] || '0', 10);
+            let downloadedBytes = 0;
+            const fileStream = fs.createWriteStream(dest);
+
+            response.on('data', (chunk) => {
+              downloadedBytes += chunk.length;
+              if (totalBytes > 0 && mainWindow && !mainWindow.isDestroyed()) {
+                const percent = Math.round((downloadedBytes / totalBytes) * 100);
+                mainWindow.webContents.send('update-download-progress', { percent });
+              }
+            });
+
+            response.pipe(fileStream);
+
+            fileStream.on('finish', () => {
+              fileStream.close(() => resolve());
+            });
+
+            fileStream.on('error', (err) => {
+              fs.unlink(dest, () => {});
+              reject(err);
+            });
+          });
+
+          req.on('error', reject);
+        });
+      }
+
+      await downloadFile(downloadUrl, tempPath);
+
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-download-progress', { percent: 100 });
+      }
+
+      setTimeout(() => {
+        try {
+          const child = spawn(tempPath, [], { detached: true, stdio: 'ignore' });
+          child.unref();
+          app.quit();
+        } catch (e) {
+          console.error('[main] Failed to spawn installer:', e);
+        }
+      }, 800);
+
+      return { success: true };
+    } catch (err) {
+      console.error('[main] Update download error:', err);
+      return { success: false, error: err.message };
+    }
   });
 
   // Discord Rich Presence IPC Handlers

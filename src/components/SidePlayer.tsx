@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { AppleLyrics } from './AppleLyrics';
 import { useArtwork } from '../services/artworkService';
@@ -15,7 +15,7 @@ import {
 export const SidePlayer: React.FC = () => {
   const {
     currentTrack,
-    playbackStatus: _playbackStatus,
+    playbackStatus,
     seek,
     openTrackDetail,
     toggleFullscreenPlayer,
@@ -29,7 +29,14 @@ export const SidePlayer: React.FC = () => {
     setSidePlayerTab,
   } = usePlayer();
 
+  const isPlaying = playbackStatus === 'PLAYING';
+
   const { artworkUrl, isYouTube } = useArtwork(currentTrack);
+  const [coverError, setCoverError] = useState(false);
+
+  useEffect(() => {
+    setCoverError(false);
+  }, [currentTrack?.id, artworkUrl]);
 
   const isAppleGlass = Boolean(theme && theme.startsWith('apple-glass'));
 
@@ -303,19 +310,48 @@ export const SidePlayer: React.FC = () => {
             }}
             title="Click to view full dossier"
           >
-            <img
-              src={artworkUrl || '/assets/now_playing_art.jpg'}
-              alt={currentTrack.title}
-              className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                borderRadius: '26px',
-                filter: 'none',
-              }}
-            />
+            {coverError ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'radial-gradient(circle, #1a1a24 0%, #08080a 100%)',
+                  color: 'var(--text-muted)',
+                  borderRadius: '26px',
+                }}
+              >
+                <Disc size={64} style={{ animation: isPlaying ? 'spin 6s linear infinite' : 'none', opacity: 0.6 }} />
+                <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', marginTop: '8px', opacity: 0.7, letterSpacing: '0.08em' }}>
+                  SHONO // AUDIO ARCHIVE
+                </span>
+              </div>
+            ) : (
+              <img
+                src={artworkUrl || (currentTrack.youtubeId ? `https://img.youtube.com/vi/${currentTrack.youtubeId}/hqdefault.jpg` : '/assets/now_playing_art.jpg')}
+                alt=""
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (currentTrack.youtubeId && !target.src.includes('mqdefault')) {
+                    target.src = `https://img.youtube.com/vi/${currentTrack.youtubeId}/mqdefault.jpg`;
+                  } else {
+                    setCoverError(true);
+                  }
+                }}
+                className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  borderRadius: '26px',
+                  filter: 'none',
+                }}
+              />
+            )}
           </div>
 
           {/* Song Title & Artist Metadata directly below artwork */}
@@ -376,20 +412,48 @@ export const SidePlayer: React.FC = () => {
             }}
             title="Click to view full dossier"
           >
-            <img
-              src={artworkUrl || '/assets/now_playing_art.jpg'}
-              alt={currentTrack.title}
-              className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                transition: 'transform 0.4s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            />
+            {coverError ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'radial-gradient(circle, #1a1a24 0%, #08080a 100%)',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                <Disc size={56} style={{ animation: isPlaying ? 'spin 6s linear infinite' : 'none', opacity: 0.6 }} />
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-mono)', marginTop: '8px', opacity: 0.7, letterSpacing: '0.08em' }}>
+                  SHONO // AUDIO ARCHIVE
+                </span>
+              </div>
+            ) : (
+              <img
+                src={artworkUrl || (currentTrack.youtubeId ? `https://img.youtube.com/vi/${currentTrack.youtubeId}/hqdefault.jpg` : '/assets/now_playing_art.jpg')}
+                alt=""
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (currentTrack.youtubeId && !target.src.includes('mqdefault')) {
+                    target.src = `https://img.youtube.com/vi/${currentTrack.youtubeId}/mqdefault.jpg`;
+                  } else {
+                    setCoverError(true);
+                  }
+                }}
+                className={`square-artwork-img ${isYouTube ? 'is-yt-fallback' : ''}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  transition: 'transform 0.4s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+              />
+            )}
           </div>
         </div>
       )}

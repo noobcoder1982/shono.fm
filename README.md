@@ -1,28 +1,54 @@
 <div align="center">
 
-  <img src="public/logo.png" alt="SHONO.FM Logo" width="128" height="128" />
+  <img src="public/logo.png" alt="SHONO.FM Monogram" width="120" height="120" style="border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);" />
 
-  # SHONO.FM
-  ### Precision Digital Sound Archive & Analog Turntable Console
+  # S H O N O . F M
+  ### PRECISION SOUND ARCHIVE & ANALOG CONSOLE
+  **v1.4.0 // INDUSTRIAL WORKSTATION**
 
-  [![Version](https://img.shields.io/badge/version-1.2.0-orange.svg?style=flat-square)](package.json)
-  [![Electron](https://img.shields.io/badge/Electron-44-47848F?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
-  [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+  [![Release](https://img.shields.io/badge/Release-v1.4.0-ff6b00.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/noobcoder1982/shono.fm/releases)
+  [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-000000.svg?style=for-the-badge&logo=apple&logoColor=white)](https://shonofm-software.vercel.app/)
+  [![License](https://img.shields.io/badge/License-MIT-333333.svg?style=for-the-badge)](LICENSE)
+  [![Audio DSP](https://img.shields.io/badge/DSP-Web%20Audio%2010--Band-22c55e.svg?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+
+  <br />
 
   <p align="center">
-    <b>SHONO.FM</b> is an audiophile-grade desktop sound console and precision archive that bridges streaming digital audio with tactical analog hardware aesthetics. Featuring dual playback interfaces, real-time Apple Music-style synchronized lyrics, Web Audio 10-band equalization, vinyl turntable simulation, Discord Rich Presence, and standalone offline archive exporting.
+    <b>SHONO.FM</b> bridges high-resolution streaming audio with tactile, physical analog hardware aesthetics.<br />
+    Featuring dual playback consoles, real-time Apple Music-grade kinetic lyrics, studio 10-band equalization,<br />
+    physical vinyl turntable physics, Discord Rich Presence, and standalone offline archive exporting.
   </p>
 
+  <br />
+
+  <!-- OFFICIAL DOWNLOAD CALLOUT -->
+  <table>
+    <tr>
+      <td align="center" style="background-color: #0c0d12; border: 1px solid #ff6b00; padding: 20px; border-radius: 12px;">
+        <h2 style="color: #ff6b00; margin: 0 0 10px 0;">⚡ OFFICIAL DESKTOP DOWNLOAD</h2>
+        <p style="font-size: 15px; margin: 0 0 14px 0; color: #ffffff;">
+          <b>DO NOT download the GitHub source code ZIP.</b><br />
+          The raw code zip does not contain executable files and will not launch without developer build tools.<br />
+          Download the official pre-compiled desktop app for <b>Windows</b> and <b>macOS</b> from our website:
+        </p>
+        <a href="https://shonofm-software.vercel.app/">
+          <img src="https://img.shields.io/badge/DOWNLOAD_FROM_OFFICIAL_WEBSITE-shonofm--software.vercel.app-ff6b00?style=for-the-badge&logo=vercel&logoColor=white" alt="Download on Official Website" height="42" />
+        </a>
+        <br /><br />
+        <small style="color: #888888;">Direct portal: <a href="https://shonofm-software.vercel.app/" style="color: #ff6b00;">https://shonofm-software.vercel.app/</a></small>
+      </td>
+    </tr>
+  </table>
+
+  <br />
+
   <p align="center">
-    <a href="#-key-features">Key Features</a> •
-    <a href="#-dual-playback-consoles">Consoles</a> •
-    <a href="#-audiophile-engine">Audio Engine</a> •
-    <a href="#-keyboard-shortcuts">Shortcuts</a> •
-    <a href="#-installation--usage">Installation</a> •
-    <a href="#-tech-stack">Tech Stack</a>
+    <a href="#-key-capabilities">Capabilities</a> •
+    <a href="#-dual-consoles">Consoles</a> •
+    <a href="#-zero-quota-engine">Audio Engine</a> •
+    <a href="#-tactile-shortcuts">Shortcuts</a> •
+    <a href="#-developer-setup">Developer Setup</a> •
+    <a href="#-architecture">Architecture</a>
   </p>
 
 </div>
@@ -31,214 +57,151 @@
 
 ## ⚡ Overview
 
-**SHONO.FM** strips away browser tab clutter, bloated streaming UIs, and generic flat designs in favor of an **industrial brutalist sound workstation**. Whether sourcing tracks from YouTube streams, local files, or imported playlists, SHONO.FM treats audio as a tangible archive with physical deck feedback, frequency telemetry, and zero-compromise playback controls.
-
----
-
-## ✨ Key Features
-
-### 🎛️ Dual Playback Consoles
-* **01 // ARCHIVE Mode**: A high-density, three-column audio console featuring an index repository sidebar, central track ledger with archive dossiers, and a dedicated telemetry sideplayer with real-time spectrum analysis.
-* **02 // MI6 Turntable Mode**: A skeuomorphic analog vinyl turntable simulation engineered with authentic platter inertia, multi-speed selection (**33 ⅓**, **45**, and **78 RPM**), physical tonearm cueing, and synthetic vinyl surface crackle.
-
-### 🎤 Synchronized Kinetic Lyrics
-* **Apple Music-Style Fluidity**: Real-time synchronized lyrics engine powered by multi-source API integration (LRCLIB, Lyrics.ovh, and local cache).
-* **Word-by-Word Karaoke**: Syllable & word-level highlighting with smooth scroll choreography.
-* **Lyric Card Generator**: Create and export high-resolution, beautifully styled lyric quote cards to share across social platforms.
-
-### 🎚️ 10-Band Graphic Equalizer & Master Telemetry
-* **Web Audio DSP Engine**: Studio-grade 10-band hardware equalizer spanning 32 Hz to 16 kHz with zero clipping.
-* **Master Telemetry Waveform**: Real-time oscilloscope and frequency spectrum visualizer powered by Web Audio `AnalyserNode`.
-* **Pro Audio Presets**: Includes *Flat*, *Bass Boost*, *Treble Boost*, *Vocal Focus*, *Electronic*, *Vinyl Warmth*, and *Rock*.
-* **Gapless Crossfader**: Smooth configurable crossfade transitions (0 to 8 seconds) between queue tracks.
-
-### 🎨 Industrial Design System & Dynamic Lighting
-* **12+ Calibrated Hardware Themes**:
-  * `noir` — Matte Obsidian & Monochrome Stealth
-  * `concrete` — Architectural Raw Brutalism
-  * `braun` — 1960s Dieter Rams Minimalist German Industrial
-  * `tapedeck` — Vintage Hi-Fi Cassette Deck Amber
-  * `phosphor` — 1980s CRT Terminal Monochromatic Green
-  * `swiss` — International Typographic Style High Contrast
-  * `stealth` — Deep OLED Pitch Black
-  * `dark_plus`, `blue`, `beige`, `green`
-* **Dynamic Artwork Color Extraction**: Extracts primary accents from album cover art in real-time, subtly tinting glow vectors and reactive visualizers.
-
-### 📼 Mini Deck & Immersive Fullscreen
-* **Mini Deck Cassette Widget**: Compact, floating, always-on-top retro cassette player with micro transport controls, time display, and instant restore.
-* **Fullscreen Now Playing**: Immersive full-window display with animated ambient art blur, reactive audio backdrops, and synchronized karaoke lyrics.
-
-### 📦 Standalone Archive Packaging & Mixtapes
-* **ZIP Archive Vault**: Export entire playlists into self-contained zip files containing:
-  * High-res album covers (`.jpg`/`.png`)
-  * Synced LRC lyric files (`.lrc`)
-  * Universal M3U8 playlists (`.m3u8`)
-  * Structured JSON metadata dossier
-  * Automated `yt-dlp` / `curl` scripts for permanent offline archiving
-* **Mixtape Maker**: Create, curate, and reorder custom mixtapes with custom tags, curators, and artwork.
-
-### 🖥️ Native Desktop Integration (Electron)
-* **Borderless Console Frame**: Bespoke frameless window with tactile custom industrial titlebar controls.
-* **Discord Rich Presence (RPC)**: Broadcasts current playing track, artist name, elapsed time, and dynamic cover art directly to your Discord profile.
-* **System MediaSession & Tray**: Native Windows media key controls, lock screen metadata integration, and background minimization to the system tray with transport menu.
-
----
-
-## 🎮 Dual Playback Consoles
+**SHONO.FM** strips away bloated streaming clutter and generic flat corporate interfaces in favor of an **industrial brutalist sound deck**. Sourcing tracks from YouTube, local archives, and custom playlists, SHONO.FM treats audio as a tangible archive with physical deck feedback, frequency telemetry, and zero-compromise playback controls.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                               SHONO.FM                                 │
+│                              SHONO.FM v1.4.0                           │
 ├───────────────┬────────────────────────────────────────┬───────────────┤
 │  01 // NAV    │  02 // ARCHIVE LEDGER                  │  03 // DECK   │
 │               │                                        │               │
-│ • Vault Index │  [🔍 Cmd+K Search / Playlist Importer] │ [Cover Art]   │
+│ • Vault Index │  [🔍 Cmd/Ctrl+K Universal Search]       │ [Cover Art]   │
 │ • Collections │                                        │ Track Title   │
 │ • Mixtapes    │  TRK  TITLE            ARTIST    TIME  │ Artist Name   │
 │ • Settings    │  001  Midnight City    M83       04:03 │ ───────────── │
 │               │  002  Instant Crush    Daft Punk 05:37 │ 10-Band EQ    │
 │ [Photo Quote] │  003  Nightcall        Kavinsky  04:18 │ Synced Lyrics │
-│               │  004  After Hours      Weeknd    06:01 │ Queue / Live  │
-├───────────────┴────────────────────────────────────────┴───────────────┤
-│  ▶ 01:24 ━━━━━━━━━━━━━━━━━━━●──────────────────────── 04:03  🔊 92%    │
-└────────────────────────────────────────────────────────────────────────┘
+└───────────────┴────────────────────────────────────────┴───────────────┘
 ```
 
-| Mode | Key Features |
-|---|---|
-| **Archive Console** | Structured tabular track ledger, playlist importing, quick-filter tagging, live frequency oscilloscope, persistent bottom playback strip. |
-| **MI6 Vinyl Deck** | Photorealistic spinning vinyl platter, tonearm tracking, variable RPM switches (33 ⅓, 45, 78), analog pitch slider, authentic vinyl surface crackle synthesis. |
+---
+
+## 🎛️ Key Capabilities
+
+### 1. Dual Playback Consoles
+* **01 // ARCHIVE Mode**: High-density 3-column studio console with vault navigation, central track ledger, and telemetry sideplayer.
+* **02 // MI6 Turntable Mode**: Skeuomorphic analog vinyl deck engineered with authentic platter inertia, multi-speed selection (**33 ⅓**, **45**, and **78 RPM**), physical tonearm cueing, and synthetic vinyl surface crackle.
+
+### 2. Autonomous Zero-Quota Search Engine
+* **Universal Search Bar**: Instantly search tracks, curated playlists, or entire YouTube creator channels.
+* **Instant URL Ingestion**: Paste any YouTube video, playlist, or mix URL directly into the search bar for zero-delay playback and library curation.
+* **Zero-Quota Protection**: Built-in autonomous fallback engine seamlessly recovers if Google Data API quotas are exhausted, guaranteeing 24/7 search availability.
+
+### 3. Apple Music-Grade Kinetic Lyrics
+* **Synced Typography**: Dynamic synchronized lyrics with word-level highlighting and choreography.
+* **Aesthetic Lyric Cards**: Highlight your favorite 2–4 lines of lyrics in Fullscreen player to generate beautiful graphic quote cards and posters ready for export.
+
+### 4. Studio 10-Band Graphic Equalizer & Master Telemetry
+* **10-Band Web Audio DSP**: Calibrated frequencies from 32 Hz to 16 kHz with zero distortion.
+* **Real-Time Oscilloscope**: Audio spectrum analyzer powered by Web Audio `AnalyserNode`.
+* **Pro Audio Presets**: *Flat*, *Bass Boost*, *Treble Boost*, *Vocal Focus*, *Electronic*, *Vinyl Warmth*, and *Rock*.
+* **Smooth Crossfader**: Configurable gapless track crossfading (0 to 8 seconds).
+
+### 5. Desktop-Grade Integration (Windows & macOS)
+* **Curved Hardware Frame**: Frameless desktop container with hardware-calibrated rounded corners and subtle drop shadows.
+* **Always-On-Top Mini Deck**: Floating cassette widget with animated spinning hubs and micro-controls.
+* **Smart Background Auto-Updater**: Native version engine that detects new releases, downloads installers in the background, and prevents duplicate alerts.
+* **Discord Rich Presence (RPC)**: Broadcasts current playing track, artist name, elapsed time, and dynamic artwork directly to your Discord status.
+* **System Tray Minimization**: Seamlessly minimize to the Windows/macOS tray with native media key support.
+
+### 6. Calibrated Industrial Themes
+Includes **12+ curated hardware themes**:
+`noir` • `concrete` • `braun` • `tapedeck` • `phosphor` • `swiss` • `stealth` • `dark_plus` • `blue` • `beige` • `green`
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## ⌨️ Tactile Shortcuts
 
-SHONO.FM is built for rapid, keyboard-centric control:
-
-| Key | Action |
-|---|---|
-| <kbd>Space</kbd> | Play / Pause |
-| <kbd>N</kbd> | Next Track |
-| <kbd>P</kbd> | Previous Track |
-| <kbd>S</kbd> | Toggle Shuffle |
-| <kbd>R</kbd> | Cycle Repeat Mode (`OFF` / `ALL` / `ONE`) |
-| <kbd>M</kbd> | Toggle Mute |
-| <kbd>Q</kbd> | Toggle Side Player Queue View |
-| <kbd>F</kbd> | Toggle Immersive Fullscreen Mode |
-| <kbd>I</kbd> | Toggle Minimalist Immersive Visualizer (in Fullscreen) |
-| <kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd> or <kbd>/</kbd> | Open Global Command Search & Importer |
-| <kbd>?</kbd> | Open Keyboard Shortcuts Cheat Sheet |
-| <kbd>Esc</kbd> | Dismiss Active Modals / Fullscreen / Search |
+| Key Binding | Function |
+| :--- | :--- |
+| <kbd>Space</kbd> | Play / Pause master transport |
+| <kbd>→</kbd> / <kbd>L</kbd> | Skip forward 5 seconds |
+| <kbd>←</kbd> / <kbd>J</kbd> | Skip backward 5 seconds |
+| <kbd>Shift</kbd> + <kbd>→</kbd> / <kbd>N</kbd> | Next track in queue |
+| <kbd>Shift</kbd> + <kbd>←</kbd> / <kbd>P</kbd> | Previous track |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Master volume increment / decrement |
+| <kbd>M</kbd> | Master audio mute toggle |
+| <kbd>F</kbd> | Fullscreen immersive visualizer |
+| <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>K</kbd> | Universal search & playlist importer |
+| <kbd>Ctrl</kbd> / <kbd>Cmd</kbd> + <kbd>,</kbd> | Preferences & audio hardware settings |
+| <kbd>Esc</kbd> | Close active modal, search, or drawer |
 
 ---
 
-## 🛠️ Tech Stack
+## 💻 Developer Setup & Contributing
 
-* **UI Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-* **Build Tool**: [Vite 8](https://vitejs.dev/)
-* **Desktop Runtime**: [Electron 44](https://www.electronjs.org/) + [electron-builder](https://www.electron.build/)
-* **Animation & Physics**: [GSAP 3](https://greensock.com/gsap/)
-* **Audio DSP**: Web Audio API (`AudioContext`, `BiquadFilterNode`, `AnalyserNode`)
-* **Audio Streams**: YouTube IFrame API & Web Audio Synthesizer Fallback
-* **Archive Compression**: [JSZip](https://stuk.github.io/jszip/)
-* **Desktop Integrations**: Discord RPC (`@discordjs/rpc`), System MediaSession API
-* **Icons**: [Lucide React](https://lucide.dev/)
+If you wish to build SHONO.FM from source or contribute to its development, follow the instructions below.  
+*(End users should download pre-compiled releases from the [official website](https://shonofm-software.vercel.app/)).*
 
----
-
-## 🚀 Installation & Usage
+<details>
+<summary><b>Click to expand Developer Instructions</b></summary>
 
 ### Prerequisites
-* [Node.js](https://nodejs.org/) (v18 or higher recommended)
-* `npm` or `pnpm` / `yarn`
+* [Node.js](https://nodejs.org/) (v20 or higher recommended)
+* `npm` or `pnpm`
 
-### 1. Clone the Repository
+### 1. Clone & Install
 ```bash
 git clone https://github.com/noobcoder1982/shono.fm.git
 cd shono.fm
-```
-
-### 2. Install Dependencies
-```bash
 npm install
 ```
 
-### 3. Run in Web Development Mode
+### 2. Run in Web Development Mode
 Starts the Vite development server with Hot Module Replacement (HMR):
 ```bash
 npm run dev
 ```
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-### 4. Run in Desktop Electron Mode
-Launches the standalone Electron desktop client alongside Vite:
+### 3. Run in Desktop Electron Mode
+Launches the Electron desktop environment:
 ```bash
 npm run electron:dev
 ```
 
-### 5. Packaging & Distribution
-
-To build native Windows desktop installers and executables:
+### 4. Compiling & Packaging
 
 ```bash
-# Compile web assets and pack asar archive
-npm run electron:pack
+# Verify TypeScript & compile production web bundle
+npm run build
 
-# Generate NSIS Windows installer and portable binary in /release
-npm run electron:installer
+# Package Windows NSIS installer
+npm run electron:build:installer
 
-# One-step build & package:
-npm run electron:build
+# Package macOS DMG (on macOS runner)
+npm run mac:build
 ```
 
-The output executables will be available in the `release/` directory:
-* **NSIS Setup Installer**: `release/shono.fm Setup.exe`
-* **Portable Executable**: `release/shono.fm Portable.exe`
+</details>
 
 ---
 
-## ⚙️ Configuration & Environment
-
-Copy `.env.example` to `.env.local` to customize optional API integrations:
-
-```env
-# Optional: YouTube Data API v3 key (improves search and playlist extraction quotas)
-VITE_YOUTUBE_API_KEY=your_youtube_api_key_here
-
-# Optional: Discord Client ID for custom Discord Rich Presence
-VITE_DISCORD_CLIENT_ID=your_discord_client_id_here
-```
-
----
-
-## 📂 Project Architecture
+## 📂 Architecture
 
 ```
 muszix/
 ├── electron/
-│   ├── main.cjs                # Electron main process, window management, Tray, local server
+│   ├── main.cjs                # Electron window manager, IPC router, auto-updater
 │   ├── discordRpc.cjs          # Discord Rich Presence IPC bridge
-│   ├── preload.cjs             # IPC context bridge
-│   └── installer.cjs           # Custom NSIS post-install hooks
+│   └── preload.cjs             # Secure IPC context bridge
 ├── src/
 │   ├── components/
-│   │   ├── mi6/                # MI6 Vinyl Turntable console & tracklist
-│   │   ├── AppleLyrics.tsx     # Apple Music-style dynamic kinetic lyrics view
-│   │   ├── FullscreenPlayer.tsx# Fullscreen visualizer & ambient glow player
-│   │   ├── MiniDeckWidget.tsx  # Floating retro cassette deck widget
-│   │   ├── MasterWaveform.tsx  # Real-time audio spectrum & oscilloscope
-│   │   ├── SidebarEqualizer.tsx# 10-band hardware equalizer sliders
-│   │   ├── LyricCardModal.tsx  # Social lyric quote card generator
-│   │   └── PlaylistImporter.tsx# Playlist URL parser & archive loader
+│   │   ├── mi6/                # MI6 Vinyl Turntable console & physics
+│   │   ├── AppleLyrics.tsx     # Apple Music kinetic synced lyrics
+│   │   ├── FullscreenPlayer.tsx# Ambient glow visualizer
+│   │   ├── MiniDeckWidget.tsx  # Floating cassette widget
+│   │   ├── MasterWaveform.tsx  # Oscilloscope & frequency spectrum
+│   │   ├── SettingsPage.tsx    # Hardware settings & dynamic changelog
+│   │   └── SidePlayer.tsx      # Dual-mode side telemetry player
 │   ├── services/
-│   │   ├── audioEngine.ts      # Web Audio API engine & YouTube stream driver
-│   │   ├── lyricsService.ts    # Multi-source LRC parser & synchronizer
-│   │   ├── archiveZipService.ts# Standalone ZIP dossier & metadata packaging
-│   │   ├── equalizerService.ts # DSP biquad filter nodes & preset bank
-│   │   ├── discordRpcService.ts# Electron Discord RPC dispatcher
-│   │   └── storage.ts          # LocalStorage & IndexedDB persistent vault
+│   │   ├── audioEngine.ts      # Web Audio DSP pipeline & YouTube stream driver
+│   │   ├── youtubeSearchService.ts # Resilient zero-quota search engine
+│   │   ├── updateService.ts    # Smart semver version engine & installer runner
+│   │   ├── lyricsService.ts    # Multi-source LRC synchronizer
+│   │   └── storage.ts          # Persistent vault & hardware settings
 │   ├── context/
-│   │   └── PlayerContext.tsx   # Global audio state machine & telemetry store
+│   │   └── PlayerContext.tsx   # Global reactive state machine
 │   └── App.tsx                 # Core console orchestrator
 └── package.json
 ```
@@ -249,9 +212,7 @@ muszix/
 
 This project is licensed under the [MIT License](LICENSE).
 
----
-
 <div align="center">
-  <sub>Engineered with precision for sound collectors and analog purists.</sub><br>
+  <sub>Engineered with precision for sound collectors and analog purists.</sub><br />
   <sub><b>SHONO.FM // SYSTEM AUDIO ARCHIVE</b></sub>
 </div>
