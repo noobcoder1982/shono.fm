@@ -19,7 +19,7 @@
   ],
   "extraMetadata": {
     "name": "shono-fm-setup",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "main": "electron/installer.cjs"
   },
   "compression": "normal",

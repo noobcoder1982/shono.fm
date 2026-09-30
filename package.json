@@ -4,7 +4,7 @@
   "description": "SHONO.FM — Precision Audio Archive",
   "author": "shono.fm",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {

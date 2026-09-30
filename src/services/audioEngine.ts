@@ -130,7 +130,6 @@ class AudioEngine {
         this.ytPlayer = new window.YT.Player('youtube-engine-mount', {
           height: '240',
           width: '240',
-          videoId: 'M7lc1UVf-VE',
           playerVars: {
             autoplay: 0,
             controls: 0,
@@ -562,6 +561,10 @@ class AudioEngine {
       this.pauseSynth();
     }
     this.setStatus('PAUSED');
+  }
+
+  public getYtPlayer(): any {
+    return this.ytPlayer;
   }
 
   public resume() {

@@ -4,9 +4,9 @@
 
   # S H O N O . F M
   ### PRECISION SOUND ARCHIVE & ANALOG CONSOLE
-  **v1.4.1 // INDUSTRIAL WORKSTATION**
+  **v1.4.2 // INDUSTRIAL WORKSTATION**
 
-  [![Release](https://img.shields.io/badge/Release-v1.4.1-ff6b00.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/noobcoder1982/shono.fm/releases)
+  [![Release](https://img.shields.io/badge/Release-v1.4.2-ff6b00.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/noobcoder1982/shono.fm/releases)
   [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-000000.svg?style=for-the-badge&logo=apple&logoColor=white)](https://shonofm-software.vercel.app/)
   [![License](https://img.shields.io/badge/License-MIT-333333.svg?style=for-the-badge)](LICENSE)
   [![Audio DSP](https://img.shields.io/badge/DSP-Web%20Audio%2010--Band-22c55e.svg?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)

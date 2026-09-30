@@ -15,7 +15,7 @@ export interface ChangelogRelease {
 
 export const CHANGELOG_RELEASES: ChangelogRelease[] = [
   {
-    version: '1.4.1',
+    version: '1.4.2',
     title: 'Zero-Quota Search Engine & Tactical Polish',
     date: 'September 2026',
     tagline: 'Failover Zero-Quota Ingestion, Smart Update Recognition, Curved Contours & High-Res Artwork Engine',

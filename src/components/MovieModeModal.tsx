@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
+import { audioEngine } from '../services/audioEngine';
 import {
   Play,
   Pause,
@@ -78,6 +79,20 @@ export const MovieModeModal: React.FC<MovieModeModalProps> = ({ isOpen, onClose 
       const mount = document.getElementById('youtube-engine-mount');
       const container = screenContainerRef.current;
       if (mount && container) {
+        if (currentTrack?.youtubeId) {
+          const yt = audioEngine.getYtPlayer();
+          if (yt && typeof yt.getVideoUrl === 'function') {
+            try {
+              const curUrl = yt.getVideoUrl() || '';
+              if (!curUrl.includes(currentTrack.youtubeId)) {
+                yt.loadVideoById({
+                  videoId: currentTrack.youtubeId,
+                  startSeconds: Math.floor(currentTime || 0),
+                });
+              }
+            } catch (e) {}
+          }
+        }
         container.appendChild(mount);
         mount.style.position = 'absolute';
         mount.style.left = '0';
